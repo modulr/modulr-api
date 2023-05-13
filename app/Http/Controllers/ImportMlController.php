@@ -8,84 +8,34 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Carbon\Carbon;
+use App\Helpers\ApiMl;
 
 class ImportMlController extends Controller
 {
-    private $storeMl;
-
     // app()->call('App\Http\Controllers\ImportMlController@getIds');
     public function getIds (Request $request)
     {
-        $ids = [];
-        $scrollId = null;
+        $conexion = ApiMl::conexion($request->id);
 
-        if (!$this->checkToken($request->id)) {
+        if (!$conexion) {
             return view('welcome', ['error' => 'No se pudo refrescar el token']);
         }
 
-        do {
+        $ids = ApiMl::getItems($conexion);
 
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer '.$this->storeMl->access_token,
-            ])->get('https://api.mercadolibre.com/users/'.$this->storeMl->user_id.'/items/search', [
-                'status' => 'active',
-                'search_type' => 'scan',
-                'limit' => 100,
-                'scroll_id' => $scrollId,
-            ]);
-
-            $scrollId = $response['scroll_id'];
-            $ids = array_merge($ids, $response['results']);
-
-        } while (count($response['results']) > 0);
-
-        Storage::put('ml-ids.json', json_encode($ids));
-
-        logger($ids);
-
-        return view('welcome', ['id' => $request->id, 'ids' => $ids]);
+        return view('welcome', ['store' => $conexion, 'ids' => $ids]);
     }
 
     // app()->call('App\Http\Controllers\ImportMlController@getNewIds');
     public function getNewIds (Request $request)
     {
-        $ids = [];
-        $scrollId = null;
-        $results = [];
-        $status = '';
+        $conexion = ApiMl::conexion($request->id);
 
-        if (!$this->checkToken($request->id)) {
+        if (!$conexion) {
             return view('welcome', ['error' => 'No se pudo refrescar el token']);
         }
 
-        do {
-
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer '.$this->storeMl->access_token,
-            ])->get('https://api.mercadolibre.com/users/'.$this->storeMl->user_id.'/items/search', [
-                'status' => 'active',
-                'search_type' => 'scan',
-                'limit' => 100,
-                'scroll_id' => $scrollId,
-            ]);
-
-            if (isset($response['scroll_id'])) {
-                $scrollId = $response['scroll_id'];
-            }
-
-            if (isset($response['scroll_id'])) {
-                $ids = array_merge($ids, $response['results']);
-            }
-
-            if (isset($response['results'])) {
-                $results = $response['results'];
-            }
-
-            if (isset($response['status'])) {
-                $status = $response['status'];
-            }
-
-        } while (count($results) > 0 || $status == 400);
+        $ids = ApiMl::getItems($conexion);
 
         $idsDB = DB::table('autoparts')
                     ->where('store_ml_id', $request->id)
@@ -109,13 +59,15 @@ class ImportMlController extends Controller
             ]);
         }
 
-        return view('welcome', ['id' => $request->id, 'ids' => $idsNew]);
+        return view('welcome', ['store' => $conexion, 'ids' => $idsNew]);
     }
 
     // app()->call('App\Http\Controllers\ImportMlController@import');
     public function import(Request $request)
     {
-        if (!$this->checkToken($request->id)) {
+        $conexion = ApiMl::conexion($request->id);
+
+        if (!$conexion) {
             return view('welcome', ['error' => 'No se pudo refrescar el token']);
         }
 
@@ -124,15 +76,9 @@ class ImportMlController extends Controller
                             ->where('import', 0)
                             ->get();
 
-        logger($autopartsMl);
-
         foreach($autopartsMl as $item) {
 
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer '.$this->storeMl->access_token,
-            ])->get('https://api.mercadolibre.com/items', [
-                'ids' => $item->ml_id,
-            ]);
+            $response = ApiMl::getItem($conexion, $item->ml_id);
 
             $autopart = [];
 
@@ -309,19 +255,19 @@ class ImportMlController extends Controller
                 ->leftJoin('autopart_list_status', 'autopart_list_status.id', '=', 'autoparts_ml.status_id')
                 ->select('autoparts_ml.*', 'autopart_list_makes.name as make', 'autopart_list_models.name as model', 'autopart_list_origins.name as origin', 'autopart_list_status.name as status')
                 ->where('autoparts_ml.store_ml_id', $request->id)
-                ->where('autoparts_ml.import', 1)
+                ->where('autoparts_ml.import', 0)
                 ->orderByDesc('autoparts_ml.status_id')
                 ->get();
 
-        //return $autoparts;
-
-        return view('welcome', ['id' => $request->id, 'autoparts' => $autoparts]);
+        return view('welcome', ['store' => $conexion, 'autoparts' => $autoparts]);
     }
 
     // app()->call('App\Http\Controllers\ImportMlController@save');
     public function save (Request $request)
     {
-        if (!$this->checkToken($request->id)) {
+        $conexion = ApiMl::conexion($request->id);
+
+        if (!$conexion) {
             return view('welcome', ['error' => 'No se pudo refrescar el token']);
         }
 
@@ -342,8 +288,8 @@ class ImportMlController extends Controller
                 'origin_id' => $autopart->origin_id,
                 'status_id' => $autopart->status_id,
                 'ml_id' => $autopart->ml_id,
-                'store_ml_id' => $this->storeMl->id,
-                'store_id' => $this->storeMl->store_id,
+                'store_ml_id' => $conexion->id,
+                'store_id' => $conexion->store_id,
                 'created_by' => 1,
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now()
@@ -382,58 +328,7 @@ class ImportMlController extends Controller
                     ]);
         }
 
-        return view('welcome', ['id' => $request->id, 'autoparts' => $autoparts, 'save' => 'success']);
-    }
-
-    private function refreshTokenMl ()
-    {
-        $client = new \GuzzleHttp\Client(['base_uri' => 'https://api.mercadolibre.com']);
-
-        try {
-            $response = $client->request('POST', 'oauth/token', [
-                'headers' => [
-                    'Accept' => 'application/json',
-                    'content-type' => 'application/x-www-form-urlencoded'
-                ],
-                'form_params' => [
-                    'grant_type' => 'refresh_token',
-                    'client_id' => $this->storeMl->client_id,
-                    'client_secret' => $this->storeMl->client_secret,
-                    'refresh_token' => $this->storeMl->token
-                ]
-            ]);
-
-            $res = json_decode($response->getBody());
-
-            // Update token
-            DB::table('stores_ml')->where('user_id', $this->storeMl->user_id)->update([
-                'token' => $res->refresh_token,
-                'access_token' => $res->access_token
-            ]);
-
-            logger('Refresh token');
-            //logger(['code' => $response->getStatusCode(), 'item' => json_decode($response->getBody()), 'update' => $update]);
-            return true;
-        }
-        catch (\GuzzleHttp\Exception\ClientException $e) {
-            logger('Do not refresh token');
-            return false;
-        }
-    }
-
-    private function checkToken($id)
-    {
-        $this->storeMl = DB::table('stores_ml')->find($id);
-
-        $response = Http::withHeaders([
-            'Authorization' => 'Bearer '.$this->storeMl->access_token,
-        ])->get('https://api.mercadolibre.com/users/me');
-
-        if ($response['status'] == 401) {
-            return $this->refreshTokenMl();
-        }
-
-        return true;
+        return view('welcome', ['store' => $conexion, 'autoparts' => $autoparts, 'save' => 'Success']);
     }
 
     private function getInfo ($name)
@@ -602,8 +497,6 @@ class ImportMlController extends Controller
                 }
             }
         }
-
-        logger($autopart);
 
         // Get info from fields
         // if (!isset($autopart['make_id']) || !isset($autopart['model_id']) || count($autopart['years_ids']) == 0) {

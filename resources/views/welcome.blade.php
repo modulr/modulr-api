@@ -40,10 +40,10 @@
 
                 <div class="flex justify-center my-8">
                     <div class="grid grid-cols-2 md:grid-cols-5 gap-6 lg:gap-8">
-                        <div class="sm:flex hidden justify-center scale-100 bg-white dark:bg-gray-800/50 dark:bg-gradient-to-bl from-gray-700/50 via-transparent dark:ring-1 dark:ring-inset dark:ring-white/5 rounded-lg shadow-2xl shadow-gray-500/20 dark:shadow-none flex motion-safe:hover:scale-[1.01] transition-all duration-250 focus:outline focus:outline-2 focus:outline-red-500">
-                            <img src="/ag.png" alt="Auto Global" class="h-20">
+                        <div class="sm:flex hidden">
+                            <img src="/ag.png" alt="Auto Global" class="h-20 rounded-lg shadow-2xl">
                         </div>
-                        <a href="/import/getIds/{{$id}}" class="scale-100 p-6 bg-white dark:bg-gray-800/50 dark:bg-gradient-to-bl from-gray-700/50 via-transparent dark:ring-1 dark:ring-inset dark:ring-white/5 rounded-lg shadow-2xl shadow-gray-500/20 dark:shadow-none flex motion-safe:hover:scale-[1.01] transition-all duration-250 focus:outline focus:outline-2 focus:outline-red-500">
+                        <a href="/import/getIds/{{$store->id}}" class="scale-100 p-6 bg-white dark:bg-gray-800/50 dark:bg-gradient-to-bl from-gray-700/50 via-transparent dark:ring-1 dark:ring-inset dark:ring-white/5 rounded-lg shadow-2xl shadow-gray-500/20 dark:shadow-none flex motion-safe:hover:scale-[1.01] transition-all duration-250 focus:outline focus:outline-2 focus:outline-red-500">
                             <div>
                                 <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Ids</h2>
                             </div>
@@ -53,7 +53,7 @@
                             </svg>
                         </a>
     
-                        <a href="/import/getNewIds/{{$id}}" class="scale-100 p-6 bg-white dark:bg-gray-800/50 dark:bg-gradient-to-bl from-gray-700/50 via-transparent dark:ring-1 dark:ring-inset dark:ring-white/5 rounded-lg shadow-2xl shadow-gray-500/20 dark:shadow-none flex motion-safe:hover:scale-[1.01] transition-all duration-250 focus:outline focus:outline-2 focus:outline-red-500">
+                        <a href="/import/getNewIds/{{$store->id}}" class="scale-100 p-6 bg-white dark:bg-gray-800/50 dark:bg-gradient-to-bl from-gray-700/50 via-transparent dark:ring-1 dark:ring-inset dark:ring-white/5 rounded-lg shadow-2xl shadow-gray-500/20 dark:shadow-none flex motion-safe:hover:scale-[1.01] transition-all duration-250 focus:outline focus:outline-2 focus:outline-red-500">
                             <div>
                                 <h2 class="text-xl font-semibold text-gray-900 dark:text-white">New Ids</h2>
                             </div>
@@ -63,7 +63,7 @@
                             </svg>
                         </a>
     
-                        <a href="/import/import/{{$id}}" class="scale-100 p-6 bg-white dark:bg-gray-800/50 dark:bg-gradient-to-bl from-gray-700/50 via-transparent dark:ring-1 dark:ring-inset dark:ring-white/5 rounded-lg shadow-2xl shadow-gray-500/20 dark:shadow-none flex motion-safe:hover:scale-[1.01] transition-all duration-250 focus:outline focus:outline-2 focus:outline-red-500">
+                        <a href="/import/import/{{$store->id}}" class="scale-100 p-6 bg-white dark:bg-gray-800/50 dark:bg-gradient-to-bl from-gray-700/50 via-transparent dark:ring-1 dark:ring-inset dark:ring-white/5 rounded-lg shadow-2xl shadow-gray-500/20 dark:shadow-none flex motion-safe:hover:scale-[1.01] transition-all duration-250 focus:outline focus:outline-2 focus:outline-red-500">
                             <div>
                                 <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Import</h2>
                             </div>
@@ -73,7 +73,7 @@
                             </svg>
                         </a>
     
-                        <a href="/import/save/{{$id}}" class="scale-100 p-6 bg-white dark:bg-gray-800/50 dark:bg-gradient-to-bl from-gray-700/50 via-transparent dark:ring-1 dark:ring-inset dark:ring-white/5 rounded-lg shadow-2xl shadow-gray-500/20 dark:shadow-none flex motion-safe:hover:scale-[1.01] transition-all duration-250 focus:outline focus:outline-2 focus:outline-red-500">
+                        <a href="/import/save/{{$store->id}}" class="scale-100 p-6 bg-white dark:bg-gray-800/50 dark:bg-gradient-to-bl from-gray-700/50 via-transparent dark:ring-1 dark:ring-inset dark:ring-white/5 rounded-lg shadow-2xl shadow-gray-500/20 dark:shadow-none flex motion-safe:hover:scale-[1.01] transition-all duration-250 focus:outline focus:outline-2 focus:outline-red-500">
                             <div>
                                 <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Save</h2>
                             </div>
@@ -92,8 +92,9 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" class="-mt-px mr-1 w-5 h-5 stroke-gray-400 dark:stroke-gray-600 group-hover:stroke-gray-600 dark:group-hover:stroke-gray-400">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
                                 </svg>
-                                Importar tienda {{$id}} <span class="mx-6">|</span> Total 
-
+                                Importar <strong class="ml-1">{{$store->name}}</strong> <span class="mx-6">|</span> Autopartes: 
+                                
+                                <strong class="ml-1">
                                 @if (isset($ids))
                                     {{ count($ids) }}
                                 @endif
@@ -101,6 +102,7 @@
                                 @if (isset($autoparts))
                                     {{ count($autoparts) }}
                                 @endif
+                                </strong>
                                 
                             </div>
                         </div>
@@ -113,79 +115,79 @@
 
                 <div>
                     @if (isset($error))
-                    <div class="p-4 mb-4 text-sm text-blue-800 rounded-lg bg-blue-50 dark:bg-gray-800 dark:text-blue-400" role="alert">
-                        <span class="font-medium">Error!</span> {{$error}}
-                    </div>
-                    @endif
-    
-                    @if (isset($save))
-                    <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400" role="alert">
-                        <span class="font-medium">Success!</span> $save
-                    </div>
-                    @endif
-
-                    @if (isset($ids))
-
-                    {{ dd($ids) }}
-
+                        <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400" role="alert">
+                            <span class="font-medium">{{ $error }}!</span>
+                        </div>
                     @endif
 
                     @if (isset($autoparts))
 
-                    <div class="overflow-x-auto">
-                        <table class="table-auto w-full">
-                            <thead class="border-b bg-white dark:bg-gray-800/90 dark:text-white dark:border-neutral-700 font-medium">
-                                <tr>
-                                    <th class="text-left px-6 py-4">Autopart</th>
-                                    <th class="text-left px-6 py-4">Description</th>
-                                    <th class="text-left px-6 py-4">Make</th>
-                                    <th class="text-left px-6 py-4">Model</th>
-                                    <th class="text-left px-6 py-4">Years</th>
-                                    <th class="text-left px-6 py-4">Origin</th>
-                                    <th class="text-left px-6 py-4">Images</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($autoparts as $autopart)
-                                <tr class="border-b bg-white dark:bg-gray-800/50 dark:text-white dark:border-neutral-700">
-                                    <td class="px-6 py-4">
-                                        <div>
-                                            @if ($autopart->status_id == 1)
-                                            <span class="bg-green-100 text-green-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300">
-                                                {{$autopart->ml_id}}
+                        @if (isset($save))
+                            <div class="p-4 mb-4 text-sm text-blue-800 rounded-lg bg-blue-50 dark:bg-gray-800 dark:text-blue-400" role="alert">
+                                <span class="font-medium">Autoparts saved:</span> {{count($autoparts)}} 
+                            </div>
+                        @endif
+
+                        <div class="overflow-x-auto">
+                            <table class="table-auto w-full">
+                                <thead class="border-b bg-white dark:bg-gray-800/90 dark:text-white dark:border-neutral-700 font-medium">
+                                    <tr>
+                                        <th class="text-left px-6 py-4">Autopart</th>
+                                        <th class="text-left px-6 py-4">Description</th>
+                                        <th class="text-left px-6 py-4">Make</th>
+                                        <th class="text-left px-6 py-4">Model</th>
+                                        <th class="text-left px-6 py-4">Years</th>
+                                        <th class="text-left px-6 py-4">Origin</th>
+                                        <th class="text-left px-6 py-4">Images</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($autoparts as $autopart)
+                                    <tr class="border-b bg-white dark:bg-gray-800/50 dark:text-white dark:border-neutral-700">
+                                        <td class="px-6 py-4">
+                                            <div>
+                                                @if ($autopart->status_id == 1)
+                                                <span class="bg-green-100 text-green-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300">
+                                                    {{$autopart->ml_id}}
+                                                </span>
+                                                @else
+                                                <span class="bg-red-100 text-red-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-red-900 dark:text-red-300">
+                                                    {{$autopart->ml_id}}
+                                                </span>
+                                                @endif
+                                            </div>
+                                            <div class="text-sm">{{$autopart->name}}</div>
+                                            <div class="text-sm font-semibold">${{$autopart->sale_price}}</div>
+                                        </td>
+                                        <td class="px-6 py-4 text-sm">{{$autopart->description}}</td>
+                                        <td class="px-6 py-4 text-sm">{{$autopart->make}}</td>
+                                        <td class="px-6 py-4 text-sm">{{$autopart->model}}</td>
+                                        <td class="px-6 py-4 text-sm">{{ implode(', ', json_decode($autopart->years)) }}</td>
+                                        <td class="px-6 py-4 text-sm">
+                                            @if ($autopart->origin_id == 1)
+                                            <span class="bg-blue-100 text-blue-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300">
+                                                {{$autopart->origin}}
                                             </span>
                                             @else
-                                            <span class="bg-red-100 text-red-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-red-900 dark:text-red-300">
-                                                {{$autopart->ml_id}}
+                                            <span class="bg-yellow-100 text-yellow-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-yellow-900 dark:text-yellow-300">
+                                                {{$autopart->origin}}
                                             </span>
                                             @endif
-                                        </div>
-                                        <div class="text-sm">{{$autopart->name}}</div>
-                                        <div class="text-sm font-semibold">${{$autopart->sale_price}}</div>
-                                    </td>
-                                    <td class="px-6 py-4 text-sm">{{$autopart->description}}</td>
-                                    <td class="px-6 py-4 text-sm">{{$autopart->make}}</td>
-                                    <td class="px-6 py-4 text-sm">{{$autopart->model}}</td>
-                                    <td class="px-6 py-4 text-sm">{{ implode(', ', json_decode($autopart->years)) }}</td>
-                                    <td class="px-6 py-4 text-sm">
-                                        @if ($autopart->origin_id == 1)
-                                        <span class="bg-blue-100 text-blue-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300">
-                                            {{$autopart->origin}}
-                                        </span>
-                                        @else
-                                        <span class="bg-yellow-100 text-yellow-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-yellow-900 dark:text-yellow-300">
-                                            {{$autopart->origin}}
-                                        </span>
-                                        @endif
-                                    </td>
-                                    <td class="px-6 py-4 text-xs">{{ implode(', ', json_decode($autopart->images)) }}</td>
-                                </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
+                                        </td>
+                                        <td class="px-6 py-4 text-xs">{{ implode(', ', json_decode($autopart->images)) }}</td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
 
-                    {{ dd($autoparts) }}
+                        {{ dd($autoparts) }}
+
+                    @endif
+
+                    @if (isset($ids))
+
+                        {{ dd($ids) }}
 
                     @endif
                 </div>
