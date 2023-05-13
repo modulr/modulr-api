@@ -38,9 +38,9 @@
                     <img src="/ag.png" alt="Auto Global" class="h-24">
                 </div>
 
-                <div class="flex justify-center my-8">
+                <div class="flex justify-center mt-8 mb-14">
                     <div class="grid grid-cols-2 md:grid-cols-5 gap-6 lg:gap-8">
-                        <div class="sm:flex hidden">
+                        <div class="md:flex hidden">
                             <img src="/ag.png" alt="Auto Global" class="h-20 rounded-lg shadow-2xl">
                         </div>
                         <a href="/import/getIds/{{$store->id}}" class="scale-100 p-6 bg-white dark:bg-gray-800/50 dark:bg-gradient-to-bl from-gray-700/50 via-transparent dark:ring-1 dark:ring-inset dark:ring-white/5 rounded-lg shadow-2xl shadow-gray-500/20 dark:shadow-none flex motion-safe:hover:scale-[1.01] transition-all duration-250 focus:outline focus:outline-2 focus:outline-red-500">
@@ -85,7 +85,7 @@
                     </div>
                 </div>
 
-                <div class="flex justify-center my-8 px-0 sm:items-center sm:justify-between">
+                <div class="flex justify-center mb-4 px-0 sm:items-center sm:justify-between">
                     <div class="text-center text-sm text-gray-500 dark:text-gray-400 sm:text-left">
                         <div class="flex items-center gap-4">
                             <div class="group inline-flex items-center hover:text-gray-700 dark:hover:text-white focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500">
