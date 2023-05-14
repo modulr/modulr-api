@@ -94,32 +94,21 @@ class ApiMl
 
     public static function getItem($conexion, $id)
     {
-        return Http::withHeaders([
+        $response = Http::withHeaders([
             'Authorization' => 'Bearer '.$conexion->access_token,
         ])->get('https://api.mercadolibre.com/items', [
             'ids' => $id,
         ]);
+
+        return $response->object()[0]->body;
     }
 
     public static function getItemDescription($id, $conexion)
     {
-        $client = new \GuzzleHttp\Client(['base_uri' => 'https://api.mercadolibre.com']);
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer '.$conexion->access_token,
+        ])->get('https://api.mercadolibre.com/items/'.$id.'/description');
 
-        try {
-            $response = $client->request('GET', 'items/'.$id.'/description', [
-                'headers' => [
-                    'Authorization' => 'Bearer '.$conexion->access_token,
-                ]
-            ]);
-            $description = json_decode($response->getBody());
-            logger('Se obtuvo la descripción de mercadolibre '.$id);
-            return $description->plain_text;
-        }
-        catch (\GuzzleHttp\Exception\ClientException $e) {
-            logger($e->getResponse()->getBody());
-            logger('No se obtuvo la descripción de mercadolibre '.$id);
-            return false;
-        }
-
+        return $response->object();
     }
 }

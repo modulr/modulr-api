@@ -74,7 +74,6 @@ class ImportMlController extends Controller
         $autopartsMl = DB::table('autoparts_ml')
                             ->where('store_ml_id', $request->id)
                             ->where('import', 0)
-                            //->limit(3)
                             ->get();
 
         foreach($autopartsMl as $item) {
@@ -84,13 +83,13 @@ class ImportMlController extends Controller
     
                 $autopart = [];
     
-                if ($response[0]['body']['status'] == 'active' && $response[0]['body']['available_quantity'] > 0) {
+                if ($response->status == 'active' && $response->available_quantity > 0) {
     
                     $autopart['id'] = $item->id;
-                    $autopart['name'] = $response[0]['body']['title'];
+                    $autopart['name'] = $response->title;
                     $autopart['description'] = '';
-                    $autopart['ml_id'] = $response[0]['body']['id'];
-                    $autopart['sale_price'] = $response[0]['body']['price'];
+                    $autopart['ml_id'] = $response->id;
+                    $autopart['sale_price'] = $response->price;
                     $autopart['status_id'] = 1;
                     $autopart['make_id'] = null;
                     $autopart['model_id'] = null;
@@ -98,26 +97,27 @@ class ImportMlController extends Controller
                     $autopart['years_ids'] = [];
                     $autopart['images'] = [];
     
-                    if ($response[0]['body']['condition'] == 'new') {
+                    if ($response->condition == 'new') {
                         $autopart['origin_id'] = 1;
                     } else {
                         $autopart['origin_id'] = 2;
                     }
     
                     // Get Description
-                    $autopart['description'] = ApiMl::getItemDescription($response[0]['body']['id'], $conexion);
+                    $description = ApiMl::getItemDescription($response->id, $conexion);
+                    $autopart['description'] = $description->plain_text;
     
                     // FALTA PULIR ESTA FUNCION
                     //$this->getMakeModelYear($response, $autopart);
                     //$this->getMake($autopart);
     
-                    foreach ($response[0]['body']['attributes'] as $value) {
+                    foreach ($response->attributes as $value) {
                     
                         if (!isset($autopart['make_id'])) {
-                            if ($value['id'] == 'BRAND') {
-                                $autopart['make'] = $value['value_name'];
+                            if ($value->id == 'BRAND') {
+                                $autopart['make'] = $value->value_name;
                                 $make = DB::table('autopart_list_makes')
-                                    ->where('name', 'like', $value['value_name'])
+                                    ->where('name', 'like', $value->value_name)
                                     ->whereNull('deleted_at')->first();
     
                                 if ($make) {
@@ -127,10 +127,10 @@ class ImportMlController extends Controller
                         }
     
                         if (!isset($autopart['model_id'])) {
-                            if ($value['id'] == 'MODEL') {
-                                $autopart['model'] = $value['value_name'];
+                            if ($value->id == 'MODEL') {
+                                $autopart['model'] = $value->value_name;
                                 $model = DB::table('autopart_list_models')
-                                    ->where('name', 'like', $value['value_name'])
+                                    ->where('name', 'like', $value->value_name)
                                     ->whereNull('deleted_at')->first();
                                 
                                 if ($model) {
@@ -140,11 +140,11 @@ class ImportMlController extends Controller
                         }
     
                         if (count($autopart['years_ids']) == 0) {
-                            if ($value['id'] == 'VEHICLE_YEAR') {
-                                array_push($autopart['years'], $value['value_name']);
+                            if ($value->id == 'VEHICLE_YEAR') {
+                                array_push($autopart['years'], $value->value_name);
         
                                 $year = DB::table('autopart_list_years')
-                                    ->where('name', 'like', $value['value_name'])
+                                    ->where('name', 'like', $value->value_name)
                                     ->whereNull('deleted_at')->first();
     
                                 if ($year) {
@@ -153,8 +153,8 @@ class ImportMlController extends Controller
                                 }
                             }
         
-                            if ($value['id'] == 'CAR_MODEL') {
-                                array_push($autopart['years'], implode(',', explode(' ', $value['value_name'])));
+                            if ($value->id == 'CAR_MODEL') {
+                                array_push($autopart['years'], implode(',', explode(' ', $value->value_name)));
                                 $years = explode(' ', $value['value_name']);
         
                                 foreach($years as $item){
@@ -227,11 +227,11 @@ class ImportMlController extends Controller
                     if (is_null($autopart['make_id']) || is_null($autopart['model_id'])) {
                         $autopart['status_id'] = 5;
                     }
-    
+
                     // Get images
                     // FALTA TRAER EL ORDER
-                    foreach ($response[0]['body']['pictures'] as $value) {
-                        $url = str_replace("-O.jpg", "-F.jpg", $value['secure_url']);
+                    foreach ($response->pictures as $value) {
+                        $url = str_replace("-O.jpg", "-F.jpg", $value->secure_url);
                         array_push($autopart['images'], $url);
                     }
     
@@ -265,7 +265,6 @@ class ImportMlController extends Controller
                 ->where('autoparts_ml.store_ml_id', $request->id)
                 ->where('autoparts_ml.import', 0)
                 ->orderByDesc('autoparts_ml.status_id')
-                //->limit(3)
                 ->get();
 
         return view('welcome', ['store' => $conexion, 'autoparts' => $autoparts]);
@@ -283,6 +282,7 @@ class ImportMlController extends Controller
         $autoparts = DB::table('autoparts_ml')
                 ->where('store_ml_id', $request->id)
                 ->where('import', 0)
+                //->limit(3)
                 ->get();
 
         foreach ($autoparts as $autopart) {
