@@ -67,8 +67,6 @@ class ApiMl
     {
         $ids = [];
         $scrollId = null;
-        // $results = [];
-        // $status = '';
 
         do {
 
@@ -81,24 +79,15 @@ class ApiMl
                 'scroll_id' => $scrollId,
             ]);
 
-            $scrollId = $response['scroll_id'];
-            $ids = array_merge($ids, $response['results']);
+            if (isset($response['results']) && count($response['results']) > 0) {
+                $ids = array_merge($ids, $response['results']);
+            }
 
-            // if (isset($response['scroll_id'])) {
-            //     $scrollId = $response['scroll_id'];
-            //     $ids = array_merge($ids, $response['results']);
-            // }
+            if (isset($response['scroll_id'])) {
+                $scrollId = $response['scroll_id'];
+            }
 
-            // if (isset($response['results'])) {
-            //     $results = $response['results'];
-            // }
-
-            // if (isset($response['status'])) {
-            //     $status = $response['status'];
-            // }
-
-        // } while (count($results) > 0 || $status == 400);
-        } while (count($response['results']) > 0);
+        } while ( count($response['results']) > 0 );
 
         return $ids;
     }    
@@ -110,5 +99,27 @@ class ApiMl
         ])->get('https://api.mercadolibre.com/items', [
             'ids' => $id,
         ]);
+    }
+
+    public static function getItemDescription($id, $conexion)
+    {
+        $client = new \GuzzleHttp\Client(['base_uri' => 'https://api.mercadolibre.com']);
+
+        try {
+            $response = $client->request('GET', 'items/'.$id.'/description', [
+                'headers' => [
+                    'Authorization' => 'Bearer '.$conexion->access_token,
+                ]
+            ]);
+            $description = json_decode($response->getBody());
+            logger('Se obtuvo la descripción de mercadolibre '.$id);
+            return $description->plain_text;
+        }
+        catch (\GuzzleHttp\Exception\ClientException $e) {
+            logger($e->getResponse()->getBody());
+            logger('No se obtuvo la descripción de mercadolibre '.$id);
+            return false;
+        }
+
     }
 }

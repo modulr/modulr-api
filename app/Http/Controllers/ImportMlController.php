@@ -74,178 +74,186 @@ class ImportMlController extends Controller
         $autopartsMl = DB::table('autoparts_ml')
                             ->where('store_ml_id', $request->id)
                             ->where('import', 0)
+                            //->limit(3)
                             ->get();
 
         foreach($autopartsMl as $item) {
 
-            $response = ApiMl::getItem($conexion, $item->ml_id);
-
-            $autopart = [];
-
-            if ($response[0]['body']['status'] == 'active' && $response[0]['body']['available_quantity'] > 0) {
-
-                $autopart['id'] = $item->id;
-                $autopart['name'] = $response[0]['body']['title'];
-                // description
-                $autopart['ml_id'] = $response[0]['body']['id'];
-                $autopart['sale_price'] = $response[0]['body']['price'];
-                $autopart['status_id'] = 1;
-                $autopart['make_id'] = null;
-                $autopart['model_id'] = null;
-                $autopart['years'] = [];
-                $autopart['years_ids'] = [];
-                $autopart['images'] = [];
-
-                if ($response[0]['body']['condition'] == 'new') {
-                    $autopart['origin_id'] = 1;
-                } else {
-                    $autopart['origin_id'] = 2;
-                }
-
-                // FALTA PULIR ESTA FUNCION
-                //$this->getMakeModelYear($response, $autopart);
-                //$this->getMake($autopart);
-
-                foreach ($response[0]['body']['attributes'] as $value) {
-                
-                    if (!isset($autopart['make_id'])) {
-                        if ($value['id'] == 'BRAND') {
-                            $autopart['make'] = $value['value_name'];
-                            $make = DB::table('autopart_list_makes')
-                                ->where('name', 'like', $value['value_name'])
-                                ->whereNull('deleted_at')->first();
-
-                            if ($make) {
-                                $autopart['make_id'] = $make->id;
-                            }
-                        }
+            if ($item->status_id !== 1) {
+                $response = ApiMl::getItem($conexion, $item->ml_id);
+    
+                $autopart = [];
+    
+                if ($response[0]['body']['status'] == 'active' && $response[0]['body']['available_quantity'] > 0) {
+    
+                    $autopart['id'] = $item->id;
+                    $autopart['name'] = $response[0]['body']['title'];
+                    $autopart['description'] = '';
+                    $autopart['ml_id'] = $response[0]['body']['id'];
+                    $autopart['sale_price'] = $response[0]['body']['price'];
+                    $autopart['status_id'] = 1;
+                    $autopart['make_id'] = null;
+                    $autopart['model_id'] = null;
+                    $autopart['years'] = [];
+                    $autopart['years_ids'] = [];
+                    $autopart['images'] = [];
+    
+                    if ($response[0]['body']['condition'] == 'new') {
+                        $autopart['origin_id'] = 1;
+                    } else {
+                        $autopart['origin_id'] = 2;
                     }
-
-                    if (!isset($autopart['model_id'])) {
-                        if ($value['id'] == 'MODEL') {
-                            $autopart['model'] = $value['value_name'];
-                            $model = DB::table('autopart_list_models')
-                                ->where('name', 'like', $value['value_name'])
-                                ->whereNull('deleted_at')->first();
-                            
-                            if ($model) {
-                                $autopart['model_id'] = $model->id;
-                            }
-                        }
-                    }
-
-                    if (count($autopart['years_ids']) == 0) {
-                        if ($value['id'] == 'VEHICLE_YEAR') {
-                            array_push($autopart['years'], $value['value_name']);
     
-                            $year = DB::table('autopart_list_years')
-                                ->where('name', 'like', $value['value_name'])
-                                ->whereNull('deleted_at')->first();
-
-                            if ($year) {
-                                $autopart['year_id'] = $year->id;
-                                array_push($autopart['years_ids'], $year->id);
-                            }
-                        }
+                    // Get Description
+                    $autopart['description'] = ApiMl::getItemDescription($response[0]['body']['id'], $conexion);
     
-                        if ($value['id'] == 'CAR_MODEL') {
-                            array_push($autopart['years'], implode(',', explode(' ', $value['value_name'])));
-                            $years = explode(' ', $value['value_name']);
+                    // FALTA PULIR ESTA FUNCION
+                    //$this->getMakeModelYear($response, $autopart);
+                    //$this->getMake($autopart);
     
-                            foreach($years as $item){
-                                $year = DB::table('autopart_list_years')
-                                    ->where('name', 'like', $item)
+                    foreach ($response[0]['body']['attributes'] as $value) {
+                    
+                        if (!isset($autopart['make_id'])) {
+                            if ($value['id'] == 'BRAND') {
+                                $autopart['make'] = $value['value_name'];
+                                $make = DB::table('autopart_list_makes')
+                                    ->where('name', 'like', $value['value_name'])
                                     ->whereNull('deleted_at')->first();
-
+    
+                                if ($make) {
+                                    $autopart['make_id'] = $make->id;
+                                }
+                            }
+                        }
+    
+                        if (!isset($autopart['model_id'])) {
+                            if ($value['id'] == 'MODEL') {
+                                $autopart['model'] = $value['value_name'];
+                                $model = DB::table('autopart_list_models')
+                                    ->where('name', 'like', $value['value_name'])
+                                    ->whereNull('deleted_at')->first();
+                                
+                                if ($model) {
+                                    $autopart['model_id'] = $model->id;
+                                }
+                            }
+                        }
+    
+                        if (count($autopart['years_ids']) == 0) {
+                            if ($value['id'] == 'VEHICLE_YEAR') {
+                                array_push($autopart['years'], $value['value_name']);
+        
+                                $year = DB::table('autopart_list_years')
+                                    ->where('name', 'like', $value['value_name'])
+                                    ->whereNull('deleted_at')->first();
+    
                                 if ($year) {
+                                    $autopart['year_id'] = $year->id;
                                     array_push($autopart['years_ids'], $year->id);
+                                }
+                            }
+        
+                            if ($value['id'] == 'CAR_MODEL') {
+                                array_push($autopart['years'], implode(',', explode(' ', $value['value_name'])));
+                                $years = explode(' ', $value['value_name']);
+        
+                                foreach($years as $item){
+                                    $year = DB::table('autopart_list_years')
+                                        ->where('name', 'like', $item)
+                                        ->whereNull('deleted_at')->first();
+    
+                                    if ($year) {
+                                        array_push($autopart['years_ids'], $year->id);
+                                    }
                                 }
                             }
                         }
                     }
-                }
-
-                // Get info from name
-                $nameArray = $this->getInfoName($autopart['name']);
-
-                foreach ($nameArray as $value) {
-
-                    // Make
-                    if (is_null($autopart['make_id'])) {
-                        $make = DB::table('autopart_list_makes')
-                            ->select('id', 'name')
-                            ->where('name', 'like', $value)
-                            ->whereNull('deleted_at')
-                            ->first();
-                        
-                        if ($make) {
-                            $autopart['make_id'] = $make->id;
-                            $autopart['make'] = $make->name;
-                        }
-                    }else{
-                        $model = DB::table('autopart_list_models')
-                            ->select('id', 'name')
-                            ->where('make_id', $autopart['make_id'])
-                            ->where('name', 'like', $value)
-                            ->whereNull('deleted_at')
-                            ->first();
-
-                            if ($model) {
-                                $autopart['model_id'] = $model->id;
-                                $autopart['model'] = $model->name;
+    
+                    // Get info from name
+                    $nameArray = $this->getInfoName($autopart['name']);
+    
+                    foreach ($nameArray as $value) {
+    
+                        // Make
+                        if (is_null($autopart['make_id'])) {
+                            $make = DB::table('autopart_list_makes')
+                                ->select('id', 'name')
+                                ->where('name', 'like', $value)
+                                ->whereNull('deleted_at')
+                                ->first();
+                            
+                            if ($make) {
+                                $autopart['make_id'] = $make->id;
+                                $autopart['make'] = $make->name;
                             }
-                    }
-                    
-                    // Years
-                    if (str_contains($value, '-')) {
-                        $yearsArray = explode('-',$value);
-                        foreach ($yearsArray as $val) {
+                        }else{
+                            $model = DB::table('autopart_list_models')
+                                ->select('id', 'name')
+                                ->where('make_id', $autopart['make_id'])
+                                ->where('name', 'like', $value)
+                                ->whereNull('deleted_at')
+                                ->first();
+    
+                                if ($model) {
+                                    $autopart['model_id'] = $model->id;
+                                    $autopart['model'] = $model->name;
+                                }
+                        }
+                        
+                        // Years
+                        if (str_contains($value, '-')) {
+                            $yearsArray = explode('-',$value);
+                            foreach ($yearsArray as $val) {
+                                $year = DB::table('autopart_list_years')
+                                    ->where('name', 'like', $val)
+                                    ->whereNull('deleted_at')->first();
+                                if ($year) {
+                                    array_push($autopart['years_ids'], $year->id);
+                                    array_push($autopart['years'], $year->name);
+                                }
+                            }
+                        } else {
                             $year = DB::table('autopart_list_years')
-                                ->where('name', 'like', $val)
+                                ->where('name', 'like', $value)
                                 ->whereNull('deleted_at')->first();
                             if ($year) {
                                 array_push($autopart['years_ids'], $year->id);
                                 array_push($autopart['years'], $year->name);
                             }
                         }
-                    } else {
-                        $year = DB::table('autopart_list_years')
-                            ->where('name', 'like', $value)
-                            ->whereNull('deleted_at')->first();
-                        if ($year) {
-                            array_push($autopart['years_ids'], $year->id);
-                            array_push($autopart['years'], $year->name);
-                        }
                     }
+    
+                    if (is_null($autopart['make_id']) || is_null($autopart['model_id'])) {
+                        $autopart['status_id'] = 5;
+                    }
+    
+                    // Get images
+                    // FALTA TRAER EL ORDER
+                    foreach ($response[0]['body']['pictures'] as $value) {
+                        $url = str_replace("-O.jpg", "-F.jpg", $value['secure_url']);
+                        array_push($autopart['images'], $url);
+                    }
+    
+                    DB::table('autoparts_ml')
+                        ->where('id', $autopart['id'])
+                        ->update([
+                            'name' => $autopart['name'],
+                            'description' => $autopart['description'],
+                            'sale_price' => $autopart['sale_price'],
+                            'origin_id' => $autopart['origin_id'],
+                            'status_id' => $autopart['status_id'],
+                            'make_id' => $autopart['make_id'],
+                            'model_id' => $autopart['model_id'],
+                            'years_ids' => $autopart['years_ids'],
+                            'years' => $autopart['years'],
+                            'images' => $autopart['images'],
+                            'updated_at' => Carbon::now()
+                        ]);
+    
                 }
-
-                if (is_null($autopart['make_id']) || is_null($autopart['model_id'])) {
-                    $autopart['status_id'] = 5;
-                }
-
-                // Get images
-                // FALTA TRAER EL ORDER
-                foreach ($response[0]['body']['pictures'] as $value) {
-                    $url = str_replace("-O.jpg", "-F.jpg", $value['secure_url']);
-                    array_push($autopart['images'], $url);
-                }
-
-                DB::table('autoparts_ml')
-                    ->where('id', $autopart['id'])
-                    ->update([
-                        'name' => $autopart['name'],
-                        'sale_price' => $autopart['sale_price'],
-                        'origin_id' => $autopart['origin_id'],
-                        'status_id' => $autopart['status_id'],
-                        'make_id' => $autopart['make_id'],
-                        'model_id' => $autopart['model_id'],
-                        'years_ids' => $autopart['years_ids'],
-                        'years' => $autopart['years'],
-                        'images' => $autopart['images'],
-                        'updated_at' => Carbon::now()
-                    ]);
-
             }
+
         }
 
         $autoparts = DB::table('autoparts_ml')
@@ -257,6 +265,7 @@ class ImportMlController extends Controller
                 ->where('autoparts_ml.store_ml_id', $request->id)
                 ->where('autoparts_ml.import', 0)
                 ->orderByDesc('autoparts_ml.status_id')
+                //->limit(3)
                 ->get();
 
         return view('welcome', ['store' => $conexion, 'autoparts' => $autoparts]);
@@ -277,8 +286,6 @@ class ImportMlController extends Controller
                 ->get();
 
         foreach ($autoparts as $autopart) {
-
-            //$autopart = json_decode($value->autopart, true);
 
             $autopartId = DB::table('autoparts')->insertGetId([
                 'name' => $autopart->name,

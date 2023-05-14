@@ -132,20 +132,17 @@
                             <table class="table-auto w-full">
                                 <thead class="border-b bg-white dark:bg-gray-800/90 dark:text-white dark:border-neutral-700 font-medium">
                                     <tr>
-                                        <th class="text-left px-6 py-4">Autopart</th>
+                                        <th class="text-left px-6 py-4">ID|Name</th>
+                                        <th class="text-left px-6 py-4">Make|Model|Years</th>
                                         <th class="text-left px-6 py-4">Description</th>
-                                        <th class="text-left px-6 py-4">Make</th>
-                                        <th class="text-left px-6 py-4">Model</th>
-                                        <th class="text-left px-6 py-4">Years</th>
-                                        <th class="text-left px-6 py-4">Origin</th>
                                         <th class="text-left px-6 py-4">Images</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach ($autoparts as $autopart)
                                     <tr class="border-b bg-white dark:bg-gray-800/50 dark:text-white dark:border-neutral-700">
-                                        <td class="px-6 py-4">
-                                            <div>
+                                        <td class="align-top px-6 py-4">
+                                            <a href="https://articulo.mercadolibre.com.mx/{{ str_replace('MLM','MLM-', $autopart->ml_id) }}" target="_blank">
                                                 @if ($autopart->status_id == 1)
                                                 <span class="bg-green-100 text-green-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300">
                                                     {{$autopart->ml_id}}
@@ -155,26 +152,29 @@
                                                     {{$autopart->ml_id}}
                                                 </span>
                                                 @endif
-                                            </div>
-                                            <div class="text-sm">{{$autopart->name}}</div>
-                                            <div class="text-sm font-semibold">${{$autopart->sale_price}}</div>
+                                            </a>
+                                            <div class="text-sm font-semibold mt-1">{{$autopart->name}}</div>
                                         </td>
-                                        <td class="px-6 py-4 text-sm">{{$autopart->description}}</td>
-                                        <td class="px-6 py-4 text-sm">{{$autopart->make}}</td>
-                                        <td class="px-6 py-4 text-sm">{{$autopart->model}}</td>
-                                        <td class="px-6 py-4 text-sm">{{ implode(', ', json_decode($autopart->years)) }}</td>
-                                        <td class="px-6 py-4 text-sm">
+                                        <td class="align-top px-6 py-4 text-sm">
+                                            <div class="font-semibold">
+                                                {{$autopart->make}}, {{$autopart->model}}
+                                            </div>
+                                            <div class="text-xs mb-2">
+                                                {{ implode(' - ', json_decode($autopart->years)) }}
+                                            </div>
                                             @if ($autopart->origin_id == 1)
                                             <span class="bg-blue-100 text-blue-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300">
                                                 {{$autopart->origin}}
                                             </span>
                                             @else
-                                            <span class="bg-yellow-100 text-yellow-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-yellow-900 dark:text-yellow-300">
+                                            <span class="bg-gray-100 text-gray-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-gray-900 dark:text-gray-300">
                                                 {{$autopart->origin}}
                                             </span>
                                             @endif
+                                            <div class="text-sm mt-1">${{$autopart->sale_price}}</div>
                                         </td>
-                                        <td class="px-6 py-4 text-xs">{{ implode(', ', json_decode($autopart->images)) }}</td>
+                                        <td class="align-top px-6 py-4 text-xs">{{$autopart->description}}</td>
+                                        <td class="align-top px-6 py-4 text-xs">{{ implode(', ', json_decode($autopart->images)) }}</td>
                                     </tr>
                                     @endforeach
                                 </tbody>
