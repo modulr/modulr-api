@@ -105,7 +105,7 @@ class ApiMl
         return $response->object();
     }
 
-    public static function getItemValues($response)
+    public static function getItemValues($response, $conexion)
     {
         $autopart = [];
 
@@ -128,7 +128,7 @@ class ApiMl
             }
 
             // Get Description
-            $description = ApiMl::getItemDescription($response->id);
+            $description = self::getItemDescription($response->id, $conexion);
             $autopart['description'] = $description->plain_text;
 
             
@@ -334,7 +334,13 @@ class ApiMl
             if ($value == 'f150') {
                 $nameArray[$key] = 'f-150';
             } else
-            if ($value == 'x-trail' || $value == 's-type' || $value == 'cx-3' || $value == 'cx-5' || $value == 'cx-7' || $value == 'cx-9' || $value == 'cx-30' || $value == 's-40' || $value == 'v-40' || $value == 'cr-v' || $value == 'rav-4' || $value == 'xc-60') {
+            if ($value == 'trailblazer') {
+                $nameArray[$key] = 'trail blazer';
+            } else
+            if ($value == 'crusier') {
+                $nameArray[$key] = $before.' cruiser';
+            } else
+            if ($value == 'x-trail' || $value == 'x-terra' || $value == 's-type' || $value == 'cx-3' || $value == 'cx-5' || $value == 'cx-7' || $value == 'cx-9' || $value == 'cx-30' || $value == 's-40' || $value == 'v-40' || $value == 'cr-v' || $value == 'rav-4' || $value == 'xc-60') {
                 $nameArray[$key] = str_replace('-', '', $value);
             } else
             if ($value == 'cooper' || $value == 'blazer' || $value == 'hundred' || $value == 'romeo') {

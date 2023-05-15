@@ -81,7 +81,7 @@ class ImportMlController extends Controller
             if ($item->status_id !== 1) {
                 $response = ApiMl::getItem($conexion, $item->ml_id);
     
-                $autopart = ApiMl::getItemValues($response);
+                $autopart = ApiMl::getItemValues($response, $conexion);
 
                 logger($autopart);
 
