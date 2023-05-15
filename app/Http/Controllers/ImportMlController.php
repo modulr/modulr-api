@@ -81,10 +81,12 @@ class ImportMlController extends Controller
             if ($item->status_id !== 1) {
                 $response = ApiMl::getItem($conexion, $item->ml_id);
     
-                $autopart = getItemValues($response);
+                $autopart = ApiMl::getItemValues($response);
+
+                logger($autopart);
 
                 DB::table('autoparts_ml')
-                    ->where('id', $autopart['id'])
+                    ->where('id', $item->id)
                     ->update([
                         'name' => $autopart['name'],
                         'description' => $autopart['description'],

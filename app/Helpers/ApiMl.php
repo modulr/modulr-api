@@ -105,11 +105,13 @@ class ApiMl
         return $response->object();
     }
 
-    public static function getItemValues ($response)
+    public static function getItemValues($response)
     {
         $autopart = [];
+
         if ($response->status == 'active' && $response->available_quantity > 0) {
             $autopart['name'] = $response->title;
+            $autopart['description'] = '';
             $autopart['ml_id'] = $response->id;
             $autopart['sale_price'] = $response->price;
             $autopart['status_id'] = 1;
@@ -124,15 +126,20 @@ class ApiMl
             } else {
                 $autopart['origin_id'] = 2;
             }
+
+            // Get Description
+            $description = ApiMl::getItemDescription($response->id);
+            $autopart['description'] = $description->plain_text;
+
             
             if (!isset($autopart['make_id']) || !isset($autopart['model_id'])||count($autopart['years_ids']) == 0) {
                 foreach ($response->attributes as $value) {
                 
                     if (!isset($autopart['make_id'])) {
-                        if ($value['id'] == 'BRAND') {
-                            $autopart['make'] = $value['value_name'];
+                        if ($value->id == 'BRAND') {
+                            $autopart['make'] = $value->value_name;
                             $make = DB::table('autopart_list_makes')
-                                ->where('name', 'like', $value['value_name'])
+                                ->where('name', 'like', $value->value_name)
                                 ->whereNull('deleted_at')->first();
 
                             if ($make) {
@@ -142,10 +149,10 @@ class ApiMl
                     }
 
                     if (!isset($autopart['model_id'])) {
-                        if ($value['id'] == 'MODEL') {
-                            $autopart['model'] = $value['value_name'];
+                        if ($value->id == 'MODEL') {
+                            $autopart['model'] = $value->value_name;
                             $model = DB::table('autopart_list_models')
-                                ->where('name', 'like', $value['value_name'])
+                                ->where('name', 'like', $value->value_name)
                                 ->whereNull('deleted_at')->first();
                             
                             if ($model) {
@@ -155,11 +162,11 @@ class ApiMl
                     }
 
                     if (count($autopart['years_ids']) == 0) {
-                        if ($value['id'] == 'VEHICLE_YEAR') {
-                            array_push($autopart['years'], $value['value_name']);
+                        if ($value->id == 'VEHICLE_YEAR') {
+                            array_push($autopart['years'], $value->value_name);
     
                             $year = DB::table('autopart_list_years')
-                                ->where('name', 'like', $value['value_name'])
+                                ->where('name', 'like', $value->value_name)
                                 ->whereNull('deleted_at')->first();
 
                             if ($year) {
@@ -168,8 +175,8 @@ class ApiMl
                             }
                         }
     
-                        if ($value['id'] == 'CAR_MODEL') {
-                            array_push($autopart['years'], implode(',', explode(' ', $value['value_name'])));
+                        if ($value->id == 'CAR_MODEL') {
+                            array_push($autopart['years'], implode(',', explode(' ', $value->value_name)));
                             $years = explode(' ', $value['value_name']);
     
                             foreach($years as $item){
@@ -189,7 +196,7 @@ class ApiMl
             if (!isset($autopart['make_id']) || !isset($autopart['model_id']) || count($autopart['years_ids']) == 0) {
 
                 // Get info from name
-                $nameArray = $this->getInfoName($autopart['name']);
+                $nameArray = self::getInfoName($autopart['name']);
 
                 foreach ($nameArray as $value) {
 
@@ -249,8 +256,8 @@ class ApiMl
 
             // Get images
             if (isset($response->pictures)) {
-                $sortedImages = $response->pictures->sortBy('order')->take(10);
-                foreach ($sortedImages as $value) {
+                //$sortedImages = $response->pictures->sortBy('order')->take(10);
+                foreach ($response->pictures as $value) {
                     $url = str_replace("-O.jpg", "-F.jpg", $value->secure_url);
                     array_push($autopart['images'], $url);
                 };
@@ -261,7 +268,7 @@ class ApiMl
         return $autopart;
     }
 
-    private function getInfoName ($name)
+    private static function getInfoName($name)
     {
         $excptionWords = [
             'central', 'superior', 'derecha', 'derecho', 'der', 'izquierda', 'izquierdo', 'izq', 'delantera', 'delantero', 'trasera', 'trasero', 'tras', 'tra', 'lateral', 'vestidura',
