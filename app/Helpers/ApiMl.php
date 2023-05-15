@@ -111,4 +111,9 @@ class ApiMl
 
         return $response->object();
     }
+
+    public static function getItemValues()
+    {
+        
+    }
 }

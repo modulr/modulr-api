@@ -82,6 +82,9 @@ class ImportMlController extends Controller
                 $response = ApiMl::getItem($conexion, $item->ml_id);
     
                 $autopart = [];
+
+                // FALTA PULIR ESTA FUNCION
+                // getItemValues($response)
     
                 if ($response->status == 'active' && $response->available_quantity > 0) {
     
@@ -107,9 +110,7 @@ class ImportMlController extends Controller
                     $description = ApiMl::getItemDescription($response->id, $conexion);
                     $autopart['description'] = $description->plain_text;
     
-                    // FALTA PULIR ESTA FUNCION
-                    //$this->getMakeModelYear($response, $autopart);
-                    //$this->getMake($autopart);
+                    
     
                     foreach ($response->attributes as $value) {
                     
@@ -786,8 +787,8 @@ class ImportMlController extends Controller
         return $autopart;
     }
 
-    // app()->call('App\Http\Controllers\ImportMlController@getCars');
-    public function getCars ()
+    // app()->call('App\Http\Controllers\ImportMlController@getCarsMakesModels');
+    public function getCarsMakesModels ()
     {
         $response = Http::withHeaders([
             'X-Parse-Application-Id' => 'hlhoNKjOvEhqzcVAJ1lxjicJLZNVv36GdbboZj3Z',
