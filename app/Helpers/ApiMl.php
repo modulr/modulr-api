@@ -28,40 +28,33 @@ class ApiMl
 
     private static function refreshAccessToken($store)
     {
-        $client = new \GuzzleHttp\Client(['base_uri' => 'https://api.mercadolibre.com']);
-
         try {
-            $response = $client->request('POST', 'oauth/token', [
-                'headers' => [
-                    'Accept' => 'application/json',
-                    'content-type' => 'application/x-www-form-urlencoded'
-                ],
-                'form_params' => [
-                    'grant_type' => 'refresh_token',
-                    'client_id' => $store->client_id,
-                    'client_secret' => $store->client_secret,
-                    'refresh_token' => $store->token
-                ]
+            $response = Http::withHeaders([
+                'Accept' => 'application/json',
+                'content-type' => 'application/x-www-form-urlencoded',
+            ])->post('https://api.mercadolibre.com/oauth/token', [
+                'grant_type' => 'refresh_token',
+                'client_id' => $store->client_id,
+                'client_secret' => $store->client_secret,
+                'refresh_token' => $store->token,
             ]);
 
-            $res = json_decode($response->getBody());
+            $res = $response->json();
 
             // Update token
             $store = DB::table('stores_ml')->where('id', $store->id)->update([
-                'token' => $res->refresh_token,
-                'access_token' => $res->access_token
+                'token' => $res['refresh_token'],
+                'access_token' => $res['access_token'],
             ]);
 
             logger('Refresh token');
-            //logger(['code' => $response->getStatusCode(), 'item' => json_decode($response->getBody()), 'update' => $update]);
             return $store;
-        }
-        catch (\GuzzleHttp\Exception\ClientException $e) {
+        } catch (\Illuminate\Http\Client\RequestException $e) {
             logger('Do not refresh token');
-            // Refresh Token
             return false;
         }
     }
+
 
     public static function getItems($conexion)
     {
