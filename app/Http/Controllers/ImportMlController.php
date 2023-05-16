@@ -15,27 +15,15 @@ class ImportMlController extends Controller
     // app()->call('App\Http\Controllers\ImportMlController@getIds');
     public function getIds (Request $request)
     {
-        $conexion = ApiMl::conexion($request->id);
+        $response = ApiMl::getItems($request->id);
 
-        if (!$conexion) {
-            return view('welcome', ['error' => 'No se pudo refrescar el token']);
-        }
-
-        $ids = ApiMl::getItems($conexion);
-
-        return view('welcome', ['store' => $conexion, 'ids' => $ids]);
+        return view('welcome', ['store' => $response['data']['store'], 'ids' => $response['data']['ids']]);
     }
 
     // app()->call('App\Http\Controllers\ImportMlController@getNewIds');
     public function getNewIds (Request $request)
     {
-        $conexion = ApiMl::conexion($request->id);
-
-        if (!$conexion) {
-            return view('welcome', ['error' => 'No se pudo refrescar el token']);
-        }
-
-        $ids = ApiMl::getItems($conexion);
+        $response = ApiMl::getItems($request->id);
 
         $idsDB = DB::table('autoparts')
                     ->where('store_ml_id', $request->id)
@@ -49,28 +37,23 @@ class ImportMlController extends Controller
 
         $idsMerge = array_merge($idsDB, $idsDBMl);
 
-        $idsNew = array_diff($ids, $idsMerge);
+        $idsNew = array_diff($response['data']['ids'], $idsMerge);
 
         foreach ($idsNew as $value) {
             DB::table('autoparts_ml')->insert([
                 'ml_id' => $value,
                 'store_ml_id' => $request->id,
+                'store_id' => $response['data']['store']->id,
                 'created_at' => Carbon::now()
             ]);
         }
 
-        return view('welcome', ['store' => $conexion, 'ids' => $idsNew]);
+        return view('welcome', ['store' => $response['data']['store'], 'ids' => $idsNew]);
     }
 
     // app()->call('App\Http\Controllers\ImportMlController@import');
     public function import(Request $request)
     {
-        $conexion = ApiMl::conexion($request->id);
-
-        if (!$conexion) {
-            return view('welcome', ['error' => 'No se pudo refrescar el token']);
-        }
-
         $autopartsMl = DB::table('autoparts_ml')
                             ->where('store_ml_id', $request->id)
                             ->where('import', 0)
@@ -79,25 +62,22 @@ class ImportMlController extends Controller
         foreach($autopartsMl as $item) {
 
             if ($item->status_id !== 1) {
-                $response = ApiMl::getItem($conexion, $item->ml_id);
     
-                $autopart = ApiMl::getItemValues($response, $conexion);
-
-                logger($autopart);
+                $response = ApiMl::getItemValues($request->id, $item->ml_id);
 
                 DB::table('autoparts_ml')
                     ->where('id', $item->id)
                     ->update([
-                        'name' => $autopart['name'],
-                        'description' => $autopart['description'],
-                        'sale_price' => $autopart['sale_price'],
-                        'origin_id' => $autopart['origin_id'],
-                        'status_id' => $autopart['status_id'],
-                        'make_id' => $autopart['make_id'],
-                        'model_id' => $autopart['model_id'],
-                        'years_ids' => $autopart['years_ids'],
-                        'years' => $autopart['years'],
-                        'images' => $autopart['images'],
+                        'name' => $response['data']['autopart']['name'],
+                        'description' => $response['data']['autopart']['description'],
+                        'sale_price' => $response['data']['autopart']['sale_price'],
+                        'origin_id' => $response['data']['autopart']['origin_id'],
+                        'status_id' => $response['data']['autopart']['status_id'],
+                        'make_id' => $response['data']['autopart']['make_id'],
+                        'model_id' => $response['data']['autopart']['model_id'],
+                        'years_ids' => $response['data']['autopart']['years_ids'],
+                        'years' => $response['data']['autopart']['years'],
+                        'images' => $response['data']['autopart']['images'],
                         'updated_at' => Carbon::now()
                     ]);
     
@@ -116,22 +96,22 @@ class ImportMlController extends Controller
                 ->orderByDesc('autoparts_ml.status_id')
                 ->get();
 
-        return view('welcome', ['store' => $conexion, 'autoparts' => $autoparts]);
+        return view('welcome', ['store' => $response['data']['store'], 'autoparts' => $autoparts]);
     }
 
     // app()->call('App\Http\Controllers\ImportMlController@save');
     public function save (Request $request)
     {
-        $conexion = ApiMl::conexion($request->id);
-
-        if (!$conexion) {
-            return view('welcome', ['error' => 'No se pudo refrescar el token']);
-        }
-
         $autoparts = DB::table('autoparts_ml')
-                ->where('store_ml_id', $request->id)
-                ->where('import', 0)
+                ->leftJoin('autopart_list_makes', 'autopart_list_makes.id', '=', 'autoparts_ml.make_id')
+                ->leftJoin('autopart_list_models', 'autopart_list_models.id', '=', 'autoparts_ml.model_id')
+                ->leftJoin('autopart_list_origins', 'autopart_list_origins.id', '=', 'autoparts_ml.origin_id')
+                ->leftJoin('autopart_list_status', 'autopart_list_status.id', '=', 'autoparts_ml.status_id')
+                ->select('autoparts_ml.*', 'autopart_list_makes.name as make', 'autopart_list_models.name as model', 'autopart_list_origins.name as origin', 'autopart_list_status.name as status')
+                ->where('autoparts_ml.store_ml_id', $request->id)
+                ->where('autoparts_ml.import', 0)
                 //->limit(3)
+                ->orderByDesc('autoparts_ml.status_id')
                 ->get();
 
         foreach ($autoparts as $autopart) {
@@ -144,8 +124,8 @@ class ImportMlController extends Controller
                 'origin_id' => $autopart->origin_id,
                 'status_id' => $autopart->status_id,
                 'ml_id' => $autopart->ml_id,
-                'store_ml_id' => $conexion->id,
-                'store_id' => $conexion->store_id,
+                'store_ml_id' => $autopart->store_ml_id,
+                'store_id' => $autopart->store_id,
                 'created_by' => 1,
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now()
@@ -184,7 +164,9 @@ class ImportMlController extends Controller
                     ]);
         }
 
-        return view('welcome', ['store' => $conexion, 'autoparts' => $autoparts, 'save' => 'Success']);
+        $store = DB::table('stores_ml')->find($request->id);
+
+        return view('welcome', ['store' => $store, 'autoparts' => $autoparts, 'save' => 'Success']);
     }
 
     // app()->call('App\Http\Controllers\ImportMlController@getCarsMakesModels');

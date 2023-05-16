@@ -28,13 +28,15 @@ return new class extends Migration
             $table->integer('status_id')->nullable()->unsigned();
             $table->foreign('status_id')->references('id')->on('autopart_list_status');
 
-            $table->json('images')->nullable();
             $table->json('years')->nullable();
             $table->json('years_ids')->nullable();
+            $table->json('images')->nullable();
 
             $table->string('ml_id')->unique();
             $table->integer('store_ml_id')->nullable()->unsigned();
             $table->foreign('store_ml_id')->references('id')->on('stores_ml');
+            $table->integer('store_id')->nullable()->unsigned();
+            $table->foreign('store_id')->references('id')->on('stores');
 
             $table->boolean('import')->default(false);
             $table->timestamps();

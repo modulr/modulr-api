@@ -4,29 +4,30 @@ namespace App\Helpers;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class ApiMl
 {
-    public static function conexion($id)
-    {
-        $store = DB::table('stores_ml')->find($id);
-        return self::checkAccessToken($store);
-    }
+    protected static $store;
 
-    private static function checkAccessToken($store)
+    private static function checkAccessToken($storeMlId)
     {
-        $response = Http::withHeaders([
-            'Authorization' => 'Bearer '.$store->access_token,
-        ])->get('https://api.mercadolibre.com/users/me');
-
-        if ($response['status'] == 401) {
-            return self::refreshAccessToken($store);
+        if (!isset(self::$store) || self::$store->id !== $storeMlId) {
+            self::$store = DB::table('stores_ml')->find($storeMlId);
         }
 
-        return $store;
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer '.self::$store->access_token,
+        ])->get('https://api.mercadolibre.com/users/me');
+
+        if ($response->status() !== 200) {
+            return self::refreshAccessToken();
+        }
+
+        return $response->status();
     }
 
-    private static function refreshAccessToken($store)
+    private static function refreshAccessToken()
     {
         try {
             $response = Http::withHeaders([
@@ -34,79 +35,88 @@ class ApiMl
                 'content-type' => 'application/x-www-form-urlencoded',
             ])->post('https://api.mercadolibre.com/oauth/token', [
                 'grant_type' => 'refresh_token',
-                'client_id' => $store->client_id,
-                'client_secret' => $store->client_secret,
-                'refresh_token' => $store->token,
+                'client_id' => self::$store->client_id,
+                'client_secret' => self::$store->client_secret,
+                'refresh_token' => self::$store->token,
             ]);
 
-            $res = $response->json();
+            $res = $response->object();
 
             // Update token
-            $store = DB::table('stores_ml')->where('id', $store->id)->update([
-                'token' => $res['refresh_token'],
-                'access_token' => $res['access_token'],
+            self::$store = DB::table('stores_ml')->where('id', self::$store->id)->update([
+                'token' => $res->refresh_token,
+                'access_token' => $res->access_token,
+                'updated_at' => Carbon::now()
             ]);
 
             logger('Refresh token');
-            return $store;
+            return $response->status();
         } catch (\Illuminate\Http\Client\RequestException $e) {
             logger('Do not refresh token');
-            return false;
+            return $response->status();
         }
     }
 
 
-    public static function getItems($conexion)
+    public static function getItems($storeMlId)
     {
+        self::checkAccessToken($storeMlId);
+
         $ids = [];
         $scrollId = null;
 
         do {
 
             $response = Http::withHeaders([
-                'Authorization' => 'Bearer '.$conexion->access_token,
-            ])->get('https://api.mercadolibre.com/users/'.$conexion->user_id.'/items/search', [
+                'Authorization' => 'Bearer '.self::$store->access_token,
+            ])->get('https://api.mercadolibre.com/users/'.self::$store->user_id.'/items/search', [
                 'status' => 'active',
                 'search_type' => 'scan',
                 'limit' => 100,
                 'scroll_id' => $scrollId,
             ]);
 
-            if (isset($response['results']) && count($response['results']) > 0) {
-                $ids = array_merge($ids, $response['results']);
+            $res = $response->object();
+
+            if (isset($res->results) && count($res->results) > 0) {
+                $ids = array_merge($ids, $res->results);
             }
 
-            if (isset($response['scroll_id'])) {
-                $scrollId = $response['scroll_id'];
+            if (isset($res->scroll_id)) {
+                $scrollId = $res->scroll_id;
             }
 
-        } while (isset($response['results']) && count($response['results']) > 0);
+        } while (isset($res->results) && count($res->results) > 0);
 
-        return $ids;
+        return ['status' => $response->status(), 'data' => ['ids' => $ids, 'store' => self::$store]];
     }    
 
-    public static function getItem($conexion, $id)
+    private static function getItem($mlId)
     {
         $response = Http::withHeaders([
-            'Authorization' => 'Bearer '.$conexion->access_token,
+            'Authorization' => 'Bearer '.self::$store->access_token,
         ])->get('https://api.mercadolibre.com/items', [
-            'ids' => $id,
+            'ids' => $mlId,
         ]);
 
         return $response->object()[0]->body;
     }
 
-    public static function getItemDescription($id, $conexion)
+    private static function getItemDescription($mlId)
     {
         $response = Http::withHeaders([
-            'Authorization' => 'Bearer '.$conexion->access_token,
-        ])->get('https://api.mercadolibre.com/items/'.$id.'/description');
+            'Authorization' => 'Bearer '.self::$store->access_token,
+        ])->get('https://api.mercadolibre.com/items/'.$mlId.'/description');
 
         return $response->object();
     }
 
-    public static function getItemValues($response, $conexion)
+    public static function getItemValues($storeMlId, $mlId)
     {
+        self::checkAccessToken($storeMlId);
+
+        $response = self::getItem($mlId);
+
         $autopart = [];
 
         if ($response->status == 'active' && $response->available_quantity > 0) {
@@ -128,11 +138,11 @@ class ApiMl
             }
 
             // Get Description
-            $description = self::getItemDescription($response->id, $conexion);
+            $description = self::getItemDescription($response->id);
             $autopart['description'] = $description->plain_text;
 
             
-            if (!isset($autopart['make_id']) || !isset($autopart['model_id'])||count($autopart['years_ids']) == 0) {
+            if (!isset($autopart['make_id']) || !isset($autopart['model_id']) || count($autopart['years_ids']) == 0) {
                 foreach ($response->attributes as $value) {
                 
                     if (!isset($autopart['make_id'])) {
@@ -256,7 +266,6 @@ class ApiMl
 
             // Get images
             if (isset($response->pictures)) {
-                //$sortedImages = $response->pictures->sortBy('order')->take(10);
                 foreach ($response->pictures as $value) {
                     $url = str_replace("-O.jpg", "-F.jpg", $value->secure_url);
                     array_push($autopart['images'], $url);
@@ -264,8 +273,8 @@ class ApiMl
             }
 
         }
-
-        return $autopart;
+        
+        return ['status' => 200, 'data' => ['autopart' => $autopart, 'store' => self::$store]];
     }
 
     private static function getInfoName($name)
