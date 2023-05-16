@@ -187,7 +187,7 @@ class ApiMl
     
                         if ($value->id == 'CAR_MODEL') {
                             array_push($autopart['years'], implode(',', explode(' ', $value->value_name)));
-                            $years = explode(' ', $value['value_name']);
+                            $years = explode(' ', $value->value_name);
     
                             foreach($years as $item){
                                 $year = DB::table('autopart_list_years')
