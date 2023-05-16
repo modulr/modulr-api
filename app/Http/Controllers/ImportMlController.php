@@ -43,7 +43,7 @@ class ImportMlController extends Controller
             DB::table('autoparts_ml')->insert([
                 'ml_id' => $value,
                 'store_ml_id' => $request->id,
-                'store_id' => $response['data']['store']->id,
+                'store_id' => $response['data']['store']->store_id,
                 'created_at' => Carbon::now()
             ]);
         }
