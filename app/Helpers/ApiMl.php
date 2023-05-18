@@ -29,34 +29,35 @@ class ApiMl
 
     private static function refreshAccessToken()
     {
-        try {
-            $response = Http::withHeaders([
-                'Accept' => 'application/json',
-                'content-type' => 'application/x-www-form-urlencoded',
-            ])->post('https://api.mercadolibre.com/oauth/token', [
-                'grant_type' => 'refresh_token',
-                'client_id' => self::$store->client_id,
-                'client_secret' => self::$store->client_secret,
-                'refresh_token' => self::$store->token,
-            ]);
+        $response = Http::withHeaders([
+            'Accept' => 'application/json',
+            'content-type' => 'application/x-www-form-urlencoded',
+        ])->post('https://api.mercadolibre.com/oauth/token', [
+            'grant_type' => 'refresh_token',
+            'client_id' => self::$store->client_id,
+            'client_secret' => self::$store->client_secret,
+            'refresh_token' => self::$store->token,
+        ]);
 
+        if ($response->ok()) {
             $res = $response->object();
 
             // Update token
-            self::$store = DB::table('stores_ml')->where('id', self::$store->id)->update([
+            DB::table('stores_ml')->where('id', self::$store->id)->update([
                 'token' => $res->refresh_token,
                 'access_token' => $res->access_token,
                 'updated_at' => Carbon::now()
             ]);
 
+            self::$store = DB::table('stores_ml')->find(self::$store->id);
+
             logger('Refresh token');
             return $response->status();
-        } catch (\Illuminate\Http\Client\RequestException $e) {
+        } else {
             logger('Do not refresh token');
             return $response->status();
         }
     }
-
 
     public static function getItems($storeMlId)
     {
@@ -140,7 +141,6 @@ class ApiMl
             // Get Description
             $description = self::getItemDescription($response->id);
             $autopart['description'] = $description->plain_text;
-
             
             if (!isset($autopart['make_id']) || !isset($autopart['model_id']) || count($autopart['years_ids']) == 0) {
                 foreach ($response->attributes as $value) {
@@ -211,7 +211,7 @@ class ApiMl
                 foreach ($nameArray as $value) {
 
                     // Make
-                    if (is_null($autopart['make_id'])) {
+                    if (!isset($autopart['make_id'])) {
                         $make = DB::table('autopart_list_makes')
                             ->select('id', 'name')
                             ->where('name', 'like', $value)
@@ -222,45 +222,67 @@ class ApiMl
                             $autopart['make_id'] = $make->id;
                             $autopart['make'] = $make->name;
                         }
-                    }else{
-                        $model = DB::table('autopart_list_models')
-                            ->select('id', 'name')
-                            ->where('make_id', $autopart['make_id'])
-                            ->where('name', 'like', $value)
-                            ->whereNull('deleted_at')
-                            ->first();
+                    }
+
+                    // Model
+                    if (!isset($autopart['model_id'])) {
+                        if (!isset($autopart['make_id'])) {
+                            $model = DB::table('autopart_list_models')
+                                ->select('autopart_list_models.id', 'autopart_list_models.name', 'autopart_list_models.make_id', 'autopart_list_makes.name as make')
+                                ->join('autopart_list_makes', 'autopart_list_makes.id', '=', 'autopart_list_models.make_id')
+                                ->where('autopart_list_models.name', 'like', $value)
+                                ->whereNull('autopart_list_models.deleted_at')
+                                ->first();
+
+                            if ($model) {
+                                $autopart['model_id'] = $model->id;
+                                $autopart['model'] = $model->name;
+                                $autopart['make_id'] = $model->make_id;
+                                $autopart['make'] = $model->make;
+                            }
+                        } else {
+                            $model = DB::table('autopart_list_models')
+                                ->select('id', 'name')
+                                ->where('make_id', $autopart['make_id'])
+                                ->where('name', 'like', $value)
+                                ->whereNull('deleted_at')
+                                ->first();
 
                             if ($model) {
                                 $autopart['model_id'] = $model->id;
                                 $autopart['model'] = $model->name;
                             }
+                        }
                     }
-                    
+
                     // Years
-                    if (str_contains($value, '-')) {
-                        $yearsArray = explode('-',$value);
-                        foreach ($yearsArray as $val) {
+                    if (count($autopart['years_ids']) == 0) {
+                        if (str_contains($value, '-')) {
+                            $yearsArray = explode('-',$value);
+                            foreach ($yearsArray as $val) {
+                                $year = DB::table('autopart_list_years')
+                                    ->where('name', 'like', $val)
+                                    ->whereNull('deleted_at')->first();
+                                if ($year) {
+                                    array_push($autopart['years_ids'], $year->id);
+                                    array_push($autopart['years'], $year->name);
+                                }
+                            }
+                        } else {
                             $year = DB::table('autopart_list_years')
-                                ->where('name', 'like', $val)
+                                ->where('name', 'like', $value)
                                 ->whereNull('deleted_at')->first();
                             if ($year) {
                                 array_push($autopart['years_ids'], $year->id);
                                 array_push($autopart['years'], $year->name);
                             }
                         }
-                    } else {
-                        $year = DB::table('autopart_list_years')
-                            ->where('name', 'like', $value)
-                            ->whereNull('deleted_at')->first();
-                        if ($year) {
-                            array_push($autopart['years_ids'], $year->id);
-                            array_push($autopart['years'], $year->name);
-                        }
                     }
+                    
                 }
             }
 
-            if (is_null($autopart['make_id']) || is_null($autopart['model_id'])) {
+            if (!isset($autopart['make_id']) || !isset($autopart['model_id'])) {
                 $autopart['status_id'] = 5;
             }
 
