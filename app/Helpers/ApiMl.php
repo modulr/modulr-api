@@ -142,7 +142,7 @@ class ApiMl
             $description = self::getItemDescription($response->id);
             $autopart['description'] = $description->plain_text;
             
-            if (!isset($autopart['make_id']) || !isset($autopart['model_id']) || count($autopart['years_ids']) == 0) {
+            //if (!isset($autopart['make_id']) || !isset($autopart['model_id']) || count($autopart['years_ids']) == 0) {
                 foreach ($response->attributes as $value) {
                 
                     if (!isset($autopart['make_id'])) {
@@ -171,7 +171,7 @@ class ApiMl
                         }
                     }
 
-                    if (count($autopart['years_ids']) == 0) {
+                    //if (count($autopart['years_ids']) == 0) {
                         if ($value->id == 'VEHICLE_YEAR') {
                             array_push($autopart['years'], $value->value_name);
     
@@ -199,11 +199,11 @@ class ApiMl
                                 }
                             }
                         }
-                    }
+                    //}
                 }
-            }
+            //}
 
-            if (!isset($autopart['make_id']) || !isset($autopart['model_id']) || count($autopart['years_ids']) == 0) {
+            //if (!isset($autopart['make_id']) || !isset($autopart['model_id']) || count($autopart['years_ids']) == 0) {
 
                 // Get info from name
                 $nameArray = self::getInfoName($autopart['name']);
@@ -256,7 +256,7 @@ class ApiMl
                     }
 
                     // Years
-                    if (count($autopart['years_ids']) == 0) {
+                    //if (count($autopart['years_ids']) == 0) {
                         if (str_contains($value, '-')) {
                             $yearsArray = explode('-',$value);
                             foreach ($yearsArray as $val) {
@@ -277,10 +277,10 @@ class ApiMl
                                 array_push($autopart['years'], $year->name);
                             }
                         }
-                    }
+                    //}
                     
                 }
-            }
+            //}
 
             if (!isset($autopart['make_id']) || !isset($autopart['model_id'])) {
                 $autopart['status_id'] = 5;
