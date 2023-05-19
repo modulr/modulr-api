@@ -61,7 +61,7 @@ class ImportMlController extends Controller
 
         foreach($autopartsMl as $item) {
 
-            //if ($item->status_id !== 1) {
+            if ($item->status_id !== 1) {
     
                 $response = ApiMl::getItemValues($request->id, $item->ml_id);
 
@@ -81,7 +81,7 @@ class ImportMlController extends Controller
                         'updated_at' => Carbon::now()
                     ]);
     
-            //}
+            }
 
         }
 
