@@ -110,7 +110,7 @@ class ImportMlController extends Controller
                 ->select('autoparts_ml.*', 'autopart_list_makes.name as make', 'autopart_list_models.name as model', 'autopart_list_origins.name as origin', 'autopart_list_status.name as status')
                 ->where('autoparts_ml.store_ml_id', $request->id)
                 ->where('autoparts_ml.import', 0)
-                ->limit(500)
+                ->limit(100)
                 ->orderByDesc('autoparts_ml.status_id')
                 ->get();
 
