@@ -108,7 +108,7 @@ class ImportMlController extends Controller
                 ->leftJoin('autopart_list_origins', 'autopart_list_origins.id', '=', 'autoparts_ml.origin_id')
                 ->leftJoin('autopart_list_status', 'autopart_list_status.id', '=', 'autoparts_ml.status_id')
                 ->select('autoparts_ml.*', 'autopart_list_makes.name as make', 'autopart_list_models.name as model', 'autopart_list_origins.name as origin', 'autopart_list_status.name as status')
-                ->where('autoparts_ml.store_ml_id', $request->id)
+                ->where('autoparts_ml.store_ml_id', 15)
                 ->where('autoparts_ml.import', 0)
                 ->limit(100)
                 ->orderByDesc('autoparts_ml.status_id')
@@ -166,7 +166,7 @@ class ImportMlController extends Controller
 
         return true;
 
-        // $store = DB::table('stores_ml')->find($request->id);
+        // $store = DB::table('stores_ml')->find(15);
 
         // return view('welcome', ['store' => $store, 'autoparts' => $autoparts, 'save' => 'Success']);
     }
