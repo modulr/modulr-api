@@ -11,12 +11,6 @@
         <link href="https://fonts.bunny.net/css?family=figtree:400,600&display=swap" rel="stylesheet" />
 
         <script src="https://cdn.tailwindcss.com"></script>
-
-        <script>
-    setInterval(function() {
-      location.reload();
-    }, 10000);
-  </script>
     </head>
     <body class="antialiased">
         <div class="relative sm:flex sm:justify-center  min-h-screen bg-dots-darker bg-center bg-gray-100 dark:bg-dots-lighter dark:bg-gray-900 selection:bg-red-500 selection:text-white">
