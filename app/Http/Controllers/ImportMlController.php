@@ -164,11 +164,9 @@ class ImportMlController extends Controller
                     ]);
         }
 
-        return true;
+        $store = DB::table('stores_ml')->find($request->id);
 
-        // $store = DB::table('stores_ml')->find($request->id);
-
-        // return view('welcome', ['store' => $store, 'autoparts' => $autoparts, 'save' => 'Success']);
+        return view('welcome', ['store' => $store, 'autoparts' => $autoparts, 'save' => 'Success']);
     }
 
     // app()->call('App\Http\Controllers\ImportMlController@getCarsMakesModels');
