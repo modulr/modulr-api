@@ -48,7 +48,12 @@ class ImportMlController extends Controller
             ]);
         }
 
-        return view('welcome', ['store' => $response['data']['store'], 'ids' => $idsNew]);
+        $autopartsMl = DB::table('autoparts_ml')
+                            ->where('store_ml_id', $request->id)
+                            ->where('import', 0)
+                            ->get();
+
+        return view('welcome', ['store' => $response['data']['store'], 'autoparts' => $autopartsMl]);
     }
 
     // app()->call('App\Http\Controllers\ImportMlController@import');
@@ -96,7 +101,14 @@ class ImportMlController extends Controller
                 ->orderByDesc('autoparts_ml.status_id')
                 ->get();
 
-        return view('welcome', ['store' => $response['data']['store'], 'autoparts' => $autoparts]);
+        $store = DB::table('stores_ml')->find($request->id);
+
+        $autopartsCount = [
+            'total' => DB::table('autoparts_ml')->where('store_ml_id', $request->id)->where('import', 0)->count(),
+            'incomplete' => DB::table('autoparts_ml')->where('store_ml_id', $request->id)->where('import', 0)->where('status_id', 5)->count()
+        ];
+
+        return view('welcome', ['store' => $store, 'autoparts' => $autoparts, 'count' => $autopartsCount]);
     }
 
     // app()->call('App\Http\Controllers\ImportMlController@save');
@@ -110,7 +122,7 @@ class ImportMlController extends Controller
                 ->select('autoparts_ml.*', 'autopart_list_makes.name as make', 'autopart_list_models.name as model', 'autopart_list_origins.name as origin', 'autopart_list_status.name as status')
                 ->where('autoparts_ml.store_ml_id', $request->id)
                 ->where('autoparts_ml.import', 0)
-                ->limit(50)
+                ->limit($request->limit)
                 ->orderByDesc('autoparts_ml.status_id')
                 ->get();
 
@@ -166,7 +178,12 @@ class ImportMlController extends Controller
 
         $store = DB::table('stores_ml')->find($request->id);
 
-        return view('welcome', ['store' => $store, 'autoparts' => $autoparts, 'save' => 'Success']);
+        $autopartsCount = [
+            'total' => DB::table('autoparts_ml')->where('store_ml_id', $request->id)->where('import', 0)->count(),
+            'incomplete' => DB::table('autoparts_ml')->where('store_ml_id', $request->id)->where('import', 0)->where('status_id', 5)->count()
+        ];
+        
+        return view('welcome', ['store' => $store, 'autoparts' => $autoparts, 'count' => $autopartsCount, 'save' => 'Success']);
     }
 
     // app()->call('App\Http\Controllers\ImportMlController@getCarsMakesModels');
