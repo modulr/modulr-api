@@ -25,4 +25,3 @@ Route::get('import/import/{id}', [ImportMlController::class, 'import']);
 Route::get('import/save/{id}/{limit}', [ImportMlController::class, 'save']);
 
 Route::get('export', [ExportController::class, 'export']);
-
