@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
+use App\Models\Autopart;
+
 class AutopartController extends Controller
 {
     public function getAll()
@@ -18,16 +20,36 @@ class AutopartController extends Controller
             })
             ->select('autoparts.*', 'autopart_images.basename', 'autopart_images.order')
             ->inRandomOrder()
-            ->limit(100)
+            ->limit(20)
             ->get();
 
         foreach ($autoparts as $autopart) {
             $autopart->name = Str::limit($autopart->name, 50);
             $autopart->discount_price = number_format($autopart->sale_price + ($autopart->sale_price * 0.10));
             $autopart->sale_price = number_format($autopart->sale_price);
-            $autopart->url = Storage::url('autoparts/'.$autopart->id.'/images/'.$autopart->basename);
+            if (Storage::exists('autoparts/'.$autopart->id.'/images/thumbnail_'.$autopart->basename)) {
+                $autopart->url = Storage::url('autoparts/'.$autopart->id.'/images/thumbnail_'.$autopart->basename);
+            } else {
+                $autopart->url = Storage::url('autoparts/'.$autopart->id.'/images/'.$autopart->basename);
+            }
         }
 
         return $autoparts;
+    }
+
+    public function show(Request $request)
+    {
+        return Autopart::with([
+            'make',
+            'model',
+            'years',
+            'origin',
+            'status',
+            'store',
+            'storeMl',
+            'images' => function ($query) {
+                $query->orderBy('order', 'asc');
+            }
+            ])->find($request->id);
     }
 }
