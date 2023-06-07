@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 use App\Models\Autopart;
 
@@ -36,7 +35,6 @@ class AutopartController extends Controller
             ->paginate(50);
 
         foreach ($autoparts as $autopart) {
-            $autopart->name = Str::limit($autopart->name, 50);
             $autopart->discount_price = number_format($autopart->sale_price + ($autopart->sale_price * 0.10));
             $autopart->sale_price = number_format($autopart->sale_price);
             // if (Storage::exists('autoparts/'.$autopart->id.'/images/thumbnail_'.$autopart->basename)) {
@@ -58,7 +56,6 @@ class AutopartController extends Controller
             'origin',
             'status',
             'store',
-            'storeMl',
             'images' => function ($query) {
                 $query->orderBy('order', 'asc');
             }
