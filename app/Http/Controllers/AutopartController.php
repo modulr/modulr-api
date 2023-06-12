@@ -17,7 +17,7 @@ class AutopartController extends Controller
         $category = $request->category;
 
         $autoparts = DB::table('autoparts')
-            ->whereIn('autoparts.status_id', [1,6])
+            ->whereIn('autoparts.status_id', [1,2,3,5,6])
             ->when($make, function ($query, $make) {
                 $query->where('autoparts.make_id', $make['id']);
             })
@@ -59,6 +59,7 @@ class AutopartController extends Controller
             'images' => function ($query) {
                 $query->orderBy('order', 'asc');
             }
-            ])->find($request->id);
+            ])->whereIn('status_id', [1,2,3,5,6])
+            ->find($request->id);
     }
 }
