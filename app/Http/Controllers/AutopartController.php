@@ -32,7 +32,7 @@ class AutopartController extends Controller
             })
             ->select('autoparts.*', 'autopart_images.basename', 'autopart_images.order')
             ->inRandomOrder()
-            ->paginate(50);
+            ->paginate(52);
 
         foreach ($autoparts as $autopart) {
             $autopart->discount_price = number_format($autopart->sale_price + ($autopart->sale_price * 0.10));
