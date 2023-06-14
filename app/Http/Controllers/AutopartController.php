@@ -15,6 +15,7 @@ class AutopartController extends Controller
         $make = $request->make;
         $model = $request->model;
         $category = $request->category;
+        $number = $request->number;
 
         $autoparts = DB::table('autoparts')
             ->whereIn('autoparts.status_id', [1,2,3,5,6])
@@ -26,6 +27,13 @@ class AutopartController extends Controller
             })
             ->when($category, function ($query, $category) {
                 $query->where('autoparts.category_id', $category['id']);
+            })
+            ->when($number, function ($query, $number) {
+                $query->where('autoparts.name', 'like', '%'.$number.'%')
+                ->orWhere('autoparts.description', 'like', '%'.$number.'%')
+                ->orWhere('autoparts.id', 'like', '%'.$number.'%')
+                ->orWhere('autoparts.ml_id', 'like', '%'.$number.'%')
+                ->orWhere('autoparts.autopart_number', 'like', '%'.$number.'%');
             })
             ->join('autopart_images', function ($join) {
                 $join->on('autopart_images.id', '=', DB::raw('(SELECT autopart_images.id FROM autopart_images WHERE autopart_images.autopart_id = autoparts.id ORDER BY autopart_images.order ASC LIMIT 1)'));
