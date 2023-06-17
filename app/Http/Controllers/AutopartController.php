@@ -38,18 +38,23 @@ class AutopartController extends Controller
             ->join('autopart_images', function ($join) {
                 $join->on('autopart_images.id', '=', DB::raw('(SELECT autopart_images.id FROM autopart_images WHERE autopart_images.autopart_id = autoparts.id ORDER BY autopart_images.order ASC LIMIT 1)'));
             })
-            ->select('autoparts.*', 'autopart_images.basename', 'autopart_images.order')
+            ->select('autoparts.id', 'autoparts.name', 'autoparts.sale_price', 'autopart_images.basename')
             ->inRandomOrder()
             ->paginate(52);
 
         foreach ($autoparts as $autopart) {
-            $autopart->discount_price = number_format($autopart->sale_price + ($autopart->sale_price * 0.10));
-            $autopart->sale_price = number_format($autopart->sale_price);
-            // if (Storage::exists('autoparts/'.$autopart->id.'/images/thumbnail_'.$autopart->basename)) {
-            //     $autopart->url = Storage::url('autoparts/'.$autopart->id.'/images/thumbnail_'.$autopart->basename);
-            // } else {
-                $autopart->url = Storage::url('autoparts/'.$autopart->id.'/images/'.$autopart->basename);
-            //}
+            if ($autopart->status_id == 4) {
+                unset($autoparts[$key]);
+            }else{
+                $autopart->discount_price = number_format($autopart->sale_price + ($autopart->sale_price * 0.10));
+                $autopart->sale_price = number_format($autopart->sale_price);
+                // if (Storage::exists('autoparts/'.$autopart->id.'/images/thumbnail_'.$autopart->basename)) {
+                //     $autopart->url = Storage::url('autoparts/'.$autopart->id.'/images/thumbnail_'.$autopart->basename);
+                // } else {
+                    $autopart->url = Storage::url('autoparts/'.$autopart->id.'/images/'.$autopart->basename);
+                //}
+            }
+            
         }
 
         return $autoparts;
