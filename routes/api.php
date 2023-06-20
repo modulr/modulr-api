@@ -28,3 +28,8 @@ Route::get('autoparts/{id}', [AutopartController::class, 'show']);
 Route::get('makes', [MakeController::class, 'index']);
 Route::get('models', [ModelController::class, 'index']);
 Route::get('categories', [CategoryController::class, 'index']);
+
+
+// Mercado libre
+Route::get('/mercado/auth', 'AutopartController@auth');
+Route::post('/mercado/notifications', 'AutopartController@notifications');
