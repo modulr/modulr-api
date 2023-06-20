@@ -122,52 +122,31 @@ class MlController extends Controller
         } else {
         //} else if ($request->user_id !== 141862124){
             $storeMl = DB::table('stores_ml')->where('user_id', $request->user_id)->first();
+            $response = ApiMl::getItemValues($storeMl->id, $mlId);
             
-            $autopartMl = $this->getAutopart((object)['store_ml_id' => $storeMl->id, 'ml_id' => $mlId]);
 
-            if ($autopartMl->response && $autopartMl->autopart->status == 'active') {
-                $description = $this->getAutopartDescription($autopartMl->autopart, $storeMl->id);
-
-                //BUSCAR CAGTEGORIA EN CASO DE NO EXISTIR CREARLA
-                $cat = AutopartListCategory::where('ml_id',$autopartMl->autopart->category_id)->first();
-                $catName = $this->getCategoryName($autopartMl->autopart->category_id, $storeMl->id);
-                if(!$cat){
-
-                    $cat = AutopartListCategory::create([
-                        'name' => strtolower($catName),
-                        'ml_id' => $autopartMl->autopart->category_id,
-                        'name_ml' => $catName
-                    ]);
-                }else if(is_null($cat->ml_id) || is_null($cat->name_ml)){
-                    $cat->ml_id = $autopartMl->autopart->category_id;
-                    $cat->name_ml = $catName;
-                    $cat->save();
-                }
-
-                $autopart = $this->getInfo($autopartMl->autopart);
-
-                logger(['ml' => $autopartMl, 'aut' => $autopart]);
+            if ($response['status'] == 200) {
 
                 $autopartId = DB::table('autoparts')->insertGetId([
-                    'name' => $autopart['name'],
-                    'description'=>$description ? $description : null,
-                    'category_id' => $cat ? $cat->id : null,
-                    'make_id' => $autopart['make_id'],
-                    'model_id' => $autopart['model_id'],
-                    'sale_price' => $autopart['sale_price'],
-                    'origin_id' => $autopart['origin_id'],
-                    'status_id' => $autopart['status_id'],
-                    'ml_id' => $autopart['ml_id'],
+                    'name' => $response['autopart']['name'],
+                    'description'=>$response['autopart']['description'] ? $response['autopart']['description'] : null,
+                    'category_id' => $response['autopart']['category_id'] ? $response['autopart']['category_id'] : null,
+                    'make_id' => $response['autopart']['make_id'],
+                    'model_id' => $response['autopart']['model_id'],
+                    'sale_price' => $response['autopart']['sale_price'],
+                    'origin_id' => $response['autopart']['origin_id'],
+                    'status_id' => $response['autopart']['status_id'],
+                    'ml_id' => $response['autopart']['ml_id'],
                     'store_ml_id' => $storeMl->id,
                     'store_id' => $storeMl->store_id,
                     'created_by' => 1,
                     'created_at' => date("Y-m-d H:i:s", strtotime('now')),
                     'updated_at' => date("Y-m-d H:i:s", strtotime('now'))
                 ]);
-
-                if (count($autopart['years_ids'])) {
-                    $autopart['years_ids'] = array_unique($autopart['years_ids']);
-                    foreach ($autopart['years_ids'] as $yearId) {
+                    //HASTA AQUI LE MOVI , ABAJO SE LLENA LA TABLA DE AÑOS Y DE IMAGENES 
+                if (count($response['autopart']['years_ids'])) {
+                    $response['autopart']['years_ids'] = array_unique($response['autopart']['years_ids']);
+                    foreach ($response['autopart']['years_ids'] as $yearId) {
                         DB::table('autopart_years')->insert([
                             'autopart_id' => $autopartId,
                             'year_id' => $yearId,
