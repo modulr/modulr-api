@@ -31,5 +31,5 @@ Route::get('categories', [CategoryController::class, 'index']);
 
 
 // Mercado libre
-Route::get('/mercado/auth', 'AutopartController@auth');
-Route::post('/mercado/notifications', 'AutopartController@notifications');
+Route::get('/ml/auth', 'AutopartController@auth');
+Route::post('/ml/notifications', 'AutopartController@notifications');
