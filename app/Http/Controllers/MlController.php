@@ -3,6 +3,13 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+
+use App\Helpers\ApiMl;
+
+use App\Models\Autopart;
+use App\Models\AutopartActivity;
 
 class MlController extends Controller
 {
@@ -52,17 +59,17 @@ class MlController extends Controller
 
     public function notifications (Request $request)
     {
-        // $request = (object) [
-        //     'topic' => 'items',
-        //     'resource' => '/items/MLM1526173617',
-        //     'user_id' => 141862124,
-        //     'application_id' => 7047716906725820,
-        //     'sent' => '2022-01-07T18:55:57.75Z',
-        //     'attempts' => 1,
-        //     'received' => '2022-01-07T18:55:57.649Z',
-        // ];
+        $request = (object) [
+            'topic' => 'items',
+            'resource' => '/items/MLM929833854',
+            'user_id' => 616994509,
+            'application_id' => 8010506070145637,
+            'sent' => '2022-01-07T18:55:57.75Z',
+            'attempts' => 1,
+            'received' => '2022-01-07T18:55:57.649Z',
+        ];
 
-        // logger(['request' => $request]);
+        //logger(['request' => $request]);
 
 
         $mlId = trim($request->resource, '/items/');
@@ -81,45 +88,25 @@ class MlController extends Controller
         ]);
 
         $autopart = Autopart::where('ml_id', $mlId)->first();
+
         //If autopart: Editar autoparte existente Else: Si no existe crearla
         if ($autopart) {            
-            $response = $this->getAutopartMl($autopart);
-            $description = $this->getDescriptionAutopartMl($response->autopart, $autopart->store_ml_id);
 
-            if ($response->response) {
-                $status = $response->autopart->status;
+            $response = ApiMl::getItemValues($autopart->store_ml_id, $mlId);
 
+            if ($response['status'] == 200) {
 
-                // Update status
-                if (($status == 'paused' || $status == 'closed') && $autopart->status_id !== 3) {
-                    $autopart->status_id = 4;
-                } else if ($status == 'active') {
-                    $autopart->status_id = 1;
-                }
+                logger($response['autopart']);
 
-                if($response->autopart->category_id){
-                    $cat = AutopartListCategory::where('ml_id',$response->autopart->category_id)->first();
-                    if(!$cat){
-                        $catName = $this->getCategoryName($response->autopart->category_id, $autopart->store_ml_id);
+                $autopart->name = $response['autopart']['name'];
+                $autopart->description = $response['autopart']['description'];
+                $autopart->status_id = $response['autopart']['status_id'];
+                $autopart->sale_price = $response['autopart']['sale_price'];
+                $autopart->save();
 
-                        $cat = AutopartListCategory::create([
-                            'name' => strtolower($catName),
-                            'ml_id' => $response->autopart->category_id,
-                            'name_ml' => $catName
-                        ]);
-                        $autopart->category_id = $cat->id;
-                    }else{
-                        $autopart->category_id = $cat->id;
-                    }
-                }
-
-                $autopart->name = $response->autopart->title;
-                $autopart->description = $description;
-                $autopart->sale_price = $response->autopart->price;
-                $autopart->save();        
                 // Create activity
                 AutopartActivity::create([
-                    'activity' => 'Cambio el estatus a '.$autopart->status->name.' en Mercadolibre',
+                    'activity' => 'Se actualizo la autoparte en Mercadolibre',
                     'autopart_id' => $autopart->id,
                     'user_id' => 1
                 ]);
@@ -136,10 +123,10 @@ class MlController extends Controller
         //} else if ($request->user_id !== 141862124){
             $storeMl = DB::table('stores_ml')->where('user_id', $request->user_id)->first();
             
-            $autopartMl = $this->getAutopartMl((object)['store_ml_id' => $storeMl->id, 'ml_id' => $mlId]);
+            $autopartMl = $this->getAutopart((object)['store_ml_id' => $storeMl->id, 'ml_id' => $mlId]);
 
             if ($autopartMl->response && $autopartMl->autopart->status == 'active') {
-                $description = $this->getDescriptionAutopartMl($autopartMl->autopart, $storeMl->id);
+                $description = $this->getAutopartDescription($autopartMl->autopart, $storeMl->id);
 
                 //BUSCAR CAGTEGORIA EN CASO DE NO EXISTIR CREARLA
                 $cat = AutopartListCategory::where('ml_id',$autopartMl->autopart->category_id)->first();
@@ -218,7 +205,7 @@ class MlController extends Controller
         return response()->json(['success' => 'success'], 200);
     }
 
-    private function getCategoryName ($category_ml_id,$store_ml_id)
+    private function getCategoryName ($category_ml_id, $store_ml_id)
     {
         $this->checkToken($store_ml_id);
 
@@ -241,62 +228,6 @@ class MlController extends Controller
             logger($e->getResponse()->getBody());
 
             return "Otros";
-        }
-    }
-
-    private function getAutopartMl ($autopart)
-    {
-        $this->checkToken($autopart->store_ml_id);
-
-        $storeMl = DB::table('stores_ml')->find($autopart->store_ml_id);
-
-        $client = new \GuzzleHttp\Client(['base_uri' => 'https://api.mercadolibre.com']);
-
-        try {
-            $response = $client->request('GET', 'items?ids='.$autopart->ml_id, [
-                'headers' => [
-                    'Accept' => '*/*',
-                    'Authorization' => 'Bearer '. $storeMl->access_token
-                ]
-            ]);
-
-            $autopartMl = json_decode($response->getBody());
-
-            logger('Get autopart');
-            return (object) ['response' => true, 'autopart' => $autopartMl[0]->body];
-        }
-        catch (\GuzzleHttp\Exception\ClientException $e) {
-            // $resRefreshTokenMl = $this->refreshTokenMl($autopart->store_ml_id);
-
-            // if ($resRefreshTokenMl) {
-            //     $this->getAutopartMl($autopart);
-            // }
-
-            logger('Do not get autopart '. $autopart->ml_id);
-            return (object) ['response' => false];
-        }
-    }
-
-    private function getDescriptionAutopartMl($autopart, $store_ml_id)
-    {
-        $storeMl = DB::table('stores_ml')->where('id', $store_ml_id)->first();
-        $client = new \GuzzleHttp\Client(['base_uri' => 'https://api.mercadolibre.com']);
-
-        try {
-            
-            $response = $client->request('GET', 'items/'.$autopart->id.'/description', [
-                'headers' => [
-                    'Authorization' => 'Bearer '.$storeMl->access_token,
-                ]
-            ]);
-            $description = json_decode($response->getBody());
-            // logger('Se obtuvo la descripción de mercadolibre '.$autopart->id);
-            return $description->plain_text;
-        }
-        catch (\GuzzleHttp\Exception\ClientException $e) {
-            logger($e->getResponse()->getBody());
-            logger('No se obtuvo la descripción de mercadolibre '.$autopart->id);
-            return false;
         }
     }
 }

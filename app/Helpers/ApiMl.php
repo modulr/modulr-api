@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
+use App\Models\AutopartListCategory;
+
 class ApiMl
 {
     protected static $store;
@@ -112,6 +114,17 @@ class ApiMl
         return $response->object();
     }
 
+    private function getCategory ($categoryMlId)
+    {
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer '.self::$store->access_token,
+        ])->get('https://api.mercadolibre.com', [
+            'categories' => $categoryMlId,
+        ]);
+
+        return $response->object()[0]->body;
+    }
+
     public static function getItemValues($storeMlId, $mlId)
     {
         self::checkAccessToken($storeMlId);
@@ -120,17 +133,24 @@ class ApiMl
 
         $autopart = [];
 
-        if ($response->status == 'active' && $response->available_quantity > 0) {
+        //if ($response->status == 'active' && $response->available_quantity > 0) {
             $autopart['name'] = $response->title;
             $autopart['description'] = '';
             $autopart['ml_id'] = $response->id;
             $autopart['sale_price'] = $response->price;
             $autopart['status_id'] = 1;
             $autopart['make_id'] = null;
+            $autopart['category_id'] = null;
             $autopart['model_id'] = null;
             $autopart['years_ids'] = [];
             $autopart['years'] = [];
             $autopart['images'] = [];
+
+            if ($response->status == 'paused') {
+                $autopart->status_id = 3;
+            } else if ($response->status == 'closed') {
+                $autopart->status_id = 4;
+            }
 
             if ($response->condition == 'new') {
                 $autopart['origin_id'] = 1;
@@ -141,6 +161,23 @@ class ApiMl
             // Get Description
             $description = self::getItemDescription($response->id);
             $autopart['description'] = $description->plain_text;
+
+            if ($response->category_id) {
+                $cat = AutopartListCategory::where('ml_id',$response->category_id)->first();
+                
+                if (!$cat) {
+                    $catName = self::getCategory($response->category_id);
+
+                    $cat = AutopartListCategory::create([
+                        'name' => strtoupper($catName),
+                        'ml_id' => $response->category_id,
+                        'name_ml' => $catName
+                    ]);
+                    $autopart['category_id'] = $cat->id;
+                } else {
+                    $autopart['category_id'] = $cat->id;
+                }
+            }
             
             //if (!isset($autopart['make_id']) || !isset($autopart['model_id']) || count($autopart['years_ids']) == 0) {
                 foreach ($response->attributes as $value) {
@@ -290,13 +327,13 @@ class ApiMl
             if (isset($response->pictures)) {
                 foreach ($response->pictures as $value) {
                     $url = str_replace("-O.jpg", "-F.jpg", $value->secure_url);
-                    array_push($autopart['images'], $url);
+                    array_push($autopart['images'], $url); //get id, get thumnail
                 };
             }
 
-        }
+        //}
         
-        return ['status' => 200, 'data' => ['autopart' => $autopart, 'store' => self::$store]];
+        return ['status' => 200, 'autopart' => $autopart, 'store' => self::$store];
     }
 
     private static function getInfoName($name)

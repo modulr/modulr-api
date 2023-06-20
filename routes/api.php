@@ -6,6 +6,7 @@ use App\Http\Controllers\AutopartController;
 use App\Http\Controllers\MakeController;
 use App\Http\Controllers\ModelController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\MlController;
 
 /*
 |--------------------------------------------------------------------------
@@ -31,5 +32,5 @@ Route::get('categories', [CategoryController::class, 'index']);
 
 
 // Mercado libre
-Route::get('/ml/auth', 'AutopartController@auth');
-Route::post('/ml/notifications', 'AutopartController@notifications');
+Route::get('/ml/auth', [MlController::class, 'auth']);
+Route::get('/ml/notifications', [MlController::class, 'notifications']);
