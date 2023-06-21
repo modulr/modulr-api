@@ -73,16 +73,16 @@ class ImportMlController extends Controller
                 DB::table('autoparts_ml')
                     ->where('id', $item->id)
                     ->update([
-                        'name' => $response['data']['autopart']['name'],
-                        'description' => $response['data']['autopart']['description'],
-                        'sale_price' => $response['data']['autopart']['sale_price'],
-                        'origin_id' => $response['data']['autopart']['origin_id'],
-                        'status_id' => $response['data']['autopart']['status_id'],
-                        'make_id' => $response['data']['autopart']['make_id'],
-                        'model_id' => $response['data']['autopart']['model_id'],
-                        'years_ids' => $response['data']['autopart']['years_ids'],
-                        'years' => $response['data']['autopart']['years'],
-                        'images' => $response['data']['autopart']['images'],
+                        'name' => $response->autopart['name'],
+                        'description' => $response->autopart['description'],
+                        'sale_price' => $response->autopart['sale_price'],
+                        'origin_id' => $response->autopart['origin_id'],
+                        'status_id' => $response->autopart['status_id'],
+                        'make_id' => $response->autopart['make_id'],
+                        'model_id' => $response->autopart['model_id'],
+                        'years_ids' => $response->autopart['years_ids'],
+                        'years' => $response->autopart['years'],
+                        'images' => $response->autopart['images'],
                         'updated_at' => Carbon::now()
                     ]);
     

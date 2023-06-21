@@ -53,10 +53,10 @@ class ApiMl
 
             self::$store = DB::table('stores_ml')->find(self::$store->id);
 
-            logger('Refresh token');
+            logger('Refresh access_token');
             return $response->status();
         } else {
-            logger('Do not refresh token');
+            logger('Do not refresh access_token');
             return $response->status();
         }
     }
@@ -102,7 +102,7 @@ class ApiMl
             'ids' => $mlId,
         ]);
 
-        return $response->object()[0]->body;
+        return $response->object()[0];
     }
 
     private static function getItemDescription($mlId)
@@ -133,11 +133,12 @@ class ApiMl
 
         $autopart = [];
 
-        //if ($response->status == 'active' && $response->available_quantity > 0) {
-            $autopart['name'] = $response->title;
+        if ($response->code == 200) {
+
+            $autopart['name'] = $response->body->title;
             $autopart['description'] = '';
-            $autopart['ml_id'] = $response->id;
-            $autopart['sale_price'] = $response->price;
+            $autopart['ml_id'] = $response->body->id;
+            $autopart['sale_price'] = $response->body->price;
             $autopart['status_id'] = 1;
             $autopart['make_id'] = null;
             $autopart['category_id'] = null;
@@ -146,31 +147,31 @@ class ApiMl
             $autopart['years'] = [];
             $autopart['images'] = [];
 
-            if ($response->status == 'paused') {
-                $autopart->status_id = 3;
-            } else if ($response->status == 'closed') {
-                $autopart->status_id = 4;
+            if ($response->body->status == 'paused') {
+                $autopart['status_id'] = 3;
+            } else if ($response->body->status == 'closed') {
+                $autopart['status_id'] = 4;
             }
 
-            if ($response->condition == 'new') {
+            if ($response->body->condition == 'new') {
                 $autopart['origin_id'] = 1;
             } else {
                 $autopart['origin_id'] = 2;
             }
 
             // Get Description
-            $description = self::getItemDescription($response->id);
+            $description = self::getItemDescription($response->body->id);
             $autopart['description'] = $description->plain_text;
 
-            if ($response->category_id) {
-                $cat = AutopartListCategory::where('ml_id',$response->category_id)->first();
+            if ($response->body->category_id) {
+                $cat = AutopartListCategory::where('ml_id',$response->body->category_id)->first();
                 
                 if (!$cat) {
-                    $catName = self::getCategory($response->category_id);
+                    $catName = self::getCategory($response->body->category_id);
 
                     $cat = AutopartListCategory::create([
                         'name' => strtoupper($catName),
-                        'ml_id' => $response->category_id,
+                        'ml_id' => $response->body->category_id,
                         'name_ml' => $catName
                     ]);
                     $autopart['category_id'] = $cat->id;
@@ -180,7 +181,7 @@ class ApiMl
             }
             
             //if (!isset($autopart['make_id']) || !isset($autopart['model_id']) || count($autopart['years_ids']) == 0) {
-                foreach ($response->attributes as $value) {
+                foreach ($response->body->attributes as $value) {
                 
                     if (!isset($autopart['make_id'])) {
                         if ($value->id == 'BRAND') {
@@ -324,16 +325,18 @@ class ApiMl
             }
 
             // Get images
-            if (isset($response->pictures)) {
-                foreach ($response->pictures as $value) {
+            if (isset($response->body->pictures)) {
+                foreach ($response->body->pictures as $value) {
                     $url = str_replace("-O.jpg", "-F.jpg", $value->secure_url);
-                    array_push($autopart['images'], $url); //get id, get thumnail
+                    $url_thumbnail = $value->secure_url;
+                    $id = $value->id;
+                    array_push($autopart['images'], ['id' => $id, 'url' => $url, 'url_thumbnail' => $url_thumbnail]);
                 };
             }
 
-        //}
+        }
         
-        return ['status' => 200, 'autopart' => $autopart, 'store' => self::$store];
+        return (object) ['status' => 200, 'autopart' => $autopart, 'store' => self::$store];
     }
 
     private static function getInfoName($name)
@@ -421,8 +424,6 @@ class ApiMl
                 $nameArray[$key] = $value.' '.$after;
             }
         }
-
-        // logger($nameArray);
 
         return $nameArray;
     }
