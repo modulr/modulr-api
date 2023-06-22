@@ -11,6 +11,9 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 use App\Helpers\ApiMl;
 
+use App\Notifications\AutopartNotification;
+
+use App\Models\User;
 use App\Models\Autopart;
 use App\Models\AutopartActivity;
 
@@ -54,17 +57,17 @@ class MlController extends Controller
 
     public function notifications (Request $request)
     {
-        $request = (object) [
-            'topic' => 'items',
-            'resource' => '/items/MLM2279763980',
-            'user_id' => 1150852266,
-            'application_id' => 751467155218399,
-            'sent' => '2022-01-07T18:55:57.75Z',
-            'attempts' => 1,
-            'received' => '2022-01-07T18:55:57.649Z',
-        ];
+        // $request = (object) [
+        //     'topic' => 'items',
+        //     'resource' => '/items/MLM2279763980',
+        //     'user_id' => 1150852266,
+        //     'application_id' => 751467155218399,
+        //     'sent' => '2022-01-07T18:55:57.75Z',
+        //     'attempts' => 1,
+        //     'received' => '2022-01-07T18:55:57.649Z',
+        // ];
 
-        logger(['request' => $request]);
+        // logger(['request' => $request]);
 
         $mlId = trim($request->resource, '/items/');
 
@@ -100,11 +103,11 @@ class MlController extends Controller
                     'user_id' => 1
                 ]);
 
-                // $content = "Autoparte actualizada en ML ".$autopart->storeMl." ID: ".$autopart->ml_id." y en Auto Global ID: ".$autopart->id;
-                // $user = \App\User::find(1);
-                // $user->notify(new AutopartNotification($content));
+                $content = "Autoparte actualizada en ML ".$autopart->storeMl->name." ID: ".$autopart->ml_id." y en Auto Global ID: ".$autopart->id;
+                $user = User::find(1);
+                $user->notify(new AutopartNotification($content));
 
-                logger('Se actualizo la autoparte '.$mlId.' statusId '.$autopart->status_id.' statusName '.$autopart->status->name);
+                //logger('Se actualizo la autoparte '.$mlId.' statusId '.$autopart->status_id.' statusName '.$autopart->status->name);
             } else {
                 logger('No se actualizo la autoparte '.$mlId);
             }
@@ -169,11 +172,11 @@ class MlController extends Controller
                     'user_id' => 1
                 ]);
 
-                // $content = "Nueva autoparte en ML: ".$storeMl->name.", ID: ".$mlId." y en Auto Global, ID: ".$autopartId;
-                // $user = \App\User::find(1);
-                // $user->notify(new AutopartNotification($content));
+                $content = "Nueva autoparte en ML: ".$storeMl->name.", ID: ".$mlId." y en Auto Global, ID: ".$autopartId;
+                $user = User::find(1);
+                $user->notify(new AutopartNotification($content));
 
-                logger('Se creo la autoparte '.$mlId);
+                //logger('Se creo la autoparte '.$mlId);
             } else {
                 logger('No se creo la autoparte '.$mlId);
             }

@@ -33,4 +33,4 @@ Route::get('categories', [CategoryController::class, 'index']);
 
 // Mercado libre
 Route::get('/ml/auth', [MlController::class, 'auth']);
-Route::get('/ml/notifications', [MlController::class, 'notifications']);
+Route::post('/ml/notifications', [MlController::class, 'notifications']);
