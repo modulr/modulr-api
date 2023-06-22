@@ -154,15 +154,23 @@ class ImportMlController extends Controller
             }
             
             // Falta agregar el id y el thumbnail
-            foreach (json_decode($autopart->images) as $key => $url) {
-                $contents = file_get_contents($url);
-                $name = substr($url, strrpos($url, '/') + 1);
+            foreach (json_decode($autopart->images) as $key => $img) {
+
+                $contents = file_get_contents($img->url);
+                $contentsThumbnail = file_get_contents($img->url_thumbnail);
+
+                $name = substr($img->url, strrpos($img->url, '/') + 1);
+
                 Storage::put('autoparts/'.$autopartId.'/images/'.$name, $contents);
+                Storage::put('autoparts/'.$autopartId.'/images/thumbnail_'.$name, $contentsThumbnail);
 
                 DB::table('autopart_images')->insert([
                     'basename' => $name,
+                    'img_ml_id' => $img->id,
                     'autopart_id' => $autopartId,
                     'order' => $key,
+                    'created_at' => Carbon::now(),
+                    'updated_at' => Carbon::now()
                 ]);
             }
 

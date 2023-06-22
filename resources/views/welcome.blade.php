@@ -192,7 +192,7 @@
                                             </span>
                                             @else
                                             <span class="bg-gray-100 text-gray-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-gray-900 dark:text-gray-300">
-                                                {{$autopart->origin }}
+                                                {{$autopart->origin ?? '' }}
                                             </span>
                                             @endif
                                             @endif
@@ -203,7 +203,9 @@
                                         <td class="align-top px-6 py-4 text-xs">{{$autopart->description ?? '' }}</td>
                                         <td class="align-top px-6 py-4 text-xs">
                                             @if (isset($autopart->images))
-                                            {{ implode(', ', json_decode($autopart->images))  }}
+                                                @foreach (json_decode($autopart->images) as $image)
+                                                    {{ $image->url }}
+                                                @endforeach
                                             @endif
                                         </td>
                                     </tr>
