@@ -153,6 +153,7 @@ class ImportMlController extends Controller
                 }
             }
             
+            // Falta agregar el id y el thumbnail
             foreach (json_decode($autopart->images) as $key => $url) {
                 $contents = file_get_contents($url);
                 $name = substr($url, strrpos($url, '/') + 1);

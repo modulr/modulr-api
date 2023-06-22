@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
@@ -53,17 +54,17 @@ class MlController extends Controller
 
     public function notifications (Request $request)
     {
-        // $request = (object) [
-        //     'topic' => 'items',
-        //     'resource' => '/items/MLM929833854',
-        //     'user_id' => 616994509,
-        //     'application_id' => 8010506070145637,
-        //     'sent' => '2022-01-07T18:55:57.75Z',
-        //     'attempts' => 1,
-        //     'received' => '2022-01-07T18:55:57.649Z',
-        // ];
+        $request = (object) [
+            'topic' => 'items',
+            'resource' => '/items/MLM2279763980',
+            'user_id' => 1150852266,
+            'application_id' => 751467155218399,
+            'sent' => '2022-01-07T18:55:57.75Z',
+            'attempts' => 1,
+            'received' => '2022-01-07T18:55:57.649Z',
+        ];
 
-        //logger(['request' => $request]);
+        logger(['request' => $request]);
 
         $mlId = trim($request->resource, '/items/');
 
@@ -76,8 +77,8 @@ class MlController extends Controller
             'application_id' => $request->application_id,
             'sent' => $request->sent,
             'received' => $request->received,
-            'created_at' => date("Y-m-d H:i:s", strtotime('now')),
-            'updated_at' => date("Y-m-d H:i:s", strtotime('now'))
+            'created_at' => Carbon::now(),
+            'updated_at' => Carbon::now()
         ]);
 
         $autopart = Autopart::where('ml_id', $mlId)->first();
@@ -154,6 +155,8 @@ class MlController extends Controller
                         'img_ml_id' => $img['id'],
                         'autopart_id' => $autopartId,
                         'order' => $key,
+                        'created_at' => Carbon::now(),
+                        'updated_at' => Carbon::now()
                     ]);
                 }
 
