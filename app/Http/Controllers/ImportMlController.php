@@ -78,6 +78,7 @@ class ImportMlController extends Controller
                         'sale_price' => $response->autopart['sale_price'],
                         'origin_id' => $response->autopart['origin_id'],
                         'status_id' => $response->autopart['status_id'],
+                        'category_id' => $response->autopart['category_id'],
                         'make_id' => $response->autopart['make_id'],
                         'model_id' => $response->autopart['model_id'],
                         'years_ids' => $response->autopart['years_ids'],
@@ -91,6 +92,7 @@ class ImportMlController extends Controller
         }
 
         $autoparts = DB::table('autoparts_ml')
+                ->leftJoin('autopart_list_categories', 'autopart_list_categories.id', '=', 'autoparts_ml.category_id')
                 ->leftJoin('autopart_list_makes', 'autopart_list_makes.id', '=', 'autoparts_ml.make_id')
                 ->leftJoin('autopart_list_models', 'autopart_list_models.id', '=', 'autoparts_ml.model_id')
                 ->leftJoin('autopart_list_origins', 'autopart_list_origins.id', '=', 'autoparts_ml.origin_id')
@@ -115,6 +117,7 @@ class ImportMlController extends Controller
     public function save (Request $request)
     {
         $autoparts = DB::table('autoparts_ml')
+                ->leftJoin('autopart_list_categories', 'autopart_list_categories.id', '=', 'autoparts_ml.category_id')
                 ->leftJoin('autopart_list_makes', 'autopart_list_makes.id', '=', 'autoparts_ml.make_id')
                 ->leftJoin('autopart_list_models', 'autopart_list_models.id', '=', 'autoparts_ml.model_id')
                 ->leftJoin('autopart_list_origins', 'autopart_list_origins.id', '=', 'autoparts_ml.origin_id')
@@ -130,11 +133,13 @@ class ImportMlController extends Controller
 
             $autopartId = DB::table('autoparts')->insertGetId([
                 'name' => $autopart->name,
+                'category_id' => $autopart->category_id,
                 'make_id' => $autopart->make_id,
                 'model_id' => $autopart->model_id,
                 'sale_price' => $autopart->sale_price,
                 'origin_id' => $autopart->origin_id,
                 'status_id' => $autopart->status_id,
+                'years' => json_encode($autopart->years),
                 'ml_id' => $autopart->ml_id,
                 'store_ml_id' => $autopart->store_ml_id,
                 'store_id' => $autopart->store_id,
