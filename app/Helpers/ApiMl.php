@@ -142,9 +142,7 @@ class ApiMl
             $autopart['years'] = [];
             $autopart['images'] = [];
 
-            if ($response->body->status == 'paused') {
-                $autopart['status_id'] = 3;
-            } else if ($response->body->status == 'closed') {
+            if ($response->body->status == 'paused' || $response->body->status == 'closed') {
                 $autopart['status_id'] = 4;
             }
 

@@ -93,7 +93,7 @@ class MlController extends Controller
 
                 $autopart->name = $response->autopart['name'];
                 $autopart->description = $response->autopart['description'];
-                $autopart->status_id = $response->autopart['status_id'];
+                $autopart->status_id = $autopart->status_id == 3 ? $autopart->status_id : $response->autopart['status_id'];
                 $autopart->sale_price = $response->autopart['sale_price'];
                 $autopart->save();
 
@@ -103,7 +103,7 @@ class MlController extends Controller
                     'user_id' => 1
                 ]);
 
-                $content = "Autoparte actualizada en ML ".$autopart->storeMl->name." ID: ".$autopart->ml_id." y en Auto Global ID: ".$autopart->id;
+                $content = "✴️ *Autoparte actualizada* \n _ML:_ ".$autopart->storeMl->name." \n _MLID:_ ".$autopart->ml_id." \n _ID:_ ".$autopart->id;
                 $user = User::find(1);
                 $user->notify(new AutopartNotification($content));
 
@@ -172,7 +172,7 @@ class MlController extends Controller
                     'user_id' => 1
                 ]);
 
-                $content = "Nueva autoparte en ML: ".$storeMl->name.", ID: ".$mlId." y en Auto Global, ID: ".$autopartId;
+                $content = "✅ *Nueva autoparte* \n _ML:_ ".$storeMl->name.", \n _ID:_ ".$mlId." \n _ID:_ ".$autopartId;
                 $user = User::find(1);
                 $user->notify(new AutopartNotification($content));
 
