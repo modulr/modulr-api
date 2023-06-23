@@ -154,7 +154,7 @@
                                 <thead class="border-b bg-white dark:bg-gray-800/90 dark:text-white dark:border-neutral-700 font-medium">
                                     <tr>
                                         <th class="text-left px-6 py-4">ID|Name</th>
-                                        <th class="text-left px-6 py-4">Make|Model|Years</th>
+                                        <th class="text-left px-6 py-4">Category|Make|Model|Years</th>
                                         <th class="text-left px-6 py-4">Description</th>
                                         <th class="text-left px-6 py-4">Images</th>
                                     </tr>
@@ -177,6 +177,9 @@
                                             <div class="text-sm font-semibold mt-1">{{$autopart->name ?? '' }}</div>
                                         </td>
                                         <td class="align-top px-6 py-4 text-sm">
+                                            <div class="font-semibold">
+                                                {{$autopart->category ?? '' }}
+                                            </div>
                                             <div class="font-semibold">
                                                 {{$autopart->make ?? '' }}, {{$autopart->model ?? '' }}
                                             </div>
