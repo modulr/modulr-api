@@ -103,7 +103,7 @@ class MlController extends Controller
                     'user_id' => 1
                 ]);
 
-                $content = "✴️ *Autoparte actualizada* \n _ML:_ ".$autopart->storeMl->name." \n _MLID:_ ".$autopart->ml_id." \n _ID:_ ".$autopart->id;
+                $content = "*¡Autoparte actualizada!* \n _ML:_ ".$autopart->storeMl->name." \n _MLID:_ ".$autopart->ml_id." \n _ID:_ ".$autopart->id;
                 $user = User::find(1);
                 $user->notify(new AutopartNotification($content));
 
@@ -172,7 +172,7 @@ class MlController extends Controller
                     'user_id' => 1
                 ]);
 
-                $content = "✅ *Nueva autoparte* \n _ML:_ ".$storeMl->name.", \n _ID:_ ".$mlId." \n _ID:_ ".$autopartId;
+                $content = "✅ *¡Nueva autoparte!* \n _ML:_ ".$storeMl->name.", \n _MLID:_ ".$mlId." \n _ID:_ ".$autopartId;
                 $user = User::find(1);
                 $user->notify(new AutopartNotification($content));
 
