@@ -154,7 +154,7 @@
                                 <thead class="border-b bg-white dark:bg-gray-800/90 dark:text-white dark:border-neutral-700 font-medium">
                                     <tr>
                                         <th class="text-left px-6 py-4">ID|Name</th>
-                                        <th class="text-left px-6 py-4">Make|Model|Years</th>
+                                        <th class="text-left px-6 py-4">Category|Make|Model|Years</th>
                                         <th class="text-left px-6 py-4">Description</th>
                                         <th class="text-left px-6 py-4">Images</th>
                                     </tr>
@@ -178,6 +178,9 @@
                                         </td>
                                         <td class="align-top px-6 py-4 text-sm">
                                             <div class="font-semibold">
+                                                {{$autopart->category ?? '' }}
+                                            </div>
+                                            <div class="font-semibold">
                                                 {{$autopart->make ?? '' }}, {{$autopart->model ?? '' }}
                                             </div>
                                             @if (isset($autopart->years))
@@ -192,7 +195,7 @@
                                             </span>
                                             @else
                                             <span class="bg-gray-100 text-gray-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-gray-900 dark:text-gray-300">
-                                                {{$autopart->origin }}
+                                                {{$autopart->origin ?? '' }}
                                             </span>
                                             @endif
                                             @endif
@@ -203,7 +206,9 @@
                                         <td class="align-top px-6 py-4 text-xs">{{$autopart->description ?? '' }}</td>
                                         <td class="align-top px-6 py-4 text-xs">
                                             @if (isset($autopart->images))
-                                            {{ implode(', ', json_decode($autopart->images))  }}
+                                                @foreach (json_decode($autopart->images) as $image)
+                                                    {{ $image->url }}
+                                                @endforeach
                                             @endif
                                         </td>
                                     </tr>
