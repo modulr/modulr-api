@@ -42,7 +42,7 @@ class AutopartController extends Controller
                     ->orWhere('autoparts.autopart_number', 'like', '%'.$number.'%');
                 });
             })
-            ->inRandomOrder()
+            ->latest('autoparts.created_at')
             ->paginate(52);
 
         foreach ($autoparts as $autopart) {
