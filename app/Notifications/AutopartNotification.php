@@ -17,9 +17,10 @@ class AutopartNotification extends Notification
     /**
      * Create a new notification instance.
      */
-    public function __construct($content)
+    public function __construct($content,$channel)
     {
         $this->content = $content;
+        $this->channel = $channel;
     }
 
     /**
@@ -58,7 +59,7 @@ class AutopartNotification extends Notification
     public function toTelegram($notifiable)
     {
         return TelegramMessage::create()
-            ->to('-651525760')
+            ->to($this->channel)
             ->content($this->content);
     }
 }
