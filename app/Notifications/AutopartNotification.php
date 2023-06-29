@@ -12,15 +12,18 @@ class AutopartNotification extends Notification
 {
     use Queueable;
 
+    private $channel;
     private $content;
+    private $button;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct($content,$channel)
+    public function __construct($channel, $content, $button)
     {
-        $this->content = $content;
         $this->channel = $channel;
+        $this->content = $content;
+        $this->button = $button;
     }
 
     /**
@@ -60,6 +63,9 @@ class AutopartNotification extends Notification
     {
         return TelegramMessage::create()
             ->to($this->channel)
+            if ($button) {
+                ->button($button, 'https://autoglobal.mx/autopart/'.$button)
+            }
             ->content($this->content);
     }
 }
