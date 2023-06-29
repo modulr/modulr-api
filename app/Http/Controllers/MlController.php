@@ -123,7 +123,7 @@ class MlController extends Controller
                         ]);
                         
                         $channel = env('TELEGRAM_CHAT_UPDATES_ID');
-                        $content = "💰*¡Autoparte Vendida!* \n *".$autopart->storeMl->name."* \n _ML:_ ".$autopart->ml_id.'\n'.$response->autopart['name']."\n Precio: $".$response->autopart['sale_price'];
+                        $content = "💰*¡Autoparte Vendida!* \n *".$autopart->storeMl->name."* \n".$autopart->ml_id.'\n'.$response->autopart['name']."\n Precio: $".$response->autopart['sale_price'];
                         $button = $autopart->id;
                         $user = User::find(1);
                         $user->notify(new AutopartNotification($channel, $content, $button));
@@ -138,16 +138,13 @@ class MlController extends Controller
                 if($autopart->name !== $response->autopart['name']){
                     $autopart->name = $response->autopart['name'];
 
-                    $change = $change."Título actualizado\n".$autopart->name."\n🔽🔽🔽\n".$response->autopart['name']."\n";
+                    $change = $change."Título actualizado \n".$autopart->name."\n🔽🔽🔽\n".$response->autopart['name']."\n";
                 }
 
                 if($autopart->description !== $response->autopart['description']){
                     $autopart->description = $response->autopart['description'];
                     $change = $change."Descripción actualizada\n".$autopart->description."\n🔽🔽🔽\n".$response->autopart['description']."\n";
                 }
-
-                logger($autopart->sale_price);
-                logger(number_format($response->autopart['sale_price']));
 
                 if ($autopart->sale_price !== number_format($response->autopart['sale_price'])) {
                     $autopart->sale_price = $response->autopart['sale_price'];
@@ -173,7 +170,7 @@ class MlController extends Controller
                 ]);
                 
                 $channel = env('TELEGRAM_CHAT_UPDATES_ID');
-                $content = "*¡Autoparte Actualizada!* \n *".$autopart->storeMl->name."* \n _ML:_ ".$autopart->ml_id."\n".$change;
+                $content = "*¡Autoparte Actualizada!* \n *".$autopart->storeMl->name."* \n ".$autopart->ml_id."\n".$change;
                 $button = $autopart->id;
                 $user = User::find(1);
                 $user->notify(new AutopartNotification($channel, $content, $button));
@@ -243,7 +240,7 @@ class MlController extends Controller
                 ]);
 
                 $channel = env('TELEGRAM_CHAT_NEWS_ID');
-                $content = "✅ *¡Nueva autoparte!* \n  *".$storeMl->name."* \n _ML:_ ".$mlId;
+                $content = "✅ *¡Nueva autoparte!* \n  *".$storeMl->name."* \n".$mlId;
                 $button = $autopartId;
                 $user = User::find(1);
                 $user->notify(new AutopartNotification($channel, $content, $button));
