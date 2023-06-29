@@ -64,6 +64,6 @@ class AutopartNotification extends Notification
         return TelegramMessage::create()
             ->to($this->channel)
             ->content($this->content)
-            ->button($button, 'https://autoglobal.mx/autopart/'.$button);
+            ->button($this->button, 'https://autoglobal.mx/autopart/'.$this->button);
     }
 }
