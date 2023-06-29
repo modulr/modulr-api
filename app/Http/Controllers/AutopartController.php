@@ -67,6 +67,7 @@ class AutopartController extends Controller
             'origin',
             'status',
             'store',
+            'storeMl',
             'images' => function ($query) {
                 $query->orderBy('order', 'asc');
             }
