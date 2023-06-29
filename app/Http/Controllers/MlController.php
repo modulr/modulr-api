@@ -149,7 +149,7 @@ class MlController extends Controller
                 logger($autopart->sale_price);
                 logger($response->autopart['sale_price']);
                 
-                logger(number_format($autopart->sale_price));
+                logger(number_format((float)$autopart->sale_price));
                 logger(number_format($response->autopart['sale_price']));
 
                 if (floatval($autopart->sale_price) !== floatval($response->autopart['sale_price'])) {
