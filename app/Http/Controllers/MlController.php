@@ -147,18 +147,15 @@ class MlController extends Controller
                 }
 
                 logger($autopart->sale_price);
-                logger($response->autopart['sale_price']);
-                
-                logger(number_format((float)$autopart->sale_price));
                 logger(number_format($response->autopart['sale_price']));
 
-                if (floatval($autopart->sale_price) !== floatval($response->autopart['sale_price'])) {
+                if ($autopart->sale_price !== number_format($response->autopart['sale_price'])) {
                     $autopart->sale_price = $response->autopart['sale_price'];
 
-                    if(floatval($response->autopart['sale_price']) > floatval($autopart->sale_price)){
-                        $change = $change . "Aumento de Precio: $".floatval($autopart->sale_price)." ⏫⏫ ".floatval($response->autopart['sale_price']) ;
+                    if(number_format($response->autopart['sale_price']) > $autopart->sale_price){
+                        $change = $change . "Aumento de Precio: $".$autopart->sale_price." ⏫⏫ ".number_format($response->autopart['sale_price']) ;
                     }else{
-                        $change = $change . "Reducción de Precio: $".floatval($autopart->sale_price)." ⏬⏬ ".floatval($response->autopart['sale_price']) ;
+                        $change = $change . "Reducción de Precio: $".$autopart->sale_price." ⏬⏬ ".number_format($response->autopart['sale_price']) ;
                     }
                 }
 
