@@ -107,8 +107,8 @@ class MlController extends Controller
                     $oldStatusId = $autopart->status_id;
                     $newStatusId = $response->autopart['status_id'];
                     
-                    // $oldStatus = isset($statuses[$oldStatusId]) ? $statuses[$oldStatusId] : "Otro estado";
-                    // $newStatus = isset($statuses[$newStatusId]) ? $statuses[$newStatusId] : "Otro estado";
+                    $oldStatus = isset($statuses[$oldStatusId]) ? $statuses[$oldStatusId] : "Otro estado";
+                    $newStatus = isset($statuses[$newStatusId]) ? $statuses[$newStatusId] : "Otro estado";
 
                     // AUTOPARTE VENDIDA
                     if($response->autopart['status_id'] == 4 && $autopart->status_id !== 3){
