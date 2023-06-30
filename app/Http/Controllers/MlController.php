@@ -240,7 +240,7 @@ class MlController extends Controller
                 ]);
 
                 $channel = env('TELEGRAM_CHAT_NEWS_ID');
-                $content = "✅ *¡Nueva autoparte!*\n*".$storeMl->name."*\n".$mlId;
+                $content = "✅ *¡Nueva autoparte!*\n*".$storeMl->name."*\n".$mlId."\n".$response->autopart['name']."\nPrecio: $".$response->autopart['sale_price'];
                 $button = $autopartId;
                 $user = User::find(1);
                 $user->notify(new AutopartNotification($channel, $content, $button));
