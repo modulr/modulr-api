@@ -134,7 +134,17 @@ class MlController extends Controller
               
                     $change = "🚦 Estatus actualizado: ".$oldStatus." ⏩ ".$newStatus."\n";
                 }
-                
+
+                if ($autopart->sale_price !== number_format($response->autopart['sale_price'])) {
+                    $autopart->sale_price = $response->autopart['sale_price'];
+
+                    if (number_format($response->autopart['sale_price']) > $autopart->sale_price) {
+                        $change = $change . "💵 Aumento de Precio: $".$autopart->sale_price." ⏫ ".number_format($response->autopart['sale_price']) ;
+                    } else if (number_format($response->autopart['sale_price']) < $autopart->sale_price) {
+                        $change = $change . "💵 Reducción de Precio: $".$autopart->sale_price." ⏬ ".number_format($response->autopart['sale_price']) ;
+                    }
+                }
+
                 if($autopart->name !== $response->autopart['name']){
                     $autopart->name = $response->autopart['name'];
 
@@ -144,16 +154,6 @@ class MlController extends Controller
                 if($autopart->description !== $response->autopart['description']){
                     $autopart->description = $response->autopart['description'];
                     $change = $change."🖋 Descripción actualizada\n".$autopart->description."\n🔽🔽🔽\n".$response->autopart['description']."\n";
-                }
-
-                if ($autopart->sale_price !== number_format($response->autopart['sale_price'])) {
-                    $autopart->sale_price = $response->autopart['sale_price'];
-
-                    if(number_format($response->autopart['sale_price']) > $autopart->sale_price){
-                        $change = $change . "💵 Aumento de Precio: $".$autopart->sale_price." ⏫ ".number_format($response->autopart['sale_price']) ;
-                    }else{
-                        $change = $change . "💵 Reducción de Precio: $".$autopart->sale_price." ⏬ ".number_format($response->autopart['sale_price']) ;
-                    }
                 }
 
                 if ($change == null) {
