@@ -120,7 +120,7 @@ class MlController extends Controller
                         ]);
                         
                         $channel = env('TELEGRAM_CHAT_SALES_ID');
-                        $content = "💰*¡Autoparte Vendida!*\n*".$autopart->storeMl->name."*\n".$autopart->ml_id."\n".$response->autopart['name']."\nPrecio: $".$response->autopart['sale_price'];
+                        $content = "💰*¡Autoparte Vendida!*\n*".$autopart->storeMl->name."*\n".$autopart->ml_id."\n".$response->autopart['name']."\nPrecio: $".number_format($response->autopart['sale_price']);
                         $button = $autopart->id;
                         $user = User::find(1);
                         $user->notify(new AutopartNotification($channel, $content, $button));
@@ -240,7 +240,7 @@ class MlController extends Controller
                 ]);
 
                 $channel = env('TELEGRAM_CHAT_NEWS_ID');
-                $content = "✅ *¡Nueva autoparte!*\n*".$storeMl->name."*\n".$mlId."\n".$response->autopart['name']."\nPrecio: $".$response->autopart['sale_price'];
+                $content = "✅ *¡Nueva autoparte!*\n*".$storeMl->name."*\n".$mlId."\n".$response->autopart['name']."\nPrecio: $".number_format($response->autopart['sale_price']);
                 $button = $autopartId;
                 $user = User::find(1);
                 $user->notify(new AutopartNotification($channel, $content, $button));
