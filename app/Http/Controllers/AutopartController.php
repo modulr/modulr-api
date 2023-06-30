@@ -71,7 +71,7 @@ class AutopartController extends Controller
             'images' => function ($query) {
                 $query->orderBy('order', 'asc');
             }
-            ])->whereIn('status_id', [1,2,3,5,6])
+            ])
             ->find($request->id);
     }
 }
