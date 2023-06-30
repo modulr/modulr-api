@@ -119,7 +119,7 @@ class MlController extends Controller
                             'user_id' => 1
                         ]);
                         
-                        $channel = env('TELEGRAM_CHAT_UPDATES_ID');
+                        $channel = env('TELEGRAM_CHAT_SALES_ID');
                         $content = "💰*¡Autoparte Vendida!*\n*".$autopart->storeMl->name."*\n".$autopart->ml_id."\n".$response->autopart['name']."\nPrecio: $".$response->autopart['sale_price'];
                         $button = $autopart->id;
                         $user = User::find(1);
