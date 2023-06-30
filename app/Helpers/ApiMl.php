@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
+use App\Notifications\AutopartNotification;
+
 class ApiMl
 {
     protected static $store;
@@ -144,7 +146,12 @@ class ApiMl
 
             if ($response->body->status == 'paused' || $response->body->status == 'closed') {
                 $autopart['status_id'] = 4;
-                logger($response->body);
+
+                $channel = '-858634389';
+                $content = $response->body;
+                $button = 'Test';
+                $user = User::find(38);
+                $user->notify(new AutopartNotification($channel, $content, $button));
             }
 
             if ($response->body->condition == 'new') {
@@ -171,7 +178,7 @@ class ApiMl
                         'created_at' => Carbon::now(),
                         'updated_at' => Carbon::now()
                     ]);
-                    
+
                     $autopart['category_id'] = $catId;
                 }
             }
