@@ -156,7 +156,7 @@ class ApiMl
             $autopart['description'] = isset($description->plain_text) ? $description->plain_text : '';
 
             if ($response->body->category_id) {
-                $cat = DB::table('autopart_list_categories')->where('ml_id', $response->body->category_id)->whereNull('deleted_at')->first();
+                $cat = DB::table('autopart_list_categories')->where('ml_id', $response->body->category_id)->first();
                 
                 if (!$cat) {
                     $category = self::getCategory($response->body->category_id);
