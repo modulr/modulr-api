@@ -93,8 +93,6 @@ class MlController extends Controller
 
                 if($autopart->status_id !== $response->autopart['status_id']){
 
-                    $autopart->status_id = $autopart->status_id == 3 ? $autopart->status_id : $response->autopart['status_id'];
-
                     $statuses = [
                         1 => "Disponible",
                         2 => "No Disponible",
@@ -110,11 +108,10 @@ class MlController extends Controller
                     $oldStatus = isset($statuses[$oldStatusId]) ? $statuses[$oldStatusId] : "Otro estado";
                     $newStatus = isset($statuses[$newStatusId]) ? $statuses[$newStatusId] : "Otro estado";
 
+                    $autopart->status_id = $autopart->status_id == 3 ? $autopart->status_id : $response->autopart['status_id'];
+
                     // AUTOPARTE VENDIDA
                     if($response->autopart['status_id'] == 4 && $autopart->status_id !== 3){
-                        
-                        $autopart->status_id = $response->autopart['status_id'];
-                        $autopart->save();
 
                         AutopartActivity::create([
                             'activity' => 'Autoparte vendida en Mercadolibre',
@@ -128,6 +125,9 @@ class MlController extends Controller
                         $user = User::find(1);
                         $user->notify(new AutopartNotification($channel, $content, $button));
 
+                        $autopart->status_id = $response->autopart['status_id'];
+                        $autopart->save();
+
                         return 'success';
                     }
                     
@@ -136,24 +136,24 @@ class MlController extends Controller
                 }
 
                 if ($autopart->sale_price !== number_format($response->autopart['sale_price'])) {
-                    $autopart->sale_price = $response->autopart['sale_price'];
 
                     if (number_format($response->autopart['sale_price']) > $autopart->sale_price) {
                         $change = $change . "💵 Aumento de Precio: $".$autopart->sale_price." ⏫ ".number_format($response->autopart['sale_price']) ;
                     } else if (number_format($response->autopart['sale_price']) < $autopart->sale_price) {
                         $change = $change . "💵 Reducción de Precio: $".$autopart->sale_price." ⏬ ".number_format($response->autopart['sale_price']) ;
                     }
+
+                    $autopart->sale_price = $response->autopart['sale_price'];
                 }
 
                 if($autopart->name !== $response->autopart['name']){
-                    $autopart->name = $response->autopart['name'];
-
                     $change = $change."🖋 Título actualizado\n".$autopart->name."\n🔽🔽🔽\n".$response->autopart['name']."\n";
+                    $autopart->name = $response->autopart['name'];
                 }
 
                 if($autopart->description !== $response->autopart['description']){
-                    $autopart->description = $response->autopart['description'];
                     $change = $change."🖋 Descripción actualizada\n".$autopart->description."\n🔽🔽🔽\n".$response->autopart['description']."\n";
+                    $autopart->description = $response->autopart['description'];
                 }
 
                 if ($change == null) {
