@@ -144,6 +144,7 @@ class ApiMl
 
             if ($response->body->status == 'paused' || $response->body->status == 'closed') {
                 $autopart['status_id'] = 4;
+                logger($response->body);
             }
 
             if ($response->body->condition == 'new') {
@@ -158,7 +159,9 @@ class ApiMl
             if ($response->body->category_id) {
                 $cat = DB::table('autopart_list_categories')->where('ml_id', $response->body->category_id)->first();
                 
-                if (!$cat) {
+                if (isset($cat)) {
+                    $autopart['category_id'] = $cat->id;
+                } else {
                     $category = self::getCategory($response->body->category_id);
 
                     $catId = DB::table('autopart_list_categories')->insertGetId([
@@ -168,9 +171,8 @@ class ApiMl
                         'created_at' => Carbon::now(),
                         'updated_at' => Carbon::now()
                     ]);
+                    
                     $autopart['category_id'] = $catId;
-                } else {
-                    $autopart['category_id'] = $cat->id;
                 }
             }
             
@@ -323,7 +325,7 @@ class ApiMl
 
         }
         
-        return (object) ['status' => 200, 'autopart' => $autopart, 'store' => self::$store];
+        return (object) ['status' => $response->code, 'autopart' => $autopart, 'store' => self::$store];
     }
 
     private static function getInfoName($name)
