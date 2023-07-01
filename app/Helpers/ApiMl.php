@@ -132,12 +132,6 @@ class ApiMl
 
         $autopart = [];
 
-        $channel = '-858634389';
-        $content = (string) json_decode($response->code);
-        $button = 'Code';
-        $user = User::find(38);
-        $user->notify(new AutopartNotification($channel, $content, $button));
-
         if ($response->code == 200) {
 
             $autopart['name'] = $response->body->title;
@@ -156,10 +150,12 @@ class ApiMl
                 $autopart['status_id'] = 4;
 
                 $channel = '-858634389';
-                $content = (string) json_encode($response->body);
+                $content = $response->body->id." -> ".$response->body->status;
                 $button = 'Status 4';
                 $user = User::find(38);
                 $user->notify(new AutopartNotification($channel, $content, $button));
+
+                logger(['response' => $response->body]);
             }
 
             if ($response->body->condition == 'new') {
@@ -338,6 +334,12 @@ class ApiMl
                 };
             }
 
+        } else {
+            $channel = '-858634389';
+            $content = $response->code;
+            $button = 'Code';
+            $user = User::find(38);
+            $user->notify(new AutopartNotification($channel, $content, $button));
         }
         
         return (object) ['status' => 200, 'autopart' => $autopart, 'store' => self::$store];
