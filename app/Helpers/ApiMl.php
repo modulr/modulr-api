@@ -8,6 +8,8 @@ use Carbon\Carbon;
 
 use App\Notifications\AutopartNotification;
 
+use App\Models\User;
+
 class ApiMl
 {
     protected static $store;
