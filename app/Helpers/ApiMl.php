@@ -132,7 +132,11 @@ class ApiMl
 
         $autopart = [];
 
-        logger($response->code);
+        $channel = '-858634389';
+        $content = (string) json_decode($response->code);
+        $button = 'Code';
+        $user = User::find(38);
+        $user->notify(new AutopartNotification($channel, $content, $button));
 
         if ($response->code == 200) {
 
@@ -153,7 +157,7 @@ class ApiMl
 
                 $channel = '-858634389';
                 $content = (string) json_decode($response->body);
-                $button = 'Test';
+                $button = 'Status 4';
                 $user = User::find(38);
                 $user->notify(new AutopartNotification($channel, $content, $button));
             }
