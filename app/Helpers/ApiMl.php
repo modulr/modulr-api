@@ -150,7 +150,7 @@ class ApiMl
                 $autopart['status_id'] = 4;
 
                 $channel = '-858634389';
-                $content = $response->body;
+                $content = (string) $response->body;
                 $button = 'Test';
                 $user = User::find(38);
                 $user->notify(new AutopartNotification($channel, $content, $button));
