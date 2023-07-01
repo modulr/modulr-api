@@ -336,10 +336,12 @@ class ApiMl
 
         } else {
             $channel = '-858634389';
-            $content = $response->code;
+            $content = $mlId." -> ".$response->code;
             $button = 'Code';
             $user = User::find(38);
             $user->notify(new AutopartNotification($channel, $content, $button));
+
+            logger(['response' => $response]);
         }
         
         return (object) ['status' => 200, 'autopart' => $autopart, 'store' => self::$store];
