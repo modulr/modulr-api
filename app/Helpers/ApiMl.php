@@ -334,18 +334,13 @@ class ApiMl
             }
 
         } else {
-            // $channel = '-858634389';
-            // $content = "Code: ".$mlId." -> ".$response->code;
-            // $user = User::find(38);
-            // $user->notify(new AutopartNotification($channel, $content));
+            $channel = '-858634389';
+            $content = "Code: ".$mlId." -> ".$response->code;
+            $user = User::find(38);
+            $user->notify(new AutopartNotification($channel, $content));
 
             //logger(['response' => $response]);
         }
-
-        $channel = '-858634389';
-        $content = "Code: ".$mlId." -> ".$response->code;
-        $user = User::find(38);
-        $user->notify(new AutopartNotification($channel, $content));
         
         return (object) ['status' => 200, 'autopart' => $autopart, 'store' => self::$store];
     }

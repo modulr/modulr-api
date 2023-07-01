@@ -246,7 +246,12 @@ class MlController extends Controller
                 $user->notify(new AutopartNotification($channel, $content, $button));
 
             } else {
-                logger('No se creo la autoparte '.$mlId);
+                $channel = '-858634389';
+                $content = 'No se creo la autoparte '.$mlId;
+                $user = User::find(38);
+                $user->notify(new AutopartNotification($channel, $content));
+
+                // logger('No se creo la autoparte '.$mlId);
             }
         }
         
