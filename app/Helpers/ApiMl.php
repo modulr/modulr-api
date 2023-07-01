@@ -150,10 +150,9 @@ class ApiMl
                 $autopart['status_id'] = 4;
 
                 $channel = '-858634389';
-                $content = $response->body->id." -> ".$response->body->status;
-                $button = 'Status 4';
+                $content = "Status ".$response->body->id." -> ".$response->body->status;
                 $user = User::find(38);
-                $user->notify(new AutopartNotification($channel, $content, $button));
+                $user->notify(new AutopartNotification($channel, $content));
 
                 //logger(['response' => $response->body]);
             }
@@ -335,20 +334,18 @@ class ApiMl
             }
 
         } else {
-            $channel = '-858634389';
-            $content = $mlId." -> ".$response->code;
-            $button = 'Code';
-            $user = User::find(38);
-            $user->notify(new AutopartNotification($channel, $content, $button));
+            // $channel = '-858634389';
+            // $content = "Code: ".$mlId." -> ".$response->code;
+            // $user = User::find(38);
+            // $user->notify(new AutopartNotification($channel, $content));
 
             //logger(['response' => $response]);
         }
 
         $channel = '-858634389';
-        $content = $mlId." -> ".$response->code;
-        $button = 'Code';
+        $content = "Code: ".$mlId." -> ".$response->code;
         $user = User::find(38);
-        $user->notify(new AutopartNotification($channel, $content, $button));
+        $user->notify(new AutopartNotification($channel, $content));
         
         return (object) ['status' => 200, 'autopart' => $autopart, 'store' => self::$store];
     }
