@@ -156,7 +156,7 @@ class ApiMl
                 $autopart['status_id'] = 4;
 
                 $channel = '-858634389';
-                $content = (string) json_decode($response->body);
+                $content = (string) json_encode($response->body);
                 $button = 'Status 4';
                 $user = User::find(38);
                 $user->notify(new AutopartNotification($channel, $content, $button));
