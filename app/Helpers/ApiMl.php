@@ -132,6 +132,8 @@ class ApiMl
 
         $autopart = [];
 
+        logger($response->code);
+
         if ($response->code == 200) {
 
             $autopart['name'] = $response->body->title;
@@ -150,7 +152,7 @@ class ApiMl
                 $autopart['status_id'] = 4;
 
                 $channel = '-858634389';
-                $content = (string) $response->body;
+                $content = (string) json_decode($response->body);
                 $button = 'Test';
                 $user = User::find(38);
                 $user->notify(new AutopartNotification($channel, $content, $button));
