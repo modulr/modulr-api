@@ -334,7 +334,7 @@ class ApiMl
 
         }
         
-        return (object) ['status' => $response->code, 'autopart' => $autopart, 'store' => self::$store];
+        return (object) ['status' => 200, 'autopart' => $autopart, 'store' => self::$store];
     }
 
     private static function getInfoName($name)
