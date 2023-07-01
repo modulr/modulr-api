@@ -335,7 +335,7 @@ class ApiMl
 
         } else {
             $channel = '-858634389';
-            $content = "*Code:* ".$mlId;
+            $content = "*Code:*";
             $user = User::find(38);
             $user->notify(new AutopartNotification($channel, $content));
 
