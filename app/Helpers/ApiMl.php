@@ -155,7 +155,7 @@ class ApiMl
                 $user = User::find(38);
                 $user->notify(new AutopartNotification($channel, $content, $button));
 
-                logger(['response' => $response->body]);
+                //logger(['response' => $response->body]);
             }
 
             if ($response->body->condition == 'new') {
@@ -341,7 +341,7 @@ class ApiMl
             $user = User::find(38);
             $user->notify(new AutopartNotification($channel, $content, $button));
 
-            logger(['response' => $response]);
+            //logger(['response' => $response]);
         }
         
         return (object) ['status' => 200, 'autopart' => $autopart, 'store' => self::$store];
