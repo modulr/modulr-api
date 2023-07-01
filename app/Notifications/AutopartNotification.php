@@ -19,7 +19,7 @@ class AutopartNotification extends Notification
     /**
      * Create a new notification instance.
      */
-    public function __construct($channel, $content, $button)
+    public function __construct($channel, $content, $button = null)
     {
         $this->channel = $channel;
         $this->content = $content;
