@@ -39,7 +39,10 @@ class AutopartController extends Controller
                     ->orWhere('autoparts.id', 'like', '%'.$number.'%')
                     ->orWhere('autoparts.description', 'like', '%'.$number.'%')
                     ->orWhere('autoparts.ml_id', 'like', '%'.$number.'%')
-                    ->orWhere('autoparts.autopart_number', 'like', '%'.$number.'%');
+                    ->orWhere('autoparts.autopart_number', 'like', '%'.$number.'%')
+                    ->orWhere(function ($subQuery) use ($number) {
+                        $subQuery->whereJsonContains('autoparts.years', $number);
+                    });
                 });
             })
             ->latest('autoparts.created_at')
