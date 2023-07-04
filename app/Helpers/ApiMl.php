@@ -174,15 +174,19 @@ class ApiMl
                 } else {
                     $category = self::getCategory($response->body->category_id);
 
-                    $catId = DB::table('autopart_list_categories')->insertGetId([
-                        'name' => $category->name,
-                        'ml_id' => $category->id,
-                        'name_ml' => $category->name,
-                        'created_at' => Carbon::now(),
-                        'updated_at' => Carbon::now()
-                    ]);
-
-                    $autopart['category_id'] = $catId;
+                    if($category->name !== 'Otros'){
+                        $catId = DB::table('autopart_list_categories')->insertGetId([
+                            'name' => $category->name,
+                            'ml_id' => $category->id,
+                            'name_ml' => $category->name,
+                            'created_at' => Carbon::now(),
+                            'updated_at' => Carbon::now()
+                        ]);    
+                        $autopart['category_id'] = $catId;
+                    }else{
+                        $autopart['category_id'] = 'MLM2232';
+                    }
+                    
                 }
             }
             
@@ -316,6 +320,33 @@ class ApiMl
                             array_push($autopart['years'], $year->name);
                         }
                     }
+
+                    // Obtener array único
+                    $uniqueYears = array_unique($autopart['years']);
+
+                    // Ordenar el array
+                    sort($uniqueYears);
+
+                    // Eliminar elementos vacíos
+                    $uniqueYears = array_filter($uniqueYears);
+
+                    // Reindexar el array
+                    $uniqueYears = array_values($uniqueYears);
+
+                    if (count($uniqueYears) > 1) {
+                        $firstValue = reset($uniqueYears);
+                        $lastValue = end($uniqueYears);
+
+                        if (is_numeric($firstValue) && is_numeric($lastValue)) {
+                            $range = range($firstValue, $lastValue);
+                            $uniqueYears = array_values(array_unique(array_merge($uniqueYears, $range)));
+                            sort($uniqueYears);
+                        }
+                    }
+
+                    $formattedYears = array_map('strval', $uniqueYears);
+
+                    $autopart['years'] = json_encode($formattedYears);
                 //}
                 
             }
