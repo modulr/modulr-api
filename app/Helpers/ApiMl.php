@@ -315,33 +315,6 @@ class ApiMl
                             array_push($autopart['years'], $year->name);
                         }
                     }
-
-                    // Obtener array único
-                    $uniqueYears = array_unique($autopart['years']);
-
-                    // Ordenar el array
-                    sort($uniqueYears);
-
-                    // Eliminar elementos vacíos
-                    $uniqueYears = array_filter($uniqueYears);
-
-                    // Reindexar el array
-                    $uniqueYears = array_values($uniqueYears);
-
-                    if (count($uniqueYears) > 1) {
-                        $firstValue = reset($uniqueYears);
-                        $lastValue = end($uniqueYears);
-
-                        if (is_numeric($firstValue) && is_numeric($lastValue)) {
-                            $range = range($firstValue, $lastValue);
-                            $uniqueYears = array_values(array_unique(array_merge($uniqueYears, $range)));
-                            sort($uniqueYears);
-                        }
-                    }
-
-                    $formattedYears = array_map('strval', $uniqueYears);
-
-                    $autopart['years'] = json_encode($formattedYears);
                 //}
                 
             }
