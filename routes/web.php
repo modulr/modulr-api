@@ -22,7 +22,6 @@ Route::get('/', function () {
 Route::get('import/getIds/{id}', [ImportMlController::class, 'getIds']);
 Route::get('import/getNewIds/{id}', [ImportMlController::class, 'getNewIds']);
 Route::get('import/import/{id}', [ImportMlController::class, 'import']);
-Route::get('import/save/{id}', [ImportMlController::class, 'save']);
+Route::get('import/save/{id}/{limit}', [ImportMlController::class, 'save']);
 
 Route::get('export', [ExportController::class, 'export']);
-
