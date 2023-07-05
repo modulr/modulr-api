@@ -111,7 +111,7 @@ class MlController extends Controller
                     $autopart->status_id = $autopart->status_id == 3 ? $autopart->status_id : $response->autopart['status_id'];
 
                     // AUTOPARTE VENDIDA
-                    if($response->autopart['status_id'] == 4 && $autopart->status_id !== 3){
+                    if($response->autopart['status_id'] == 4){ // && $autopart->status_id !== 3
 
                         AutopartActivity::create([
                             'activity' => 'Autoparte vendida en Mercadolibre',
