@@ -68,10 +68,10 @@ class Autopart extends Model
         return $this->hasMany(AutopartImage::class);
     }
 
-    public function years()
-    {
-        return $this->belongsToMany(AutopartListYear::class, 'autopart_years', 'autopart_id', 'year_id');
-    }
+    // public function years()
+    // {
+    //     return $this->belongsToMany(AutopartListYear::class, 'autopart_years', 'autopart_id', 'year_id');
+    // }
 
     public function comments()
     {

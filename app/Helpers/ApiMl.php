@@ -138,7 +138,7 @@ class ApiMl
             $autopart['description'] = '';
             $autopart['ml_id'] = $response->body->id;
             $autopart['sale_price'] = $response->body->price;
-            $autopart['status_id'] = 1;
+            $autopart['status_id'] = 1; //Disponible
             $autopart['make_id'] = null;
             $autopart['category_id'] = null;
             $autopart['model_id'] = null;
@@ -146,15 +146,10 @@ class ApiMl
             $autopart['years'] = [];
             $autopart['images'] = [];
 
-            if ($response->body->status == 'paused' || $response->body->status == 'closed') {
-                $autopart['status_id'] = 4;
-
-                $channel = '-858634389';
-                $content = "*Status:* ".$response->body->id." -> ".$response->body->status;
-                $user = User::find(38);
-                $user->notify(new AutopartNotification($channel, $content));
-
-                //logger(['response' => $response->body]);
+            if ($response->body->status == 'paused') {
+                $autopart['status_id'] = 2; // No disponible
+            } else if ( $response->body->status == 'closed') {
+                $autopart['status_id'] = 4; // Vendido
             }
 
             if ($response->body->condition == 'new') {
@@ -352,7 +347,7 @@ class ApiMl
             }
 
             if (!isset($autopart['make_id']) || !isset($autopart['model_id'])) {
-                $autopart['status_id'] = 5;
+                $autopart['status_id'] = 5; //Incompleto
             }
 
             if (isset($response->body->pictures)) {
