@@ -66,7 +66,6 @@ class AutopartController extends Controller
         return Autopart::with([
             'make',
             'model',
-            'years',
             'origin',
             'status',
             'store',
