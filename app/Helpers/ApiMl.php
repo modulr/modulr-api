@@ -54,10 +54,18 @@ class ApiMl
 
             self::$store = DB::table('stores_ml')->find(self::$store->id);
 
-            logger('Refresh access_token');
+            $channel = '-858634389';
+            $content = '*Refresh access_token:* '.self::$store->name;
+            $user = User::find(38);
+            $user->notify(new AutopartNotification($channel, $content));
+
             return $response->status();
         } else {
-            logger('Do not refresh access_token');
+            $channel = '-858634389';
+            $content = '*Do not refresh access_token:* '.self::$store->name;
+            $user = User::find(38);
+            $user->notify(new AutopartNotification($channel, $content));
+
             return $response->status();
         }
     }
@@ -330,14 +338,12 @@ class ApiMl
 
         } else {
             $channel = '-858634389';
-            $content = "*Code:* ".$mlId;
+            $content = "*ERROR:* ".$response->code.' -> '.$mlId;
             $user = User::find(38);
             $user->notify(new AutopartNotification($channel, $content));
-
-            logger(['response' => $response]);
         }
         
-        return (object) ['status' => 200, 'autopart' => $autopart, 'store' => self::$store];
+        return (object) ['status' => $response->code, 'autopart' => $autopart, 'store' => self::$store];
     }
 
     private static function getInfoName($name)

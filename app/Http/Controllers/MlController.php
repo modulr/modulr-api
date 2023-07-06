@@ -47,9 +47,15 @@ class MlController extends Controller
                 'updated_at' => Carbon::now()
             ]);
 
-            logger('Create token');
+            $channel = '-858634389';
+            $content = '*Create token:* '.$storeMl->name;
+            $user = User::find(38);
+            $user->notify(new AutopartNotification($channel, $content));
         } else {
-            logger('Do not create token');
+            $channel = '-858634389';
+            $content = '*Do not create token:* '.$storeMl->name;
+            $user = User::find(38);
+            $user->notify(new AutopartNotification($channel, $content));
         }
 
         return $response->status();
@@ -66,8 +72,6 @@ class MlController extends Controller
         //     'attempts' => 1,
         //     'received' => '2022-01-07T18:55:57.649Z',
         // ];
-
-        // logger(['request' => $request]);
 
         $mlId = trim($request->resource, '/items/');
 
@@ -151,10 +155,10 @@ class MlController extends Controller
                     $autopart->name = $response->autopart['name'];
                 }
 
-                if($autopart->description !== $response->autopart['description']){
-                    $change = $change."🖋 Descripción actualizada\n".$autopart->description."\n🔽🔽🔽\n".$response->autopart['description']."\n";
-                    $autopart->description = $response->autopart['description'];
-                }
+                // if($autopart->description !== $response->autopart['description']){
+                //     $change = $change."🖋 Descripción actualizada\n".$autopart->description."\n🔽🔽🔽\n".$response->autopart['description']."\n";
+                //     $autopart->description = $response->autopart['description'];
+                // }
 
                 if ($change == null) {
                     return 'No se actualizó la autoparte '.$mlId;
@@ -176,7 +180,11 @@ class MlController extends Controller
                 $user->notify(new AutopartNotification($channel, $content, $button));
 
             } else {
-                logger('No se actualizó la autoparte '.$mlId);
+
+                $channel = '-858634389';
+                $content = '*No se actualizó la autoparte:* '.$mlId;
+                $user = User::find(38);
+                $user->notify(new AutopartNotification($channel, $content));
             }
 
         } else {
@@ -250,8 +258,6 @@ class MlController extends Controller
                 $content = '*No se creo la autoparte:* '.$mlId;
                 $user = User::find(38);
                 $user->notify(new AutopartNotification($channel, $content));
-
-                // logger('No se creo la autoparte '.$mlId);
             }
         }
         
