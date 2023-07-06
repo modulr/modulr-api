@@ -112,11 +112,12 @@ class MlController extends Controller
                     $oldStatus = isset($statuses[$oldStatusId]) ? $statuses[$oldStatusId] : "Otro estado";
                     $newStatus = isset($statuses[$newStatusId]) ? $statuses[$newStatusId] : "Otro estado";
 
+                    $change = "🚦 Estatus actualizado: ".$oldStatus." ⏩ ".$newStatus."\n";
+
                     $autopart->status_id = $autopart->status_id == 3 ? $autopart->status_id : $response->autopart['status_id'];
 
                     // AUTOPARTE VENDIDA
                     if($response->autopart['status_id'] == 4){ // && $autopart->status_id !== 3
-
                         AutopartActivity::create([
                             'activity' => 'Autoparte vendida en Mercadolibre',
                             'autopart_id' => $autopart->id,
@@ -131,12 +132,7 @@ class MlController extends Controller
 
                         $autopart->status_id = $response->autopart['status_id'];
                         $autopart->save();
-
-                        return 'success';
                     }
-                    
-              
-                    $change = "🚦 Estatus actualizado: ".$oldStatus." ⏩ ".$newStatus."\n";
                 }
 
                 if ($autopart->sale_price !== number_format($response->autopart['sale_price'])) {
@@ -151,7 +147,7 @@ class MlController extends Controller
                 }
 
                 if($autopart->name !== $response->autopart['name']){
-                    $change = $change."🖋 Título actualizado\n".$autopart->name."\n🔽🔽🔽\n".$response->autopart['name']."\n";
+                    $change = $change . "🖋 Título actualizado\n".$autopart->name."\n🔽🔽🔽\n".$response->autopart['name']."\n";
                     $autopart->name = $response->autopart['name'];
                 }
 
@@ -160,24 +156,21 @@ class MlController extends Controller
                 //     $autopart->description = $response->autopart['description'];
                 // }
 
-                if ($change == null) {
-                    return 'No se actualizó la autoparte '.$mlId;
+                if ($change) {
+                    $autopart->save();
+                    
+                    AutopartActivity::create([
+                        'activity' => "Se actualizó la autoparte en Mercadolibre\n".$change,
+                        'autopart_id' => $autopart->id,
+                        'user_id' => 1
+                    ]);
+                    
+                    $channel = env('TELEGRAM_CHAT_UPDATES_ID');
+                    $content = "*¡Autoparte Actualizada!*\n*".$autopart->storeMl->name."*\n".$autopart->ml_id."\n".$change;
+                    $button = $autopart->id;
+                    $user = User::find(1);
+                    $user->notify(new AutopartNotification($channel, $content, $button));
                 }
-                
-                $autopart->save();
-
-                
-                AutopartActivity::create([
-                    'activity' => "Se actualizó la autoparte en Mercadolibre\n".$change,
-                    'autopart_id' => $autopart->id,
-                    'user_id' => 1
-                ]);
-                
-                $channel = env('TELEGRAM_CHAT_UPDATES_ID');
-                $content = "*¡Autoparte Actualizada!*\n*".$autopart->storeMl->name."*\n".$autopart->ml_id."\n".$change;
-                $button = $autopart->id;
-                $user = User::find(1);
-                $user->notify(new AutopartNotification($channel, $content, $button));
 
             } else {
 
