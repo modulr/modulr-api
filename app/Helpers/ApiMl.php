@@ -177,15 +177,19 @@ class ApiMl
                 } else {
                     $category = self::getCategory($response->body->category_id);
 
-                    $catId = DB::table('autopart_list_categories')->insertGetId([
-                        'name' => $category->name,
-                        'ml_id' => $category->id,
-                        'name_ml' => $category->name,
-                        'created_at' => Carbon::now(),
-                        'updated_at' => Carbon::now()
-                    ]);
-
-                    $autopart['category_id'] = $catId;
+                    if($category->name !== 'Otros'){
+                        $catId = DB::table('autopart_list_categories')->insertGetId([
+                            'name' => $category->name,
+                            'ml_id' => $category->id,
+                            'name_ml' => $category->name,
+                            'created_at' => Carbon::now(),
+                            'updated_at' => Carbon::now()
+                        ]);    
+                        $autopart['category_id'] = $catId;
+                    }else{
+                        $autopart['category_id'] = 'MLM2232';
+                    }
+                    
                 }
             }
             
