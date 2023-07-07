@@ -14,34 +14,7 @@ class Autopart extends Model
 
     protected $guarded = ['id'];
     protected $dates = ['deleted_at'];
-    protected $casts = ['sale_price'];
-    protected $appends = ['discount_price', 'ml_url', 'qr'];
-
-    public function getSalePriceAttribute($value)
-    {
-        return number_format($this->attributes['sale_price']);
-    }
-
-    public function getDiscountPriceAttribute($value)
-    {
-        return number_format($this->attributes['sale_price'] + ($this->attributes['sale_price'] * 0.10));
-    }
-
-    public function getMlUrlAttribute($value)
-    {
-        if ($this->attributes['ml_id']) {
-            $array = explode('MLM', $this->attributes['ml_id']);
-            $url = 'MLM-'.$array[1];
-            return 'https://articulo.mercadolibre.com.mx/'.$url;
-        } else {
-            return $this->attributes['ml_id'];
-        }
-    }
-
-    public function getQrAttribute()
-    {
-        return Storage::url('autoparts/'.$this->id.'/qr/'.$this->id.'.png');
-    }
+    protected $appends = ['qr'];
 
     public function make()
     {
@@ -68,11 +41,6 @@ class Autopart extends Model
         return $this->hasMany(AutopartImage::class);
     }
 
-    // public function years()
-    // {
-    //     return $this->belongsToMany(AutopartListYear::class, 'autopart_years', 'autopart_id', 'year_id');
-    // }
-
     public function comments()
     {
         return $this->hasMany(AutopartComment::class);
@@ -91,5 +59,10 @@ class Autopart extends Model
     public function storeMl()
     {
         return $this->belongsTo(AutopartStoreMl::class);
+    }
+
+    public function getQrAttribute()
+    {
+        return Storage::url('autoparts/'.$this->id.'/qr/'.$this->id.'.png');
     }
 }
