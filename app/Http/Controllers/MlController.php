@@ -47,9 +47,15 @@ class MlController extends Controller
                 'updated_at' => Carbon::now()
             ]);
 
-            logger('Create token');
+            $channel = '-858634389';
+            $content = '*Create token:* '.$storeMl->name;
+            $user = User::find(38);
+            $user->notify(new AutopartNotification($channel, $content));
         } else {
-            logger('Do not create token');
+            $channel = '-858634389';
+            $content = '*Do not create token:* '.$storeMl->name;
+            $user = User::find(38);
+            $user->notify(new AutopartNotification($channel, $content));
         }
 
         return $response->status();
@@ -66,8 +72,6 @@ class MlController extends Controller
         //     'attempts' => 1,
         //     'received' => '2022-01-07T18:55:57.649Z',
         // ];
-
-        // logger(['request' => $request]);
 
         $mlId = trim($request->resource, '/items/');
 
@@ -108,11 +112,12 @@ class MlController extends Controller
                     $oldStatus = isset($statuses[$oldStatusId]) ? $statuses[$oldStatusId] : "Otro estado";
                     $newStatus = isset($statuses[$newStatusId]) ? $statuses[$newStatusId] : "Otro estado";
 
+                    $change = "🚦 Estatus actualizado: ".$oldStatus." ⏩ ".$newStatus."\n";
+
                     $autopart->status_id = $autopart->status_id == 3 ? $autopart->status_id : $response->autopart['status_id'];
 
                     // AUTOPARTE VENDIDA
                     if($response->autopart['status_id'] == 4){ // && $autopart->status_id !== 3
-
                         AutopartActivity::create([
                             'activity' => 'Autoparte vendida en Mercadolibre',
                             'autopart_id' => $autopart->id,
@@ -127,56 +132,52 @@ class MlController extends Controller
 
                         $autopart->status_id = $response->autopart['status_id'];
                         $autopart->save();
-
-                        return 'success';
                     }
-                    
-              
-                    $change = "🚦 Estatus actualizado: ".$oldStatus." ⏩ ".$newStatus."\n";
                 }
 
-                if ($autopart->sale_price !== number_format($response->autopart['sale_price'])) {
+                if ($autopart->sale_price !== $response->autopart['sale_price']) {
 
-                    if (number_format($response->autopart['sale_price']) > $autopart->sale_price) {
-                        $change = $change . "💵 Aumento de Precio: $".$autopart->sale_price." ⏫ ".number_format($response->autopart['sale_price']) ;
-                    } else if (number_format($response->autopart['sale_price']) < $autopart->sale_price) {
-                        $change = $change . "💵 Reducción de Precio: $".$autopart->sale_price." ⏬ ".number_format($response->autopart['sale_price']) ;
+                    if ($response->autopart['sale_price'] > $autopart->sale_price) {
+                        $change = $change . "💵 Aumento de Precio: $".number_format($autopart->sale_price)." ⏫ ".number_format($response->autopart['sale_price']) ;
+                    } else if ($response->autopart['sale_price'] < $autopart->sale_price) {
+                        $change = $change . "💵 Reducción de Precio: $".number_format($autopart->sale_price)." ⏬ ".number_format($response->autopart['sale_price']) ;
                     }
 
                     $autopart->sale_price = $response->autopart['sale_price'];
                 }
 
                 if($autopart->name !== $response->autopart['name']){
-                    $change = $change."🖋 Título actualizado\n".$autopart->name."\n🔽🔽🔽\n".$response->autopart['name']."\n";
+                    $change = $change . "🖋 Título actualizado\n".$autopart->name."\n🔽🔽🔽\n".$response->autopart['name']."\n";
                     $autopart->name = $response->autopart['name'];
                 }
 
-                if($autopart->description !== $response->autopart['description']){
-                    $change = $change."🖋 Descripción actualizada\n".$autopart->description."\n🔽🔽🔽\n".$response->autopart['description']."\n";
-                    $autopart->description = $response->autopart['description'];
-                }
+                // if($autopart->description !== $response->autopart['description']){
+                //     $change = $change."🖋 Descripción actualizada\n".$autopart->description."\n🔽🔽🔽\n".$response->autopart['description']."\n";
+                //     $autopart->description = $response->autopart['description'];
+                // }
 
-                if ($change == null) {
-                    return 'No se actualizó la autoparte '.$mlId;
+                if ($change) {
+                    $autopart->save();
+                    
+                    AutopartActivity::create([
+                        'activity' => "Se actualizó la autoparte en Mercadolibre\n".$change,
+                        'autopart_id' => $autopart->id,
+                        'user_id' => 1
+                    ]);
+                    
+                    $channel = env('TELEGRAM_CHAT_UPDATES_ID');
+                    $content = "*¡Autoparte Actualizada!*\n*".$autopart->storeMl->name."*\n".$autopart->ml_id."\n".$change;
+                    $button = $autopart->id;
+                    $user = User::find(1);
+                    $user->notify(new AutopartNotification($channel, $content, $button));
                 }
-                
-                $autopart->save();
-
-                
-                AutopartActivity::create([
-                    'activity' => "Se actualizó la autoparte en Mercadolibre\n".$change,
-                    'autopart_id' => $autopart->id,
-                    'user_id' => 1
-                ]);
-                
-                $channel = env('TELEGRAM_CHAT_UPDATES_ID');
-                $content = "*¡Autoparte Actualizada!*\n*".$autopart->storeMl->name."*\n".$autopart->ml_id."\n".$change;
-                $button = $autopart->id;
-                $user = User::find(1);
-                $user->notify(new AutopartNotification($channel, $content, $button));
 
             } else {
-                logger('No se actualizó la autoparte '.$mlId);
+
+                $channel = '-858634389';
+                $content = '*No se actualizó la autoparte:* '.$mlId;
+                $user = User::find(38);
+                $user->notify(new AutopartNotification($channel, $content));
             }
 
         } else {
@@ -250,8 +251,6 @@ class MlController extends Controller
                 $content = '*No se creo la autoparte:* '.$mlId;
                 $user = User::find(38);
                 $user->notify(new AutopartNotification($channel, $content));
-
-                // logger('No se creo la autoparte '.$mlId);
             }
         }
         

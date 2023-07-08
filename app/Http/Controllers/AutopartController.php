@@ -49,8 +49,6 @@ class AutopartController extends Controller
             ->paginate(52);
 
         foreach ($autoparts as $autopart) {
-            $autopart->discount_price = number_format($autopart->sale_price + ($autopart->sale_price * 0.10));
-            $autopart->sale_price = number_format($autopart->sale_price);
             // if (Storage::exists('autoparts/'.$autopart->id.'/images/thumbnail_'.$autopart->basename)) {
             //     $autopart->url = Storage::url('autoparts/'.$autopart->id.'/images/thumbnail_'.$autopart->basename);
             // } else {
@@ -66,9 +64,7 @@ class AutopartController extends Controller
         return Autopart::with([
             'make',
             'model',
-            'years',
             'origin',
-            'status',
             'store',
             'storeMl',
             'images' => function ($query) {

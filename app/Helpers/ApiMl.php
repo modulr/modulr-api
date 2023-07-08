@@ -54,10 +54,18 @@ class ApiMl
 
             self::$store = DB::table('stores_ml')->find(self::$store->id);
 
-            logger('Refresh access_token');
+            $channel = '-858634389';
+            $content = '*Refresh access_token:* '.self::$store->name;
+            $user = User::find(38);
+            $user->notify(new AutopartNotification($channel, $content));
+
             return $response->status();
         } else {
-            logger('Do not refresh access_token');
+            $channel = '-858634389';
+            $content = '*Do not refresh access_token:* '.self::$store->name;
+            $user = User::find(38);
+            $user->notify(new AutopartNotification($channel, $content));
+
             return $response->status();
         }
     }
@@ -169,15 +177,19 @@ class ApiMl
                 } else {
                     $category = self::getCategory($response->body->category_id);
 
-                    $catId = DB::table('autopart_list_categories')->insertGetId([
-                        'name' => $category->name,
-                        'ml_id' => $category->id,
-                        'name_ml' => $category->name,
-                        'created_at' => Carbon::now(),
-                        'updated_at' => Carbon::now()
-                    ]);
-
-                    $autopart['category_id'] = $catId;
+                    if($category->name !== 'Otros'){
+                        $catId = DB::table('autopart_list_categories')->insertGetId([
+                            'name' => $category->name,
+                            'ml_id' => $category->id,
+                            'name_ml' => $category->name,
+                            'created_at' => Carbon::now(),
+                            'updated_at' => Carbon::now()
+                        ]);    
+                        $autopart['category_id'] = $catId;
+                    }else{
+                        $autopart['category_id'] = 'MLM2232';
+                    }
+                    
                 }
             }
             
@@ -330,14 +342,12 @@ class ApiMl
 
         } else {
             $channel = '-858634389';
-            $content = "*Code:* ".$mlId;
+            $content = "*ERROR:* ".$response->code.' -> '.$mlId;
             $user = User::find(38);
             $user->notify(new AutopartNotification($channel, $content));
-
-            logger(['response' => $response]);
         }
         
-        return (object) ['status' => 200, 'autopart' => $autopart, 'store' => self::$store];
+        return (object) ['status' => $response->code, 'autopart' => $autopart, 'store' => self::$store];
     }
 
     private static function getInfoName($name)
