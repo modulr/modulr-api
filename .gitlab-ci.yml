@@ -50,6 +50,6 @@ deploy_production:
   stage: deploy_production
   environment: production
   script:
-    - ssh ubuntu@54.146.226.251 "cd /var/www/autoglobal-api && git checkout master && git pull && exit"
+    - ssh ubuntu@54.146.226.251 "cd /var/www/autoglobal-api && git checkout main && git pull && exit"
   only:
-    - master
+    - main
