@@ -14,7 +14,6 @@ use App\Helpers\ApiMl;
 use App\Notifications\AutopartNotification;
 
 use App\Models\User;
-use App\Models\Autopart;
 use App\Models\AutopartActivity;
 
 class ProcessNotifications extends Command
@@ -42,7 +41,7 @@ class ProcessNotifications extends Command
 
         foreach ($notifications as $notification) {
             
-            $autopart = Autopart::where('ml_id', $notification->ml_id)->first();
+            $autopart = DB::table('autoparts')->where('ml_id', $notification->ml_id)->first();
     
             if ($autopart) {
                 $response = ApiMl::getItemValues($autopart->store_ml_id, $notification->ml_id);
