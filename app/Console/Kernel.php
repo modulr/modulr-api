@@ -13,7 +13,7 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule): void
     {
         // $schedule->command('inspire')->hourly();
-        $schedule->command('app:process-notifications')->everyMinute()->sendOutputTo(storage_path("logs/scheduler.log"))->emailOutputOnFailure('alfredobarronc@gmail.com');;
+        $schedule->command('app:process-notifications')->everyMinute()->sendOutputTo(storage_path("logs/scheduler.log"))->emailOutputOnFailure('alfredobarronc@gmail.com');
     }
 
     /**
