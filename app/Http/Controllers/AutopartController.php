@@ -18,7 +18,7 @@ class AutopartController extends Controller
         $number = $request->number;
 
         $autoparts = DB::table('autoparts')
-            ->select('autoparts.id', 'autoparts.name', 'autoparts.sale_price', 'autopart_images.basename')
+            ->select('autoparts.id', 'autoparts.name', 'autoparts.sale_price', 'autopart_images.basename', 'autoparts.quality')
             ->join('autopart_images', function ($join) {
                 $join->on('autopart_images.id', '=', DB::raw('(SELECT autopart_images.id FROM autopart_images WHERE autopart_images.autopart_id = autoparts.id ORDER BY autopart_images.order ASC LIMIT 1)'));
             })
