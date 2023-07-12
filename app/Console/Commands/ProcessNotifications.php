@@ -142,8 +142,11 @@ class ProcessNotifications extends Command
     
                     $autopartId = DB::table('autoparts')->insertGetId([
                         'name' => $response->autopart['name'],
-                        'description'=> $response->autopart['description'] ? $response->autopart['description'] : null,
-                        'category_id' => $response->autopart['category_id'] ? $response->autopart['category_id'] : null,
+                        'autopart_number' => $response->autopart['autopart_number'],
+                        'description'=> $response->autopart['description'],
+                        'category_id' => $response->autopart['category_id'],
+                        'position_id' => $response->autopart['position_id'],
+                        'side_id' => $response->autopart['side_id'],
                         'make_id' => $response->autopart['make_id'],
                         'model_id' => $response->autopart['model_id'],
                         'years' => json_encode($response->autopart['years']),
@@ -157,16 +160,6 @@ class ProcessNotifications extends Command
                         'created_at' => Carbon::now(),
                         'updated_at' => Carbon::now()
                     ]);
-    
-                    if (count($response->autopart['years_ids'])) {
-                        $response->autopart['years_ids'] = array_unique($response->autopart['years_ids']);
-                        foreach ($response->autopart['years_ids'] as $yearId) {
-                            DB::table('autopart_years')->insert([
-                                'autopart_id' => $autopartId,
-                                'year_id' => $yearId,
-                            ]);
-                        }
-                    }
     
                     foreach ($response->autopart['images'] as $key => $img) {
                         $contents = file_get_contents($img['url']);
