@@ -50,6 +50,8 @@ class ProcessNotifications extends Command
                 if ($response->status == 200) {
                     $change = null;
 
+                    $newStatusId = $autopart->status_id;
+
                     if ($autopart->status_id == 1 && (!isset($autopart->make_id) || !isset($autopart->model_id))) {
                         $newStatusId = 5; // Incompleto
                     }
