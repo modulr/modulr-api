@@ -49,8 +49,20 @@ class ProcessNotifications extends Command
                 
                 if ($response->status == 200) {
                     $change = null;
+
+                    if ($autopart->status_id == 1 && (!isset($autopart->make_id) || !isset($autopart->model_id))) {
+                        $newStatusId = 5; // Incompleto
+                    }
+
+                    if (($autopart->status_id == 1 || $autopart->status_id == 2 || $autopart->status_id == 5) && ($response->autopart['status'] == 'paused' || $response->autopart['status'] == 'closed')) {
+                        $newStatusId = 4; // Vendido
+                    }
+
+                    if ($autopart->status_id == 3 && $response->autopart['status'] == 'closed') {
+                        $newStatusId = 4; // Vendido
+                    }
     
-                    if($autopart->status_id !== $response->autopart['status_id']){
+                    if($autopart->status_id !== $newStatusId){
     
                         $statuses = [
                             1 => "Disponible",
@@ -60,19 +72,13 @@ class ProcessNotifications extends Command
                             5 => "Incompleto",
                             6 => "Sin Mercado Libre"
                         ];
-                        
-                        $oldStatusId = $autopart->status_id;
-                        $newStatusId = $response->autopart['status_id'];
-                        
-                        $oldStatus = isset($statuses[$oldStatusId]) ? $statuses[$oldStatusId] : "Otro estado";
-                        $newStatus = isset($statuses[$newStatusId]) ? $statuses[$newStatusId] : "Otro estado";
     
-                        $change = "🚦 Estatus actualizado: ".$oldStatus." ⏩ ".$newStatus."\n";
-    
-                        $autopart->status_id = $autopart->status_id == 3 ? $autopart->status_id : $response->autopart['status_id'];
+                        $change = "🚦 Estatus actualizado: ".$statuses[$autopart->status_id]." ⏩ ".$statuses[$newStatusId]."\n";
+
+                        $autopart->status_id = $newStatusId;
     
                         // AUTOPARTE VENDIDA
-                        if($response->autopart['status_id'] == 4){ // && $autopart->status_id !== 3
+                        if($autopart->status_id == 4){
                             AutopartActivity::create([
                                 'activity' => 'Autoparte vendida en Mercadolibre',
                                 'autopart_id' => $autopart->id,
@@ -83,10 +89,7 @@ class ProcessNotifications extends Command
                             $content = "💰*¡Autoparte Vendida!*\n*".$autopart->storeMl->name."*\n".$autopart->ml_id."\nID: ".$autopart->id."\n".$response->autopart['name']."\nPrecio: $".number_format($response->autopart['sale_price']);
                             $button = $autopart->id;
                             $user = User::find(38);
-                            $user->notify(new AutopartNotification($channel, $content, $button));
-    
-                            $autopart->status_id = $response->autopart['status_id'];
-                            $autopart->save();
+                            $user->notify(new AutopartNotification($channel, $content, $button)); 
                         }
                     }
     
@@ -138,7 +141,7 @@ class ProcessNotifications extends Command
                 $storeMl = DB::table('stores_ml')->where('user_id', $notification->user_id)->first();
                 $response = ApiMl::getItemValues($storeMl->id, $notification->ml_id);
                 
-                if ($response->status == 200) {
+                if ($response->status == 200 && $response->autopart['status'] == 'active') {
     
                     $autopartId = DB::table('autoparts')->insertGetId([
                         'name' => $response->autopart['name'],
