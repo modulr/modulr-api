@@ -98,9 +98,9 @@ class ProcessNotifications extends Command
                     if ($autopart->sale_price !== $response->autopart['sale_price']) {
     
                         if ($response->autopart['sale_price'] > $autopart->sale_price) {
-                            $change = $change . "💵 Aumento de Precio: $".number_format($autopart->sale_price)." ⏫ ".number_format($response->autopart['sale_price']) ;
+                            $change = $change . "💵 Aumento de Precio: $".number_format($autopart->sale_price)." ⏫ $".number_format($response->autopart['sale_price']) ;
                         } else if ($response->autopart['sale_price'] < $autopart->sale_price) {
-                            $change = $change . "💵 Reducción de Precio: $".number_format($autopart->sale_price)." ⏬ ".number_format($response->autopart['sale_price']) ;
+                            $change = $change . "💵 Reducción de Precio: $".number_format($autopart->sale_price)." ⏬ $".number_format($response->autopart['sale_price']) ;
                         }
     
                         $autopart->sale_price = $response->autopart['sale_price'];
