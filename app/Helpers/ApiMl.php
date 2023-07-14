@@ -181,7 +181,7 @@ class ApiMl
                         ]);    
                         $autopart['category_id'] = $catId;
                     }else{
-                        $autopart['category_id'] = 'MLM2232';
+                        $autopart['category_id'] = 424;
                     }
                     
                 }
