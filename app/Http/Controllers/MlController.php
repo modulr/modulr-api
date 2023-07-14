@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\DB;
 use App\Notifications\AutopartNotification;
 
 use App\Models\User;
-use App\Models\Autopart;
 
 class MlController extends Controller
 {
@@ -82,25 +81,5 @@ class MlController extends Controller
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now()
         ]);
-    }
-
-    public function fixYears ()
-    {
-        $autoparts = Autopart::orderBy('id', 'desc')->limit(500)->get();
-
-        foreach ($autoparts as $autopart) {
-            if (isset($autopart->years)) {
-                $years = json_decode($autopart->years);
-    
-                // Verificar cada elemento del array de años
-                foreach ($years as &$year) {
-                    $year = (string)$year;
-                }
-            
-                // Guardar los cambios en el modelo
-                $autopart->years = $years;
-                $autopart->save();
-            }
-        }
     }
 }
