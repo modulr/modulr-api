@@ -89,16 +89,16 @@ class MlController extends Controller
 
     function getAutoparts ()
     {
-        //$autoparts = Autopart::with('activity')->where('status_id', 2)->where('store_ml_id', 1)->get();
+        //return Autopart::where('status_id', 2)->where('store_ml_id', 4)->count();
+        $autoparts = Autopart::with('activity')->where('status_id', 2)->where('store_ml_id', 4)->get();
 
-        $autoparts = Autopart::whereHas('latestActivity', function ($query) {
-            $query->where('activity', 'like', '%Estatus actualizado: Vendido ⏩ No Disponible%');
-        })->with('activity')->where('status_id', 2)->where('store_ml_id', 1)->get();
+        // $autoparts = Autopart::whereHas('activity', function ($query) {
+        //     $query->where('activity', 'like', '%Estatus actualizado: Vendido ⏩ No Disponible%');
+        // })->with('latestActivity')->where('status_id', 2)->where('store_ml_id', 4)->get();
 
-
-        // $autoparts = Autopart::whereHas('latestActivity', function ($query) {
+        // $autoparts = Autopart::whereHas('activity', function ($query) {
         //     $query->where('activity', 'like', '%Se creo la autoparte en Mercadolibre%');
-        // })->with('activity')->where('status_id', 2)->where('store_ml_id', 1)->get();
+        // })->with('latestActivity')->where('status_id', 2)->where('store_ml_id', 4)->get();
 
 
         $autopartsToChange = [];
@@ -112,9 +112,12 @@ class MlController extends Controller
             if ($autopartML->code == 200) {
                 $autopartsToChange[] = [
                     'ml' => collect($autopartML->body)->only(['id', 'title','price','available_quantity','sold_quantity','status','sub_status','date_created','last_updated']),
-                    'ag' => collect($autopart)->only(['ml_id','id', 'name','sale_price','make','model','store_ml_id','store_id','created_at','updated_at', 'activity'])
+                    'ag' => collect($autopart)->only(['ml_id','id', 'name','sale_price','make','model','store_ml_id','store_id','created_at','updated_at', 'latest_activity', 'activity'])
                 ];
             }
+
+            // $autopart->status_id = 4;
+            // $autopart->save();
         }
 
         return ["Total" => count($autopartsToChange), "Data" => $autopartsToChange];
