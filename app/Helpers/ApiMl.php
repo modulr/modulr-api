@@ -412,7 +412,7 @@ class ApiMl
             if (count($autopart['years']) > 1) {
                 $years = [];
                 for ($i = min($autopart['years']); $i <= max($autopart['years']); $i++) {
-                    $years[] = $i;
+                    $years[] = (string) $i;
                 }
                 $autopart['years'] = $years;
             }
