@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use App\Notifications\AutopartNotification;
 
 use App\Models\User;
+use App\Models\Autopart;
 
 class MlController extends Controller
 {
