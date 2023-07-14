@@ -82,4 +82,22 @@ class MlController extends Controller
             'updated_at' => Carbon::now()
         ]);
     }
+
+    public function fixYears ()
+    {
+        $autoparts = Autopart::orderBy('created_at', 'desc')->limit(500)->get();
+
+        foreach ($autoparts as $autopart) {
+            $years = json_decode($autopart->years);
+
+            // Verificar cada elemento del array de años
+            foreach ($years as &$year) {
+                $year = (string)$year;
+            }
+        
+            // Guardar los cambios en el modelo
+            $autopart->years = $years;
+            $autopart->save();
+        }
+    }
 }
