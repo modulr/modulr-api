@@ -11,6 +11,10 @@ use App\Notifications\AutopartNotification;
 
 use App\Models\User;
 
+
+use App\Models\Autopart;
+use App\Helpers\ApiMl;
+
 class MlController extends Controller
 {
     public function auth (Request $request)
@@ -81,5 +85,38 @@ class MlController extends Controller
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now()
         ]);
+    }
+
+    function getAutoparts ()
+    {
+        //$autoparts = Autopart::with('activity')->where('status_id', 2)->where('store_ml_id', 1)->get();
+
+        $autoparts = Autopart::whereHas('latestActivity', function ($query) {
+            $query->where('activity', 'like', '%Estatus actualizado: Vendido ⏩ No Disponible%');
+        })->with('activity')->where('status_id', 2)->where('store_ml_id', 1)->get();
+
+
+        // $autoparts = Autopart::whereHas('latestActivity', function ($query) {
+        //     $query->where('activity', 'like', '%Se creo la autoparte en Mercadolibre%');
+        // })->with('activity')->where('status_id', 2)->where('store_ml_id', 1)->get();
+
+
+        $autopartsToChange = [];
+        $autopartML = null;
+
+        foreach ($autoparts as $autopart) {
+
+            ApiMl::checkAccessToken($autopart->store_ml_id);
+            $autopartML = ApiMl::getItem($autopart->ml_id);
+
+            if ($autopartML->code == 200) {
+                $autopartsToChange[] = [
+                    'ml' => collect($autopartML->body)->only(['id', 'title','price','available_quantity','sold_quantity','status','sub_status','date_created','last_updated']),
+                    'ag' => collect($autopart)->only(['ml_id','id', 'name','sale_price','make','model','store_ml_id','store_id','created_at','updated_at', 'activity'])
+                ];
+            }
+        }
+
+        return ["Total" => count($autopartsToChange), "Data" => $autopartsToChange];
     }
 }

@@ -51,6 +51,11 @@ class Autopart extends Model
         return $this->hasMany(AutopartActivity::class);
     }
 
+    public function latestActivity()
+    {
+        return $this->hasOne(AutopartActivity::class)->latest();
+    }
+
     public function store()
     {
         return $this->belongsTo(AutopartStore::class);

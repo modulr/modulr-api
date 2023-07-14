@@ -14,7 +14,7 @@ class ApiMl
 {
     protected static $store;
 
-    private static function checkAccessToken($storeMlId)
+    public static function checkAccessToken($storeMlId)
     {
         if (!isset(self::$store) || self::$store->id !== $storeMlId) {
             self::$store = DB::table('stores_ml')->find($storeMlId);
@@ -103,7 +103,7 @@ class ApiMl
         return ['status' => $response->status(), 'data' => ['ids' => $ids, 'store' => self::$store]];
     }    
 
-    private static function getItem($mlId)
+    public static function getItem($mlId)
     {
         $response = Http::withHeaders([
             'Authorization' => 'Bearer '.self::$store->access_token,
