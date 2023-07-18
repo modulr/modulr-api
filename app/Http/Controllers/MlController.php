@@ -92,13 +92,13 @@ class MlController extends Controller
         // return Autopart::where('status_id', 2)->where('store_ml_id', 1)->count();
         // $autoparts = Autopart::with('activity')->where('status_id', 2)->where('store_ml_id', 4)->get();
 
-        $autoparts = Autopart::whereHas('activity', function ($query) {
-            $query->where('activity', 'like', '%Estatus actualizado: Vendido ⏩ No Disponible%');
-        })->with('latestActivity')->where('status_id', 2)->where('store_ml_id', $request->id)->get();
-
         // $autoparts = Autopart::whereHas('activity', function ($query) {
-        //     $query->where('activity', 'like', '%Se creo la autoparte en Mercadolibre%');
-        // })->with('latestActivity')->where('status_id', 2)->where('store_ml_id', 1)->get();
+        //     $query->where('activity', 'like', '%Estatus actualizado: Vendido ⏩ No Disponible%');
+        // })->with('latestActivity')->where('status_id', 2)->where('store_ml_id', $request->id)->get();
+
+        $autoparts = Autopart::whereHas('activity', function ($query) {
+            $query->where('activity', 'like', '%Se creo la autoparte en Mercadolibre%');
+        })->with('latestActivity')->where('status_id', 2)->where('store_ml_id', $request->id)->get();
 
 
         $autopartsToChange = [];
