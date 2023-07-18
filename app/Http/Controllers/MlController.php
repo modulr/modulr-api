@@ -87,14 +87,14 @@ class MlController extends Controller
         ]);
     }
 
-    function getAutoparts ()
+    function getAutoparts (Request $request)
     {
         // return Autopart::where('status_id', 2)->where('store_ml_id', 1)->count();
         // $autoparts = Autopart::with('activity')->where('status_id', 2)->where('store_ml_id', 4)->get();
 
         $autoparts = Autopart::whereHas('activity', function ($query) {
             $query->where('activity', 'like', '%Estatus actualizado: Vendido ⏩ No Disponible%');
-        })->with('latestActivity')->where('status_id', 2)->where('store_ml_id', 1)->get();
+        })->with('latestActivity')->where('status_id', 2)->where('store_ml_id', $request->id)->get();
 
         // $autoparts = Autopart::whereHas('activity', function ($query) {
         //     $query->where('activity', 'like', '%Se creo la autoparte en Mercadolibre%');
@@ -124,6 +124,6 @@ class MlController extends Controller
             // $autopart->save();
         }
 
-        return ["Total" => count($autopartsToChange), "Data" => $autopartsToChange];
+        return ["Tienda" => $request->id,"Total" => count($autopartsToChange), "Data" => $autopartsToChange];
     }
 }
