@@ -120,8 +120,8 @@ class MlController extends Controller
                 ];
             }
 
-            // $autopart->status_id = 4;
-            // $autopart->save();
+            $autopart->status_id = 4;
+            $autopart->save();
         }
 
         return ["Tienda" => $request->id,"Total" => count($autopartsToChange), "Data" => $autopartsToChange];
