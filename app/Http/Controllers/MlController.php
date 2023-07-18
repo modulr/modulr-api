@@ -89,16 +89,16 @@ class MlController extends Controller
 
     function getAutoparts ()
     {
-        //return Autopart::where('status_id', 2)->where('store_ml_id', 4)->count();
-        $autoparts = Autopart::with('activity')->where('status_id', 2)->where('store_ml_id', 4)->get();
+        // return Autopart::where('status_id', 2)->where('store_ml_id', 1)->count();
+        // $autoparts = Autopart::with('activity')->where('status_id', 2)->where('store_ml_id', 4)->get();
 
-        // $autoparts = Autopart::whereHas('activity', function ($query) {
-        //     $query->where('activity', 'like', '%Estatus actualizado: Vendido ⏩ No Disponible%');
-        // })->with('latestActivity')->where('status_id', 2)->where('store_ml_id', 4)->get();
+        $autoparts = Autopart::whereHas('activity', function ($query) {
+            $query->where('activity', 'like', '%Estatus actualizado: Vendido ⏩ No Disponible%');
+        })->with('latestActivity')->where('status_id', 2)->where('store_ml_id', 1)->get();
 
         // $autoparts = Autopart::whereHas('activity', function ($query) {
         //     $query->where('activity', 'like', '%Se creo la autoparte en Mercadolibre%');
-        // })->with('latestActivity')->where('status_id', 2)->where('store_ml_id', 4)->get();
+        // })->with('latestActivity')->where('status_id', 2)->where('store_ml_id', 1)->get();
 
 
         $autopartsToChange = [];
@@ -108,11 +108,15 @@ class MlController extends Controller
 
             ApiMl::checkAccessToken($autopart->store_ml_id);
             $autopartML = ApiMl::getItem($autopart->ml_id);
+            $fecha1 = Carbon::parse($autopartML->body->date_created);
+            $fecha2 = Carbon::parse($autopart->created_at);
 
             if ($autopartML->code == 200) {
                 $autopartsToChange[] = [
                     'ml' => collect($autopartML->body)->only(['id', 'title','price','available_quantity','sold_quantity','status','sub_status','date_created','last_updated']),
-                    'ag' => collect($autopart)->only(['ml_id','id', 'name','sale_price','make','model','store_ml_id','store_id','created_at','updated_at', 'latest_activity', 'activity'])
+                    'ag' => collect($autopart)->only(['ml_id','id', 'name','sale_price','make','model','store_ml_id','store_id','created_at','updated_at', 'latest_activity', 'activity']),
+                    'Stock' => $autopartML->body->sold_quantity > 0 ? "Sin Stock" : "Tiene Stock",
+                    'Diferencia en Fechas' => $autopartML->body->date_created < $autopart->created_at ? 'La autoparte fue creada primero en Mercado Libre con: '.$fecha1->diffInMonths($fecha2).' meses de diferencia' : "N/A"
                 ];
             }
 
