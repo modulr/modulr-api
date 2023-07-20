@@ -74,14 +74,17 @@ class ImportMlController extends Controller
                     ->where('id', $item->id)
                     ->update([
                         'name' => $response->autopart['name'],
+                        'autopart_number' => $response->autopart['autopart_number'],
                         'description' => $response->autopart['description'],
                         'sale_price' => $response->autopart['sale_price'],
                         'origin_id' => $response->autopart['origin_id'],
                         'status_id' => $response->autopart['status_id'],
                         'category_id' => $response->autopart['category_id'],
+                        'position_id' => $response->autopart['position_id'],
+                        'side_id' => $response->autopart['side_id'],
                         'make_id' => $response->autopart['make_id'],
                         'model_id' => $response->autopart['model_id'],
-                        'years_ids' => $response->autopart['years_ids'],
+                        //'years_ids' => $response->autopart['years_ids'],
                         'years' => $response->autopart['years'],
                         'images' => $response->autopart['images'],
                         'updated_at' => Carbon::now()
@@ -133,39 +136,41 @@ class ImportMlController extends Controller
 
             $autopartId = DB::table('autoparts')->insertGetId([
                 'name' => $autopart->name,
+                'autopart_number' => $autopart->autopart_number,
+                'description' => $autopart->description,
                 'category_id' => $autopart->category_id,
+                'position_id' => $autopart->position_id,
+                'side_id' => $autopart->side_id,
                 'make_id' => $autopart->make_id,
                 'model_id' => $autopart->model_id,
                 'sale_price' => $autopart->sale_price,
                 'origin_id' => $autopart->origin_id,
                 'status_id' => $autopart->status_id,
-                'years' => json_encode($autopart->years),
+                'years' => $autopart->years,
                 'ml_id' => $autopart->ml_id,
                 'store_ml_id' => $autopart->store_ml_id,
                 'store_id' => $autopart->store_id,
-                'created_by' => 1,
+                'created_by' => 38,
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now()
             ]);
 
-            if (count(json_decode($autopart->years_ids))) {
-                $autopart->years_ids = array_unique(json_decode($autopart->years_ids));
-                foreach ($autopart->years_ids as $yearId) {
-                    DB::table('autopart_years')->insert([
-                        'autopart_id' => $autopartId,
-                        'year_id' => $yearId,
-                    ]);
-                }
-            }
+            // if (count(json_decode($autopart->years_ids))) {
+            //     $autopart->years_ids = array_unique(json_decode($autopart->years_ids));
+            //     foreach ($autopart->years_ids as $yearId) {
+            //         DB::table('autopart_years')->insert([
+            //             'autopart_id' => $autopartId,
+            //             'year_id' => $yearId,
+            //         ]);
+            //     }
+            // }
             
             // Falta agregar el id y el thumbnail
             foreach (json_decode($autopart->images) as $key => $img) {
 
                 $contents = file_get_contents($img->url);
                 $contentsThumbnail = file_get_contents($img->url_thumbnail);
-
                 $name = substr($img->url, strrpos($img->url, '/') + 1);
-
                 Storage::put('autoparts/'.$autopartId.'/images/'.$name, $contents);
                 Storage::put('autoparts/'.$autopartId.'/images/thumbnail_'.$name, $contentsThumbnail);
 
