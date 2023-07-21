@@ -66,7 +66,7 @@ class AutopartNotification extends Notification
             ->content($this->content);
 
         if ($this->button) {
-            $message->button('ID: '.$this->button, 'https://autoglobal.mx/autopart/'.$this->button);
+            $message->button('Ver en AG', 'https://autoglobal.mx/autopart/'.$this->button);
         }
 
         return $message;
