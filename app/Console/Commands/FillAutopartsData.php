@@ -259,7 +259,7 @@ class FillAutopartsData extends Command
     private function orderCompleteYears()
     {
         $autoparts = DB::table('autoparts')
-        ->whereNull('years')
+        ->whereNotNull('years')
         ->orderBy('id', 'desc')
         ->skip(0)
         ->take(5)
