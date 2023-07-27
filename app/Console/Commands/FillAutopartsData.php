@@ -6,6 +6,8 @@ use Illuminate\Console\Command;
 use Symfony\Component\Console\Question\ChoiceQuestion;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
 use App\Helpers\ApiMl;
 
 class FillAutopartsData extends Command
@@ -96,7 +98,8 @@ class FillAutopartsData extends Command
                             ->update(['side_id' => $response->autopart['side_id']]);
                     }
                 } catch (\Throwable $th) {
-                    throw $th;
+                    logger($th);
+                    //throw $th;
                 }
             }
             $progressBar->advance();
@@ -113,10 +116,12 @@ class FillAutopartsData extends Command
     private function fillPosition()
     {
         $autoparts = DB::table('autoparts')
+        ->whereNull('deleted_at')
+        ->where('status_id', '!=', 4)
         ->whereNull('position_id')
         ->orderBy('id', 'desc')
         ->skip(0)
-        ->take(5)
+        ->take(500)
         ->get();
 
         // Crea una instancia de ProgressBar
@@ -125,16 +130,24 @@ class FillAutopartsData extends Command
         $progressBar->start();
 
         // Recorre las autoparts y realiza el proceso para cada una
-        foreach ($autoparts as $aut) {
-            try {
-                $response = ApiMl::getItemValues($aut->store_ml_id, $aut->ml_id);
+        foreach ($autoparts as $autopart) {
+            logger('ID: '.$autopart->id);
 
-                if ($response->status == 200 && isset($response->autopart['position_id'])) {
-                    $aut->position_id = $response->autopart['position_id'];
-                    // $aut->save();
+            if (isset($autopart->store_ml_id) && isset($autopart->ml_id)) {
+                try {
+                    $response = ApiMl::getItemValues($autopart->store_ml_id, $autopart->ml_id);
+
+                    if ($response->status == 200 && isset($response->autopart['position_id'])) {
+                        logger('old_position_id: '.$autopart->position_id.' new_position_id: '.$response->autopart['position_id']);
+                        
+                        DB::table('autoparts')
+                            ->where('id', $autopart->id)
+                            ->update(['position_id' => $response->autopart['position_id']]);
+                    }
+                } catch (\Throwable $th) {
+                    logger($th);
+                    //throw $th;
                 }
-            } catch (\Throwable $th) {
-                //throw $th;
             }
             $progressBar->advance();
         }
@@ -150,10 +163,12 @@ class FillAutopartsData extends Command
     private function fillPartNumber()
     {
         $autoparts = DB::table('autoparts')
+        ->whereNull('deleted_at')
+        ->where('status_id', '!=', 4)
         ->whereNull('autopart_number')
         ->orderBy('id', 'desc')
         ->skip(0)
-        ->take(5)
+        ->take(500)
         ->get();
 
         // Crea una instancia de ProgressBar
@@ -162,16 +177,24 @@ class FillAutopartsData extends Command
         $progressBar->start();
 
         // Recorre las autoparts y realiza el proceso para cada una
-        foreach ($autoparts as $aut) {
-            try {
-                $response = ApiMl::getItemValues($aut->store_ml_id, $aut->ml_id);
+        foreach ($autoparts as $autopart) {
+            logger('ID: '.$autopart->id);
 
-                if ($response->status == 200 && isset($autopart['autopart_number'])) {
-                    $aut->autopart_number = $autopart['autopart_number'];
-                    // $aut->save();
+            if (isset($autopart->store_ml_id) && isset($autopart->ml_id)) {
+                try {
+                    $response = ApiMl::getItemValues($autopart->store_ml_id, $autopart->ml_id);
+
+                    if ($response->status == 200 && isset($response->autopart['autopart_number'])) {
+                        logger('old_autopart_number: '.$autopart->autopart_number.' new_autopart_number: '.$response->autopart['autopart_number']);
+                        
+                        DB::table('autoparts')
+                            ->where('id', $autopart->id)
+                            ->update(['autopart_number' => $response->autopart['autopart_number']]);
+                    }
+                } catch (\Throwable $th) {
+                    logger($th);
+                    //throw $th;
                 }
-            } catch (\Throwable $th) {
-                //throw $th;
             }
             $progressBar->advance();
         }
@@ -182,10 +205,12 @@ class FillAutopartsData extends Command
     private function fillYears()
     {
         $autoparts = DB::table('autoparts')
+        ->whereNull('deleted_at')
+        ->where('status_id', '!=', 4)
         ->whereNull('years')
         ->orderBy('id', 'desc')
         ->skip(0)
-        ->take(5)
+        ->take(100)
         ->get();
 
         // Crea una instancia de ProgressBar
@@ -194,16 +219,23 @@ class FillAutopartsData extends Command
         $progressBar->start();
 
         // Recorre las autoparts y realiza el proceso para cada una
-        foreach ($autoparts as $aut) {
-            try {
-                $response = ApiMl::getItemValues($aut->store_ml_id, $aut->ml_id);
+        foreach ($autoparts as $autopart) {
+            logger('ID: '.$autopart->id);
 
-                if ($response->status == 200 && isset($autopart['years'])) {
-                    $aut->years = $autopart['years'];
-                    // $aut->save();
+            if (isset($autopart->store_ml_id) && isset($autopart->ml_id)) {
+                try {
+                    $response = ApiMl::getItemValues($autopart->store_ml_id, $autopart->ml_id);
+
+                    if ($response->status == 200 && isset($response->autopart['years'])) {
+                        logger('old_years: '.$autopart->years.' new_years: '.$response->autopart['years']);
+                        
+                        DB::table('autoparts')
+                            ->where('id', $autopart->id)
+                            ->update(['years' => $response->autopart['years']]);
+                    }
+                } catch (\Throwable $th) {
+                    logger($th);
                 }
-            } catch (\Throwable $th) {
-                //throw $th;
             }
             $progressBar->advance();
         }
@@ -217,14 +249,17 @@ class FillAutopartsData extends Command
             ->select('autopart_id')
             ->distinct()
             ->whereNull('img_ml_id')
+            ->whereNull('deleted_at')
             ->pluck('autopart_id')
             ->toArray();
 
         $autoparts = DB::table('autoparts')
+            ->whereNull('deleted_at')
+            ->where('status_id', '!=', 4)
             ->whereIn('id', $autopartsIds)
             ->orderBy('id', 'desc')
             ->skip(0)
-            ->take(5)
+            ->take(100)
             ->get();
 
         // Crea una instancia de ProgressBar
@@ -233,31 +268,38 @@ class FillAutopartsData extends Command
         $progressBar->start();
 
         // Recorre las autoparts y realiza el proceso para cada una
-        foreach ($autoparts as $aut) {
-            try {
-                $response = ApiMl::getItemValues($aut->store_ml_id, $aut->ml_id);
+        foreach ($autoparts as $autopart) {
+            logger('ID: '.$autopart->id);
+            
+            if (isset($autopart->store_ml_id) && isset($autopart->ml_id)) {
+                try {
+                    $response = ApiMl::getItemValues($autopart->store_ml_id, $autopart->ml_id);
 
-                if ($response->status == 200 && isset($response->autopart['images'])) {
-                    foreach ($response->autopart['images'] as $key => $img) {
-                        $contents = file_get_contents($img['url']);
-                        $contentsThumbnail = file_get_contents($img['url_thumbnail']);
-                        $name = substr($img['url'], strrpos($img['url'], '/') + 1);
-                        //COMENTADO PARA PRUEBAS
-                        // Storage::put('autoparts/'.$autopartId.'/images/'.$name, $contents);
- 
-                        // DB::table('autopart_images')
-                        // ->where('autopart_id', $aut->id)
-                        // ->where('order', $key)
-                        // ->update([
-                        //     'basename' => $name,
-                        //     'img_ml_id' => $img['id'],
-                        //     'updated_at' => Carbon::now()
-                        // ]);
-                        
+                    if ($response->status == 200 && isset($response->autopart['images'])) {
+                        foreach ($response->autopart['images'] as $key => $img) {
+                            $contents = file_get_contents($img['url']);
+                            $contentsThumbnail = file_get_contents($img['url_thumbnail']);
+                            $name = substr($img['url'], strrpos($img['url'], '/') + 1);
+                            
+                            if (!Storage::exists('autoparts/'.$autopart->id.'/images/thumbnail_'.$name)){
+                                Storage::put('autoparts/'.$autopart->id.'/images/thumbnail_'.$name, $contentsThumbnail);
+                            }
+    
+                            DB::table('autopart_images')
+                            ->where('autopart_id', $autopart->id)
+                            ->where('order', $key)
+                            ->update([
+                                'basename' => $name,
+                                'img_ml_id' => $img['id'],
+                                'updated_at' => Carbon::now()
+                            ]);
+                            
+                        }
                     }
+                } catch (\Throwable $th) {
+                    logger($th);
+                    //throw $th;
                 }
-            } catch (\Throwable $th) {
-                //throw $th;
             }
             $progressBar->advance();
         }
@@ -268,10 +310,12 @@ class FillAutopartsData extends Command
     private function orderCompleteYears()
     {
         $autoparts = DB::table('autoparts')
+        ->whereNull('deleted_at')
+        ->where('status_id', '!=', 4)
         ->whereNotNull('years')
         ->orderBy('id', 'desc')
         ->skip(0)
-        ->take(5)
+        ->take(500)
         ->get();
 
         // Crea una instancia de ProgressBar
@@ -280,24 +324,22 @@ class FillAutopartsData extends Command
         $progressBar->start();
 
         // Recorre las autoparts y realiza el proceso para cada una
-        foreach ($autoparts as $aut) {
+        foreach ($autoparts as $autopart) {
+            logger('ID: '.$autopart->id);
+            $autopart->years = json_decode($autopart->years);
             try {
-                $response = ApiMl::getItemValues($aut->store_ml_id, $aut->ml_id);
-
-                if ($response->status == 200 && isset($autopart['years'])) {
-                    if (count($autopart['years']) > 1) {
-                        $years = [];
-                        for ($i = min($autopart['years']); $i <= max($autopart['years']); $i++) {
-                            $years[] = (string) $i;
-                        }
-                        $aut->years = $years;
-                    }else{
-                        $aut->years = $autopart['years'];
+                if (count($autopart->years) > 1) {
+                    $years = [];
+                    for ($i = min($autopart->years); $i <= max($autopart->years); $i++) {
+                        $years[] = (string) $i;
                     }
-                    // $aut->save();
+                    DB::table('autoparts')
+                        ->where('id', $autopart->id)
+                        ->update(['years' => $years]);
                 }
             } catch (\Throwable $th) {
-                //throw $th;
+                    logger($th);
+                    //throw $th;
             }
             $progressBar->advance();
         }
