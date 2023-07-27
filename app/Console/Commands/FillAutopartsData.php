@@ -67,11 +67,13 @@ class FillAutopartsData extends Command
     private function fillSides()
     {
         $autoparts = DB::table('autoparts')
-        ->whereNull('side_id')
-        ->orderBy('id', 'desc')
-        ->skip(0)
-        ->take(5)
-        ->get();
+            ->whereNull('deleted_at')
+            ->where('status_id', '!=', 4)
+            ->whereNull('side_id')
+            ->orderBy('id', 'desc')
+            ->skip(0)
+            ->take(1000)
+            ->get();
 
         // Crea una instancia de ProgressBar
         $progressBar = new ProgressBar($this->output, count($autoparts));
@@ -79,16 +81,23 @@ class FillAutopartsData extends Command
         $progressBar->start();
 
         // Recorre las autoparts y realiza el proceso para cada una
-        foreach ($autoparts as $aut) {
-            try {
-                $response = ApiMl::getItemValues($aut->store_ml_id, $aut->ml_id);
+        foreach ($autoparts as $autopart) {
+            logger('ID: '.$autopart->id);
 
-                if ($response->status == 200 && isset($response->autopart['side_id'])) {
-                    $aut->side_id = $response->autopart['side_id'];
-                    // $aut->save();
+            if (isset($autopart->store_ml_id) && isset($autopart->ml_id)) {
+                try {
+                    $response = ApiMl::getItemValues($autopart->store_ml_id, $autopart->ml_id);
+    
+                    if ($response->status == 200 && isset($response->autopart['side_id'])) {
+                        logger('old_side_id: '.$autopart->side_id.' new_side_id: '.$response->autopart['side_id']);
+                        
+                        DB::table('autoparts')
+                            ->where('id', $autopart->id)
+                            ->update(['side_id' => $response->autopart['side_id']]);
+                    }
+                } catch (\Throwable $th) {
+                    throw $th;
                 }
-            } catch (\Throwable $th) {
-                //throw $th;
             }
             $progressBar->advance();
         }

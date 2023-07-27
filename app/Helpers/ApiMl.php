@@ -343,7 +343,7 @@ class ApiMl
                 }
 
                 if (!isset($autopart['side_id'])) {
-                    if ($value->id == 'SIDE_POSITION') {
+                    if ($value->id == 'SIDE_POSITION' && isset($value->value_name)) {
                         $autopart['sideMl'] = $value->value_name;
                         $side = DB::table('autopart_list_sides')
                             ->where('name', 'like', $value->value_name)
