@@ -54,15 +54,15 @@ class ApiMl
 
             self::$store = DB::table('stores_ml')->find(self::$store->id);
 
-            $channel = '-858634389';
-            $content = '*Refresh access_token:* '.self::$store->name;
+            $channel = "-858634389";
+            $content = "*Refresh access_token:* ".self::$store->name;
             $user = User::find(38);
             $user->notify(new AutopartNotification($channel, $content));
 
             return $response->status();
         } else {
-            $channel = '-858634389';
-            $content = '*Do not refresh access_token:* '.self::$store->name;
+            $channel = "-858634389";
+            $content = "*Do not refresh access_token:* ".self::$store->name;
             $user = User::find(38);
             $user->notify(new AutopartNotification($channel, $content));
 
@@ -103,7 +103,7 @@ class ApiMl
         return ['status' => $response->status(), 'data' => ['ids' => $ids, 'store' => self::$store]];
     }    
 
-    public static function getItem($mlId)
+    private static function getItem($mlId)
     {
         $response = Http::withHeaders([
             'Authorization' => 'Bearer '.self::$store->access_token,
@@ -343,7 +343,7 @@ class ApiMl
                 }
 
                 if (!isset($autopart['side_id'])) {
-                    if ($value->id == 'SIDE_POSITION') {
+                    if ($value->id == 'SIDE_POSITION' && isset($value->value_name)) {
                         $autopart['sideMl'] = $value->value_name;
                         $side = DB::table('autopart_list_sides')
                             ->where('name', 'like', $value->value_name)
@@ -418,8 +418,8 @@ class ApiMl
             }
 
         } else {
-            $channel = '-858634389';
-            $content = "*ERROR:* ".$response->code.' -> '.$mlId;
+            $channel = "-858634389";
+            $content = "*ERROR:* ".$response->code." -> ".$mlId;
             $user = User::find(38);
             $user->notify(new AutopartNotification($channel, $content));
         }
