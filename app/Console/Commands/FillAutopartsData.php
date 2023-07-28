@@ -32,7 +32,7 @@ class FillAutopartsData extends Command
     public function handle()
     {
         // Mostrar las opciones al usuario
-        $options = ['Lado', 'Posicion', 'Numero_Parte','Anios','Imagenes','Orden_Anios'];
+        $options = ['Descripcion','Lado', 'Posicion', 'Numero_Parte','Anios','Imagenes','Orden_Anios'];
         $question = new ChoiceQuestion('Elige una opción para editar autopartes:', $options);
         $question->setErrorMessage('Opción inválida.');
 
@@ -41,6 +41,9 @@ class FillAutopartsData extends Command
 
         // Ejecutar la función correspondiente según la opción seleccionada
         switch ($selectedOption) {
+            case 'Descripcion':
+                $this->fillDescription();
+                break;
             case 'Lado':
                 $this->fillSides();
                 break;
@@ -66,12 +69,55 @@ class FillAutopartsData extends Command
     }
 
     // Aquí defines las funciones para cada opción
+    private function fillDescription()
+    {
+        $autoparts = DB::table('autoparts')
+        ->whereNull('deleted_at')
+        ->where('status_id', '!=', 4)
+        ->whereNull('description')
+        ->whereNotNull('ml_id')
+        ->orderBy('id', 'desc')
+        ->skip(0)
+        ->take(100)
+        ->get();
+
+        // Crea una instancia de ProgressBar
+        $progressBar = new ProgressBar($this->output, count($autoparts));
+        // Inicia la barra de progreso
+        $progressBar->start();
+
+        // Recorre las autoparts y realiza el proceso para cada una
+        foreach ($autoparts as $autopart) {
+            logger('ID: '.$autopart->id);
+
+            if (isset($autopart->store_ml_id) && isset($autopart->ml_id)) {
+                try {
+                    $response = ApiMl::getItemValues($autopart->store_ml_id, $autopart->ml_id);
+
+                    if ($response->status == 200 && isset($response->autopart['description'])) {
+                        logger('old_description: '.$autopart->description.' new_description: '.$response->autopart['description']);
+                        
+                        DB::table('autoparts')
+                            ->where('id', $autopart->id)
+                            ->update(['description' => $response->autopart['description']]);
+                    }
+                } catch (\Throwable $th) {
+                    logger($th);
+                }
+            }
+            $progressBar->advance();
+        }
+        $this->output->writeln('');
+        $this->info('Completar descripción terminado.');
+    }
+
     private function fillSides()
     {
         $autoparts = DB::table('autoparts')
             ->whereNull('deleted_at')
             ->where('status_id', '!=', 4)
             ->whereNull('side_id')
+            ->whereNotNull('ml_id')
             ->orderBy('id', 'desc')
             ->skip(0)
             ->take(1000)
@@ -119,6 +165,7 @@ class FillAutopartsData extends Command
         ->whereNull('deleted_at')
         ->where('status_id', '!=', 4)
         ->whereNull('position_id')
+        ->whereNotNull('ml_id')
         ->orderBy('id', 'desc')
         ->skip(0)
         ->take(500)
@@ -166,6 +213,7 @@ class FillAutopartsData extends Command
         ->whereNull('deleted_at')
         ->where('status_id', '!=', 4)
         ->whereNull('autopart_number')
+        ->whereNotNull('ml_id')
         ->orderBy('id', 'desc')
         ->skip(0)
         ->take(500)
@@ -257,6 +305,7 @@ class FillAutopartsData extends Command
             ->whereNull('deleted_at')
             ->where('status_id', '!=', 4)
             ->whereIn('id', $autopartsIds)
+            ->whereNotNull('ml_id')
             ->orderBy('id', 'desc')
             ->skip(0)
             ->take(100)
