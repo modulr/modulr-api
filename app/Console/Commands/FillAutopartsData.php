@@ -17,7 +17,7 @@ class FillAutopartsData extends Command
      *
      * @var string
      */
-    protected $signature = 'app:fill-autoparts-data';
+    protected $signature = 'app:fill-autoparts-data {--skip=0} {--limit=100}';
 
     /**
      * The console command description.
@@ -31,6 +31,10 @@ class FillAutopartsData extends Command
      */
     public function handle()
     {
+        // Obtener los argumentos y opciones pasados al comando
+        $skip = $this->option('skip');
+        $limit = $this->option('limit');
+
         // Mostrar las opciones al usuario
         $options = ['Descripcion','Lado', 'Posicion', 'Numero_Parte','Anios','Imagenes','Orden_Anios'];
         $question = new ChoiceQuestion('Elige una opción para editar autopartes:', $options);
@@ -42,25 +46,25 @@ class FillAutopartsData extends Command
         // Ejecutar la función correspondiente según la opción seleccionada
         switch ($selectedOption) {
             case 'Descripcion':
-                $this->fillDescription();
+                $this->fillDescription($skip,$limit);
                 break;
             case 'Lado':
-                $this->fillSides();
+                $this->fillSides($skip,$limit);
                 break;
             case 'Posicion':
-                $this->fillPosition();
+                $this->fillPosition($skip,$limit);
                 break;
             case 'Numero_Parte':
-                $this->fillPartNumber();
+                $this->fillPartNumber($skip,$limit);
                 break;
             case 'Anios':
-                $this->fillYears();
+                $this->fillYears($skip,$limit);
                 break;
             case 'Imagenes':
-                $this->fillImagesIdMl();
+                $this->fillImagesIdMl($skip,$limit);
                 break;
             case 'Orden_Anios':
-                $this->orderCompleteYears();
+                $this->orderCompleteYears($skip,$limit);
                 break;
             default:
                 $this->info('Opción no reconocida.');
@@ -69,7 +73,7 @@ class FillAutopartsData extends Command
     }
 
     // Aquí defines las funciones para cada opción
-    private function fillDescription()
+    private function fillDescription($skip,$limit)
     {
         $autoparts = DB::table('autoparts')
         ->whereNull('deleted_at')
@@ -77,8 +81,8 @@ class FillAutopartsData extends Command
         ->whereNull('description')
         ->whereNotNull('ml_id')
         ->orderBy('id', 'desc')
-        ->skip(0)
-        ->take(100)
+        ->skip($skip)
+        ->take($limit)
         ->get();
 
         // Crea una instancia de ProgressBar
@@ -111,7 +115,7 @@ class FillAutopartsData extends Command
         $this->info('Completar descripción terminado.');
     }
 
-    private function fillSides()
+    private function fillSides($skip,$limit)
     {
         $autoparts = DB::table('autoparts')
             ->whereNull('deleted_at')
@@ -119,8 +123,8 @@ class FillAutopartsData extends Command
             ->whereNull('side_id')
             ->whereNotNull('ml_id')
             ->orderBy('id', 'desc')
-            ->skip(0)
-            ->take(1000)
+            ->skip($skip)
+            ->take($limit)
             ->get();
 
         // Crea una instancia de ProgressBar
@@ -159,7 +163,7 @@ class FillAutopartsData extends Command
         $this->info('Completar lados terminado.');
     }
 
-    private function fillPosition()
+    private function fillPosition($skip,$limit)
     {
         $autoparts = DB::table('autoparts')
         ->whereNull('deleted_at')
@@ -167,8 +171,8 @@ class FillAutopartsData extends Command
         ->whereNull('position_id')
         ->whereNotNull('ml_id')
         ->orderBy('id', 'desc')
-        ->skip(0)
-        ->take(500)
+        ->skip($skip)
+        ->take($limit)
         ->get();
 
         // Crea una instancia de ProgressBar
@@ -207,7 +211,7 @@ class FillAutopartsData extends Command
         $this->info('Completar posicion terminado.');
     }
 
-    private function fillPartNumber()
+    private function fillPartNumber($skip,$limit)
     {
         $autoparts = DB::table('autoparts')
         ->whereNull('deleted_at')
@@ -215,8 +219,8 @@ class FillAutopartsData extends Command
         ->whereNull('autopart_number')
         ->whereNotNull('ml_id')
         ->orderBy('id', 'desc')
-        ->skip(0)
-        ->take(500)
+        ->skip($skip)
+        ->take($limit)
         ->get();
 
         // Crea una instancia de ProgressBar
@@ -250,15 +254,15 @@ class FillAutopartsData extends Command
         $this->info('Completar numero de parte terminado.');
     }
 
-    private function fillYears()
+    private function fillYears($skip,$limit)
     {
         $autoparts = DB::table('autoparts')
         ->whereNull('deleted_at')
         ->where('status_id', '!=', 4)
         ->whereNull('years')
         ->orderBy('id', 'desc')
-        ->skip(0)
-        ->take(100)
+        ->skip($skip)
+        ->take($limit)
         ->get();
 
         // Crea una instancia de ProgressBar
@@ -291,7 +295,7 @@ class FillAutopartsData extends Command
         $this->info('Completar años terminado.');
     }
 
-    private function fillImagesIdMl()
+    private function fillImagesIdMl($skip,$limit)
     {
         $autopartsIds = DB::table('autopart_images')
             ->select('autopart_id')
@@ -307,8 +311,8 @@ class FillAutopartsData extends Command
             ->whereIn('id', $autopartsIds)
             ->whereNotNull('ml_id')
             ->orderBy('id', 'desc')
-            ->skip(0)
-            ->take(100)
+            ->skip($skip)
+            ->take($limit)
             ->get();
 
         // Crea una instancia de ProgressBar
@@ -356,15 +360,15 @@ class FillAutopartsData extends Command
         $this->info('Completar ids de imagenes completado.');
     }
 
-    private function orderCompleteYears()
+    private function orderCompleteYears($skip,$limit)
     {
         $autoparts = DB::table('autoparts')
         ->whereNull('deleted_at')
         ->where('status_id', '!=', 4)
         ->whereNotNull('years')
         ->orderBy('id', 'desc')
-        ->skip(0)
-        ->take(500)
+        ->skip($skip)
+        ->take($limit)
         ->get();
 
         // Crea una instancia de ProgressBar
