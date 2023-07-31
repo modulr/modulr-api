@@ -299,7 +299,7 @@ class ApiMl
             foreach ($response->body->attributes as $value) {
             
                 if (!isset($autopart['make_id'])) {
-                    if ($value->id == 'BRAND' || $value->id == 'CAR_BRAND') {
+                    if (($value->id == 'BRAND' || $value->id == 'CAR_BRAND') && isset($value->value_name)) {
                         $autopart['makeMl'] = $value->value_name;
                         $make = DB::table('autopart_list_makes')
                             ->where('name', 'like', $value->value_name)
@@ -313,7 +313,7 @@ class ApiMl
                 }
 
                 if (!isset($autopart['model_id'])) {
-                    if ($value->id == 'MODEL' || $value->id == 'CAR_MODEL') {
+                    if (($value->id == 'MODEL' || $value->id == 'CAR_MODEL') && isset($value->value_name)) {
                         $autopart['modelMl'] = $value->value_name;
                         $model = DB::table('autopart_list_models')
                             ->where('name', 'like', $value->value_name)
@@ -327,7 +327,7 @@ class ApiMl
                 }
 
                 //if (count($autopart['years']) == 0) {
-                    if ($value->id == 'VEHICLE_YEAR') {
+                    if ($value->id == 'VEHICLE_YEAR' && isset($value->value_name)) {
                         array_push($autopart['years'], $value->value_name);
                     }
 
@@ -337,7 +337,7 @@ class ApiMl
                 //}
 
                 if (!isset($autopart['autopart_number'])) {
-                    if ($value->id == 'PART_NUMBER') {
+                    if ($value->id == 'PART_NUMBER' && isset($value->value_name)) {
                         $autopart['autopart_number'] = $value->value_name;
                     }
                 }
@@ -358,7 +358,7 @@ class ApiMl
                 }
 
                 if (!isset($autopart['position_id'])) {
-                    if ($value->id == 'POSITION') {
+                    if ($value->id == 'POSITION'&& isset($value->value_name)) {
                         $autopart['positionMl'] = $value->value_name;
                         $position = DB::table('autopart_list_positions')
                             ->where('name', 'like', $value->value_name)
@@ -377,7 +377,7 @@ class ApiMl
 
                 foreach ($val->attribute_combinations as $value) {
                     if (!isset($autopart['side_id'])) {
-                        if ($value->id == 'SIDE' || $value->id == 'SIDE_POSITION') {
+                        if (($value->id == 'SIDE' || $value->id == 'SIDE_POSITION') && isset($value->value_name)) {
                             $autopart['sideMl'] = $value->value_name;
                             $side = DB::table('autopart_list_sides')
                                 ->where('name', 'like', $value->value_name)
@@ -392,7 +392,7 @@ class ApiMl
                     }
     
                     if (!isset($autopart['position_id'])) {
-                        if ($value->id == 'POSITION') {
+                        if ($value->id == 'POSITION' && isset($value->value_name)) {
                             $autopart['positionMl'] = $value->value_name;
                             $position = DB::table('autopart_list_positions')
                                 ->where('name', 'like', $value->value_name)
