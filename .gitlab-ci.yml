@@ -42,7 +42,7 @@ deploy_dev:
   stage: deploy_dev
   environment: dev
   script:
-    - ssh ubuntu@54.146.226.251 "cd /var/www/autoglobal-api && git checkout dev && git pull && exit"
+    - ssh ubuntu@54.146.226.251 "cd /var/www/autoglobal-api-dev && git checkout dev && git pull && exit"
   only:
     - dev
 
