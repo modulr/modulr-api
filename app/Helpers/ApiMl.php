@@ -14,7 +14,7 @@ class ApiMl
 {
     protected static $store;
 
-    private static function checkAccessToken($storeMlId)
+    public static function checkAccessToken($storeMlId)
     {
         if (!isset(self::$store) || self::$store->id !== $storeMlId) {
             self::$store = DB::table('stores_ml')->find($storeMlId);
@@ -54,15 +54,15 @@ class ApiMl
 
             self::$store = DB::table('stores_ml')->find(self::$store->id);
 
-            $channel = '-858634389';
-            $content = '*Refresh access_token:* '.self::$store->name;
+            $channel = "-858634389";
+            $content = "*Refresh access_token:* ".self::$store->name;
             $user = User::find(38);
             $user->notify(new AutopartNotification($channel, $content));
 
             return $response->status();
         } else {
-            $channel = '-858634389';
-            $content = '*Do not refresh access_token:* '.self::$store->name;
+            $channel = "-858634389";
+            $content = "*Do not refresh access_token:* ".self::$store->name;
             $user = User::find(38);
             $user->notify(new AutopartNotification($channel, $content));
 
@@ -144,30 +144,24 @@ class ApiMl
 
             $autopart['name'] = $response->body->title;
             $autopart['description'] = '';
+            $autopart['autopart_number'] = null;
             $autopart['ml_id'] = $response->body->id;
             $autopart['sale_price'] = $response->body->price;
-            $autopart['status_id'] = 1; //Disponible
+            $autopart['status'] = $response->body->status;
+            $autopart['status_id'] = 1; // Disponible
             $autopart['make_id'] = null;
-            $autopart['category_id'] = null;
             $autopart['model_id'] = null;
-            $autopart['years_ids'] = [];
+            $autopart['category_id'] = null;
+            $autopart['position_id'] = null;
+            $autopart['side_id'] = null;
             $autopart['years'] = [];
             $autopart['images'] = [];
-
-            if ($response->body->status == 'paused') {
-                $autopart['status_id'] = 2; // No disponible
-            } else if ( $response->body->status == 'closed') {
-                $autopart['status_id'] = 4; // Vendido
-            }
 
             if ($response->body->condition == 'new') {
                 $autopart['origin_id'] = 1;
             } else {
                 $autopart['origin_id'] = 2;
             }
-
-            $description = self::getItemDescription($response->body->id);
-            $autopart['description'] = isset($description->plain_text) ? $description->plain_text : '';
 
             if ($response->body->category_id) {
                 $cat = DB::table('autopart_list_categories')->where('ml_id', $response->body->category_id)->first();
@@ -187,70 +181,23 @@ class ApiMl
                         ]);    
                         $autopart['category_id'] = $catId;
                     }else{
-                        $autopart['category_id'] = 'MLM2232';
+                        $autopart['category_id'] = 424;
                     }
                     
                 }
             }
-            
-            foreach ($response->body->attributes as $value) {
-            
-                if (!isset($autopart['make_id'])) {
-                    if ($value->id == 'BRAND') {
-                        $autopart['make'] = $value->value_name;
-                        $make = DB::table('autopart_list_makes')
-                            ->where('name', 'like', $value->value_name)
-                            ->whereNull('deleted_at')->first();
 
-                        if ($make) {
-                            $autopart['make_id'] = $make->id;
-                        }
-                    }
-                }
-
-                if (!isset($autopart['model_id'])) {
-                    if ($value->id == 'MODEL') {
-                        $autopart['model'] = $value->value_name;
-                        $model = DB::table('autopart_list_models')
-                            ->where('name', 'like', $value->value_name)
-                            ->whereNull('deleted_at')->first();
-                        
-                        if ($model) {
-                            $autopart['model_id'] = $model->id;
-                        }
-                    }
-                }
-
-                //if (count($autopart['years_ids']) == 0) {
-                    if ($value->id == 'VEHICLE_YEAR') {
-                        array_push($autopart['years'], $value->value_name);
-
-                        $year = DB::table('autopart_list_years')
-                            ->where('name', 'like', $value->value_name)
-                            ->whereNull('deleted_at')->first();
-
-                        if ($year) {
-                            $autopart['year_id'] = $year->id;
-                            array_push($autopart['years_ids'], $year->id);
-                        }
-                    }
-
-                    if ($value->id == 'CAR_MODEL') {
-                        array_push($autopart['years'], implode(',', explode(' ', $value->value_name)));
-                        $years = explode(' ', $value->value_name);
-
-                        foreach($years as $item){
-                            $year = DB::table('autopart_list_years')
-                                ->where('name', 'like', $item)
-                                ->whereNull('deleted_at')->first();
-
-                            if ($year) {
-                                array_push($autopart['years_ids'], $year->id);
-                            }
-                        }
-                    }
-                //}
+            if (isset($response->body->pictures)) {
+                foreach ($response->body->pictures as $value) {
+                    $url = str_replace("-O.jpg", "-F.jpg", $value->secure_url);
+                    $url_thumbnail = $value->secure_url;
+                    $id = $value->id;
+                    array_push($autopart['images'], ['id' => $id, 'url' => $url, 'url_thumbnail' => $url_thumbnail]);
+                };
             }
+
+            $description = self::getItemDescription($response->body->id);
+            $autopart['description'] = isset($description->plain_text) ? $description->plain_text : null;
 
             $nameArray = self::getInfoName($autopart['name']);
 
@@ -302,7 +249,7 @@ class ApiMl
                 }
 
                 // Years
-                //if (count($autopart['years_ids']) == 0) {
+                //if (count($autopart['years']) == 0) {
                     if (str_contains($value, '-')) {
                         $yearsArray = explode('-',$value);
                         foreach ($yearsArray as $val) {
@@ -310,7 +257,6 @@ class ApiMl
                                 ->where('name', 'like', $val)
                                 ->whereNull('deleted_at')->first();
                             if ($year) {
-                                array_push($autopart['years_ids'], $year->id);
                                 array_push($autopart['years'], $year->name);
                             }
                         }
@@ -319,30 +265,161 @@ class ApiMl
                             ->where('name', 'like', $value)
                             ->whereNull('deleted_at')->first();
                         if ($year) {
-                            array_push($autopart['years_ids'], $year->id);
                             array_push($autopart['years'], $year->name);
                         }
                     }
                 //}
+
+                if (!isset($autopart['side_id'])) {
+                    $side = DB::table('autopart_list_sides')
+                        ->where('name', 'like', $value)
+                        ->orWhere('variants', 'LIKE', "%".strtolower($value)."%")
+                        ->whereNull('deleted_at')->first();
+                    
+                    if ($side) {
+                        $autopart['side_id'] = $side->id;
+                        $autopart['side'] = $side->name;
+                    }
+                }
+
+                if (!isset($autopart['position_id'])) {
+                    $position = DB::table('autopart_list_positions')
+                        ->where('name', 'like', $value)
+                        ->orWhere('variants', 'LIKE', "%".strtolower($value)."%")
+                        ->whereNull('deleted_at')->first();
+                    
+                    if ($position) {
+                        $autopart['position_id'] = $position->id;
+                        $autopart['position'] = $position->name;
+                    }
+                }
                 
             }
 
-            if (!isset($autopart['make_id']) || !isset($autopart['model_id'])) {
-                $autopart['status_id'] = 5; //Incompleto
+            foreach ($response->body->attributes as $value) {
+            
+                if (!isset($autopart['make_id'])) {
+                    if (($value->id == 'BRAND' || $value->id == 'CAR_BRAND') && isset($value->value_name)) {
+                        $autopart['makeMl'] = $value->value_name;
+                        $make = DB::table('autopart_list_makes')
+                            ->where('name', 'like', $value->value_name)
+                            ->whereNull('deleted_at')->first();
+
+                        if ($make) {
+                            $autopart['make_id'] = $make->id;
+                            $autopart['make'] = $make->name;
+                        }
+                    }
+                }
+
+                if (!isset($autopart['model_id'])) {
+                    if (($value->id == 'MODEL' || $value->id == 'CAR_MODEL') && isset($value->value_name)) {
+                        $autopart['modelMl'] = $value->value_name;
+                        $model = DB::table('autopart_list_models')
+                            ->where('name', 'like', $value->value_name)
+                            ->whereNull('deleted_at')->first();
+                        
+                        if ($model) {
+                            $autopart['model_id'] = $model->id;
+                            $autopart['model'] = $model->name;
+                        }
+                    }
+                }
+
+                //if (count($autopart['years']) == 0) {
+                    if ($value->id == 'VEHICLE_YEAR' && isset($value->value_name)) {
+                        array_push($autopart['years'], $value->value_name);
+                    }
+
+                    // if ($value->id == 'CAR_MODEL') {
+                    //     array_push($autopart['years'], implode(',', explode(' ', $value->value_name)));
+                    // }
+                //}
+
+                if (!isset($autopart['autopart_number'])) {
+                    if ($value->id == 'PART_NUMBER' && isset($value->value_name)) {
+                        $autopart['autopart_number'] = $value->value_name;
+                    }
+                }
+
+                if (!isset($autopart['side_id'])) {
+                    if ($value->id == 'SIDE_POSITION' && isset($value->value_name)) {
+                        $autopart['sideMl'] = $value->value_name;
+                        $side = DB::table('autopart_list_sides')
+                            ->where('name', 'like', $value->value_name)
+                            ->orWhere('variants', 'LIKE', "%".strtolower($value->value_name)."%")
+                            ->whereNull('deleted_at')->first();
+                        
+                        if ($side) {
+                            $autopart['side_id'] = $side->id;
+                            $autopart['side'] = $side->name;
+                        }
+                    }
+                }
+
+                if (!isset($autopart['position_id'])) {
+                    if ($value->id == 'POSITION'&& isset($value->value_name)) {
+                        $autopart['positionMl'] = $value->value_name;
+                        $position = DB::table('autopart_list_positions')
+                            ->where('name', 'like', $value->value_name)
+                            ->orWhere('variants', 'LIKE', "%".strtolower($value->value_name)."%")
+                            ->whereNull('deleted_at')->first();
+                        
+                        if ($position) {
+                            $autopart['position_id'] = $position->id;
+                            $autopart['position'] = $position->name;
+                        }
+                    }
+                }
             }
 
-            if (isset($response->body->pictures)) {
-                foreach ($response->body->pictures as $value) {
-                    $url = str_replace("-O.jpg", "-F.jpg", $value->secure_url);
-                    $url_thumbnail = $value->secure_url;
-                    $id = $value->id;
-                    array_push($autopart['images'], ['id' => $id, 'url' => $url, 'url_thumbnail' => $url_thumbnail]);
-                };
+            foreach ($response->body->variations as $val) {
+
+                foreach ($val->attribute_combinations as $value) {
+                    if (!isset($autopart['side_id'])) {
+                        if (($value->id == 'SIDE' || $value->id == 'SIDE_POSITION') && isset($value->value_name)) {
+                            $autopart['sideMl'] = $value->value_name;
+                            $side = DB::table('autopart_list_sides')
+                                ->where('name', 'like', $value->value_name)
+                                ->orWhere('variants', 'LIKE', "%".strtolower($value->value_name)."%")
+                                ->whereNull('deleted_at')->first();
+                            
+                            if ($side) {
+                                $autopart['side_id'] = $side->id;
+                                $autopart['side'] = $side->name;
+                            }
+                        }
+                    }
+    
+                    if (!isset($autopart['position_id'])) {
+                        if ($value->id == 'POSITION' && isset($value->value_name)) {
+                            $autopart['positionMl'] = $value->value_name;
+                            $position = DB::table('autopart_list_positions')
+                                ->where('name', 'like', $value->value_name)
+                                ->orWhere('variants', 'LIKE', "%".strtolower($value->value_name)."%")
+                                ->whereNull('deleted_at')->first();
+                            
+                            if ($position) {
+                                $autopart['position_id'] = $position->id;
+                                $autopart['position'] = $position->name;
+                            }
+                        }
+                    }
+                }
+
+            }
+
+            if (count($autopart['years']) > 1) {
+                $years = [];
+                for ($i = min($autopart['years']); $i <= max($autopart['years']); $i++) {
+                    $years[] = (string) $i;
+                }
+                $autopart['years'] = $years;
             }
 
         } else {
-            $channel = '-858634389';
-            $content = "*ERROR:* ".$response->code.' -> '.$mlId;
+            $channel = "-858634389";
+            $content = "*ERROR:* ".$response->code." -> ".$mlId;
             $user = User::find(38);
             $user->notify(new AutopartNotification($channel, $content));
         }
@@ -353,15 +430,14 @@ class ApiMl
     private static function getInfoName($name)
     {
         $excptionWords = [
-            'central', 'superior', 'derecha', 'derecho', 'der', 'izquierda', 'izquierdo', 'izq', 'delantera', 'delantero', 'trasera', 'trasero', 'tras', 'tra', 'lateral', 'vestidura',
+            'oem', 'central', 'superior', 'lateral', 'de', 'del', 'en', 'al', 'con', 'para', 'sin', 'nueva', 'nuevo', 'usada', 'usado', 'original', 'generica', 'inf', 'cortesia',
             'puerta', 'chapa', 'fascia', 'facia', 'parrilla', 'rejilla', 'elevador', 'calavera', 'moldura', 'cristal', 'emblema', 'mica', 'tapa', 'foco', 'faro', 'tablero', 'switch',
-            'niebla', 'deflector', 'reflejante', 'filtro', 'aire', 'refuerzo', 'base', 'guia', 'guias', 'de', 'del', 'en', 'tiron', 'placa', 'luz', 'juego', 'inf', 'usado', 'tirante',
-            'radiador', 'marco', 'cromo', 'cromada', 'parrila', 'manguera', 'motor', 'bomba', 'led', 'xenon', 'nueva', 'nuevo', 'original', 'al', 'con', 'usada', 'bisagra', 'cofre',
-            'cola', 'pato', 'spoiler', 'cajuela', 'modulo', 'para', 'halogeno', 'sin', 'hoyo', 'suspension', 'brazo', 'aleron', 'salpicadera', 'reflejantes', 'arco', 'control', 'vidrios',
-            'vidrio', 'ventana', 'limpiaparabrisas', 'bocina', 'botagua', 'sensor', 'impacto', 'manija', 'exterior', 'interior', 'camara', 'reversa', 'condensador', 'stop', 'bisagras', 'oem',
-            'direccional','espejo','retrovisor', 'sensores','ducto','agua','deposito','limpiaparabrisas', 'direccion','puntas', 'horquilla', 'bolsa', 'alarma', 'soporte', 'generica',
-            'banda', 'maestro','boton','seguros', 'portafiltro', 'inferior', 'poleas', 'puertas', 'cubierta', 'anticongelante', 'limpiabrisas', 'mofle', 'cañuela', 'vestidura', 'electrico',
-            'cortesia', 'lava', 'actuador'
+            'niebla', 'deflector', 'reflejante', 'filtro', 'aire', 'refuerzo', 'base', 'guia', 'guias',  'tiron', 'placa', 'luz', 'juego', 'tirante',
+            'radiador', 'marco', 'cromo', 'cromada', 'parrila', 'manguera', 'motor', 'bomba', 'led', 'xenon', 'bisagra', 'cofre', 'lava', 'actuador', 'vestidura',
+            'cola', 'pato', 'spoiler', 'cajuela', 'modulo', 'halogeno', 'hoyo', 'suspension', 'brazo', 'aleron', 'salpicadera', 'reflejantes', 'arco', 'control', 'vidrios',
+            'vidrio', 'ventana', 'limpiaparabrisas', 'bocina', 'botagua', 'sensor', 'impacto', 'manija', 'exterior', 'interior', 'camara', 'reversa', 'condensador', 'stop', 'bisagras', 
+            'direccional','espejo','retrovisor', 'sensores','ducto','agua','deposito','limpiaparabrisas', 'direccion','puntas', 'horquilla', 'bolsa', 'alarma', 'soporte',
+            'banda', 'maestro','boton','seguros', 'portafiltro', 'inferior', 'poleas', 'puertas', 'cubierta', 'anticongelante', 'limpiabrisas', 'mofle', 'cañuela', 'electrico'
         ];
         
         $name = trim(mb_strtolower($name));
