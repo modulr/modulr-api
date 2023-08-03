@@ -122,6 +122,7 @@ class ProcessNotifications extends Command
                     // }
 
                     if($autopart->images !== $response->autopart['images']){
+                        $change = $change."🖼 Imágenes actualizadas";
                         AutopartImage::where('autopart_id', $autopart->id)->delete();
                         foreach ($response->autopart['images'] as $key => $img) {
                             $contents = file_get_contents($img['url']);
