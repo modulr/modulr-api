@@ -140,7 +140,7 @@ class ProcessNotifications extends Command
                             DB::table('autopart_images')->insert([
                                 'basename' => $name,
                                 'img_ml_id' => $img['id'],
-                                'autopart_id' => $autopartId,
+                                'autopart_id' => $autopart->id,
                                 'order' => $key,
                                 'created_at' => Carbon::now(),
                                 'updated_at' => Carbon::now()
