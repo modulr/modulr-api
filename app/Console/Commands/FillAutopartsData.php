@@ -36,7 +36,7 @@ class FillAutopartsData extends Command
         $limit = $this->option('limit');
 
         // Mostrar las opciones al usuario
-        $options = ['Descripcion','Lado', 'Posicion', 'Numero_Parte','Anios','Imagenes','Orden_Anios','Renombrar_Imagenes'];
+        $options = ['Descripcion','Lado', 'Posicion', 'Numero_Parte','Anios','Imagenes','Orden_Anios'];
         $question = new ChoiceQuestion('Elige una opción para editar autopartes:', $options);
         $question->setErrorMessage('Opción inválida.');
 
@@ -322,29 +322,30 @@ class FillAutopartsData extends Command
 
         // Recorre las autoparts y realiza el proceso para cada una
         foreach ($autoparts as $autopart) {
+            logger('ID: '.$autopart->id);
             
             if (isset($autopart->store_ml_id) && isset($autopart->ml_id)) {
                 try {
                     $response = ApiMl::getItemValues($autopart->store_ml_id, $autopart->ml_id);
 
                     if ($response->status == 200 && isset($response->autopart['images'])) {
-                        logger('Images: '.$response);
                         foreach ($response->autopart['images'] as $key => $img) {
                             $contents = file_get_contents($img['url']);
                             $contentsThumbnail = file_get_contents($img['url_thumbnail']);
                             $name = substr($img['url'], strrpos($img['url'], '/') + 1);
+                            logger('NAME: '.$name);
                             
-                            if (!Storage::exists('autoparts/'.$autopart->id.'/images/thumbnail_'.$name)){
-                                Storage::put('autoparts/'.$autopart->id.'/images/thumbnail_'.$name, $contentsThumbnail);
-                            }
+                            // if (!Storage::exists('autoparts/'.$autopart->id.'/images/thumbnail_'.$name)){
+                            //     Storage::put('autoparts/'.$autopart->id.'/images/thumbnail_'.$name, $contentsThumbnail);
+                            // }
     
-                            DB::table('autopart_images')
-                            ->where('autopart_id', $autopart->id)
-                            ->where('order', $key)
-                            ->update([
-                                'img_ml_id' => $img['id'],
-                                'updated_at' => Carbon::now()
-                            ]);
+                            // DB::table('autopart_images')
+                            // ->where('autopart_id', $autopart->id)
+                            // ->where('order', $key)
+                            // ->update([
+                            //     'img_ml_id' => $img['id'],
+                            //     'updated_at' => Carbon::now()
+                            // ]);
                             
                         }
                     }
