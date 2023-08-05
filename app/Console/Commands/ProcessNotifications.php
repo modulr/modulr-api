@@ -127,7 +127,7 @@ class ProcessNotifications extends Command
                         foreach ($response->autopart['images'] as $key => $img) {
                             $contents = file_get_contents($img['url']);
                             $contentsThumbnail = file_get_contents($img['url_thumbnail']);
-                            $name = substr($img['url'], strrpos($img['url'], '/') + 1);
+                            $name = substr($img['name'], strrpos($img['name'], '/') + 1);
 
                             if (!Storage::exists('autoparts/'.$autopart->id.'/images/'.$name)){
                                 Storage::put('autoparts/'.$autopart->id.'/images/'.$name, $contents);

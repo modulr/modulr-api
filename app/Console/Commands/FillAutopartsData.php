@@ -332,20 +332,19 @@ class FillAutopartsData extends Command
                         foreach ($response->autopart['images'] as $key => $img) {
                             $contents = file_get_contents($img['url']);
                             $contentsThumbnail = file_get_contents($img['url_thumbnail']);
-                            $name = substr($img['url'], strrpos($img['url'], '/') + 1);
-                            logger('NAME: '.$name);
+                            $name = substr($img['name'], strrpos($img['name'], '/') + 1);
                             
-                            // if (!Storage::exists('autoparts/'.$autopart->id.'/images/thumbnail_'.$name)){
-                            //     Storage::put('autoparts/'.$autopart->id.'/images/thumbnail_'.$name, $contentsThumbnail);
-                            // }
+                            if (!Storage::exists('autoparts/'.$autopart->id.'/images/thumbnail_'.$name)){
+                                Storage::put('autoparts/'.$autopart->id.'/images/thumbnail_'.$name, $contentsThumbnail);
+                            }
     
-                            // DB::table('autopart_images')
-                            // ->where('autopart_id', $autopart->id)
-                            // ->where('order', $key)
-                            // ->update([
-                            //     'img_ml_id' => $img['id'],
-                            //     'updated_at' => Carbon::now()
-                            // ]);
+                            DB::table('autopart_images')
+                            ->where('autopart_id', $autopart->id)
+                            ->where('order', $key)
+                            ->update([
+                                'img_ml_id' => $img['id'],
+                                'updated_at' => Carbon::now()
+                            ]);
                             
                         }
                     }

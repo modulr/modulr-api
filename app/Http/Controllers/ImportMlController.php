@@ -170,7 +170,7 @@ class ImportMlController extends Controller
 
                 $contents = file_get_contents($img->url);
                 $contentsThumbnail = file_get_contents($img->url_thumbnail);
-                $name = substr($img->url, strrpos($img->url, '/') + 1);
+                $name = substr($img->name, strrpos($img->name, '/') + 1);
                 Storage::put('autoparts/'.$autopartId.'/images/'.$name, $contents);
                 Storage::put('autoparts/'.$autopartId.'/images/thumbnail_'.$name, $contentsThumbnail);
 
