@@ -122,7 +122,8 @@ class ProcessNotifications extends Command
                     // }
 
                     // Obtener los ids de las imágenes en la base de datos
-                    $autopartImageIds = array_column($autopart->images, 'img_ml_id');
+                    $autopartImagesArray = $autopart->images->toArray();
+                    $autopartImageIds = array_column($autopartImagesArray, 'img_ml_id');
 
                     // Obtener los ids de las imágenes en la respuesta del API
                     $responseImageIds = array_column($response->autopart['images'], 'id');
@@ -135,7 +136,7 @@ class ProcessNotifications extends Command
 
                     // Borrar las imágenes que están en $imagesToDeleteIds de la base de datos
                     AutopartImage::whereIn('img_ml_id', $imagesToDeleteIds)->where('autopart_id', $autopart->id)->delete();
-                    
+
                     //Borrar del bucket
                     foreach ($autopart->images as $key => $image) {
                         if (in_array($image->img_ml_id, $imagesToDeleteIds)) {
