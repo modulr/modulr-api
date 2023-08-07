@@ -16,6 +16,7 @@ use App\Notifications\AutopartNotification;
 use App\Models\User;
 use App\Models\Autopart;
 use App\Models\AutopartActivity;
+use App\Models\AutopartImage;
 
 class ProcessNotifications extends Command
 {
@@ -119,6 +120,34 @@ class ProcessNotifications extends Command
                     //     $change = $change."🖋 Descripción actualizada\n".$autopart->description."\n🔽🔽🔽\n".$response->autopart['description']."\n";
                     //     $autopart->description = $response->autopart['description'];
                     // }
+
+                    if($autopart->images !== $response->autopart['images']){
+                        $change = $change."🖼 Imágenes actualizadas";
+
+                        // images create or delete
+                        AutopartImage::where('autopart_id', $autopart->id)->delete();
+                        foreach ($response->autopart['images'] as $key => $img) {
+                            $contents = file_get_contents($img['url']);
+                            $contentsThumbnail = file_get_contents($img['url_thumbnail']);
+
+                            if (!Storage::exists('autoparts/'.$autopart->id.'/images/'.$img['name'])){
+                                Storage::put('autoparts/'.$autopart->id.'/images/'.$img['name'], $contents);
+                            }
+                            
+                            if (!Storage::exists('autoparts/'.$autopart->id.'/images/thumbnail_'.$img['name'])){
+                                Storage::put('autoparts/'.$autopart->id.'/images/thumbnail_'.$img['name'], $contentsThumbnail);
+                            }
+
+                            DB::table('autopart_images')->insert([
+                                'basename' => $img['name'],
+                                'img_ml_id' => $img['id'],
+                                'autopart_id' => $autopart->id,
+                                'order' => $key,
+                                'created_at' => Carbon::now(),
+                                'updated_at' => Carbon::now()
+                            ]);
+                        }
+                    }
     
                     if ($change) {
                         $autopart->save();
@@ -173,12 +202,11 @@ class ProcessNotifications extends Command
                     foreach ($response->autopart['images'] as $key => $img) {
                         $contents = file_get_contents($img['url']);
                         $contentsThumbnail = file_get_contents($img['url_thumbnail']);
-                        $name = substr($img['url'], strrpos($img['url'], '/') + 1);
-                        Storage::put('autoparts/'.$autopartId.'/images/'.$name, $contents);
-                        Storage::put('autoparts/'.$autopartId.'/images/thumbnail_'.$name, $contentsThumbnail);
+                        Storage::put('autoparts/'.$autopartId.'/images/'.$img['name'], $contents);
+                        Storage::put('autoparts/'.$autopartId.'/images/thumbnail_'.$img['name'], $contentsThumbnail);
     
                         DB::table('autopart_images')->insert([
-                            'basename' => $name,
+                            'basename' => $img['name'],
                             'img_ml_id' => $img['id'],
                             'autopart_id' => $autopartId,
                             'order' => $key,
