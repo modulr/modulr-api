@@ -121,19 +121,44 @@ class ProcessNotifications extends Command
                     //     $autopart->description = $response->autopart['description'];
                     // }
 
-                    if($autopart->images !== $response->autopart['images']){
-                        $change = $change."🖼 Imágenes actualizadas";
+                    // Obtener los ids de las imágenes en la base de datos
+                    $autopartImageIds = array_column($autopart->images, 'img_ml_id');
 
-                        // images create or delete
-                        AutopartImage::where('autopart_id', $autopart->id)->delete();
-                        foreach ($response->autopart['images'] as $key => $img) {
+                    // Obtener los ids de las imágenes en la respuesta del API
+                    $responseImageIds = array_column($response->autopart['images'], 'id');
+
+                    // Encontrar los ids que están en $autopartImageIds pero no en $responseImageIds
+                    $imagesToDeleteIds = array_diff($autopartImageIds, $responseImageIds);
+
+                    // Encontrar los ids que están en $responseImageIds pero no en $autopartImageIds
+                    $imagesToCreateIds = array_diff($responseImageIds, $autopartImageIds);
+
+                    // Borrar las imágenes que están en $imagesToDeleteIds de la base de datos
+                    AutopartImage::whereIn('img_ml_id', $imagesToDeleteIds)->where('autopart_id', $autopart->id)->delete();
+                    
+                    //Borrar del bucket
+                    foreach ($autopart->images as $key => $image) {
+                        if (in_array($image->img_ml_id, $imagesToDeleteIds)) {
+                            if (!Storage::exists('autoparts/'.$autopart->id.'/images/'.$image->name)){
+                                Storage::delete('autoparts/'.$autopart->id.'/images/'.$image->name);
+                            }
+                            
+                            if (!Storage::exists('autoparts/'.$autopart->id.'/images/thumbnail_'.$image->name)){
+                                Storage::delete('autoparts/'.$autopart->id.'/images/thumbnail_'.$image->name);
+                            }
+                        }
+                    }
+
+                    // Agregar las imágenes que están en $imagesToCreateIds a la base de datos
+                    foreach ($response->autopart['images'] as $key => $img) {
+                        if (in_array($img['id'], $imagesToCreateIds)) {
                             $contents = file_get_contents($img['url']);
                             $contentsThumbnail = file_get_contents($img['url_thumbnail']);
 
                             if (!Storage::exists('autoparts/'.$autopart->id.'/images/'.$img['name'])){
                                 Storage::put('autoparts/'.$autopart->id.'/images/'.$img['name'], $contents);
                             }
-                            
+
                             if (!Storage::exists('autoparts/'.$autopart->id.'/images/thumbnail_'.$img['name'])){
                                 Storage::put('autoparts/'.$autopart->id.'/images/thumbnail_'.$img['name'], $contentsThumbnail);
                             }
