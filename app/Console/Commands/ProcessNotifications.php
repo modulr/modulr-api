@@ -123,22 +123,23 @@ class ProcessNotifications extends Command
 
                     if($autopart->images !== $response->autopart['images']){
                         $change = $change."🖼 Imágenes actualizadas";
+
+                        // images create or delete
                         AutopartImage::where('autopart_id', $autopart->id)->delete();
                         foreach ($response->autopart['images'] as $key => $img) {
                             $contents = file_get_contents($img['url']);
                             $contentsThumbnail = file_get_contents($img['url_thumbnail']);
-                            $name = substr($img['name'], strrpos($img['name'], '/') + 1);
 
-                            if (!Storage::exists('autoparts/'.$autopart->id.'/images/'.$name)){
-                                Storage::put('autoparts/'.$autopart->id.'/images/'.$name, $contents);
+                            if (!Storage::exists('autoparts/'.$autopart->id.'/images/'.$img['name'])){
+                                Storage::put('autoparts/'.$autopart->id.'/images/'.$img['name'], $contents);
                             }
                             
-                            if (!Storage::exists('autoparts/'.$autopart->id.'/images/thumbnail_'.$name)){
-                                Storage::put('autoparts/'.$autopart->id.'/images/thumbnail_'.$name, $contentsThumbnail);
+                            if (!Storage::exists('autoparts/'.$autopart->id.'/images/thumbnail_'.$img['name'])){
+                                Storage::put('autoparts/'.$autopart->id.'/images/thumbnail_'.$img['name'], $contentsThumbnail);
                             }
 
                             DB::table('autopart_images')->insert([
-                                'basename' => $name,
+                                'basename' => $img['name'],
                                 'img_ml_id' => $img['id'],
                                 'autopart_id' => $autopart->id,
                                 'order' => $key,
@@ -201,12 +202,11 @@ class ProcessNotifications extends Command
                     foreach ($response->autopart['images'] as $key => $img) {
                         $contents = file_get_contents($img['url']);
                         $contentsThumbnail = file_get_contents($img['url_thumbnail']);
-                        $name = substr($img['url'], strrpos($img['url'], '/') + 1);
-                        Storage::put('autoparts/'.$autopartId.'/images/'.$name, $contents);
-                        Storage::put('autoparts/'.$autopartId.'/images/thumbnail_'.$name, $contentsThumbnail);
+                        Storage::put('autoparts/'.$autopartId.'/images/'.$img['name'], $contents);
+                        Storage::put('autoparts/'.$autopartId.'/images/thumbnail_'.$img['name'], $contentsThumbnail);
     
                         DB::table('autopart_images')->insert([
-                            'basename' => $name,
+                            'basename' => $img['name'],
                             'img_ml_id' => $img['id'],
                             'autopart_id' => $autopartId,
                             'order' => $key,

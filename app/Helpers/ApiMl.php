@@ -189,10 +189,10 @@ class ApiMl
 
             if (isset($response->body->pictures)) {
                 foreach ($response->body->pictures as $value) {
-                    $name = $value->secure_url;
+                    $id = $value->id;
+                    $name = substr($value->secure_url, strrpos($value->secure_url, '/') + 1);
                     $url = str_replace("-O.jpg", "-F.jpg", $value->secure_url);
                     $url_thumbnail = str_replace("-O.jpg", "-C.jpg", $value->secure_url);
-                    $id = $value->id;
                     array_push($autopart['images'], ['id' => $id, 'name' => $name,'url' => $url, 'url_thumbnail' => $url_thumbnail]);
                 };
             }

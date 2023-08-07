@@ -7,6 +7,7 @@ use Symfony\Component\Console\Question\ChoiceQuestion;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Carbon\Carbon;
 use App\Helpers\ApiMl;
 
@@ -297,20 +298,20 @@ class FillAutopartsData extends Command
 
     private function fillImagesIdMl($skip,$limit)
     {
-        $autopartsIds = DB::table('autopart_images')
-            ->select('autopart_id')
-            ->distinct()
-            ->whereNull('img_ml_id')
-            ->whereNull('deleted_at')
-            ->pluck('autopart_id')
-            ->toArray();
+        // $autopartsIds = DB::table('autopart_images')
+        //     ->select('autopart_id')
+        //     ->distinct()
+        //     ->whereNull('img_ml_id')
+        //     ->whereNull('deleted_at')
+        //     ->pluck('autopart_id')
+        //     ->toArray();
 
         $autoparts = DB::table('autoparts')
-            ->whereNull('deleted_at')
-            ->where('status_id', '!=', 4)
-            ->whereIn('id', $autopartsIds)
-            ->whereNotNull('ml_id')
-            ->orderBy('id', 'desc')
+            //->whereNull('deleted_at')
+            //->where('status_id', '!=', 4)
+            //->whereIn('id', $autopartsIds)
+            //->whereNotNull('ml_id')
+            ->orderBy('id', 'asc')
             ->skip($skip)
             ->take($limit)
             ->get();
@@ -332,31 +333,74 @@ class FillAutopartsData extends Command
                         foreach ($response->autopart['images'] as $key => $img) {
                             $contents = file_get_contents($img['url']);
                             $contentsThumbnail = file_get_contents($img['url_thumbnail']);
-                            $name = substr($img['name'], strrpos($img['name'], '/') + 1);
                             
-                            if (!Storage::exists('autoparts/'.$autopart->id.'/images/thumbnail_'.$name)){
-                                Storage::put('autoparts/'.$autopart->id.'/images/thumbnail_'.$name, $contentsThumbnail);
-                            }
+                            Storage::put('autoparts/'.$autopart->id.'/images/'.$img['name'], $contents);
+                            Storage::put('autoparts/'.$autopart->id.'/images/thumbnail_'.$img['name'], $contentsThumbnail);
     
-                            DB::table('autopart_images')
-                            ->where('autopart_id', $autopart->id)
-                            ->where('order', $key)
-                            ->update([
+                            DB::table('autopart_images')->insert([
+                                'basename' => $img['name'],
                                 'img_ml_id' => $img['id'],
+                                'order' => $key,
+                                'autopart_id' => $autopart->id,
+                                'created_at' => Carbon::now(),
                                 'updated_at' => Carbon::now()
                             ]);
                             
+                        }
+                    } else {
+                        // search images in bucket
+                        $images = DB::connection('export')
+                            ->table('autopart_images')
+                            ->where('autopart_id', $autopart->id)
+                            ->get();
+
+                        foreach ($images as $key => $img) {
+                            $image = Storage::disk('export')->get('autoparts/'.$autopart->id.'/images/'.$img->basename);
+                            Storage::put('autoparts/'.$autopart->id.'/images/'.$img->basename, $image);
+                            Storage::put('autoparts/'.$autopart->id.'/images/thumbnail_'.$img->basename, $image);
+
+                            DB::table('autopart_images')->insert([
+                                'basename' => $img->basename,
+                                'order' => $img->order,
+                                'autopart_id' => $autopart->id,
+                                'created_at' => Carbon::now(),
+                                'updated_at' => Carbon::now()
+                            ]);
                         }
                     }
                 } catch (\Throwable $th) {
                     logger($th);
                     //throw $th;
                 }
+            } else {
+                // search images in bucket
+                $images = DB::connection('export')
+                    ->table('autopart_images')
+                    ->where('autopart_id', $autopart->id)
+                    ->get();
+
+                foreach ($images as $key => $img) {
+                    $image = Storage::disk('export')->get('autoparts/'.$autopart->id.'/images/'.$img->basename);
+                    Storage::put('autoparts/'.$autopart->id.'/images/'.$img->basename, $image);
+                    Storage::put('autoparts/'.$autopart->id.'/images/thumbnail_'.$img->basename, $image);
+
+                    DB::table('autopart_images')->insert([
+                        'basename' => $img->basename,
+                        'order' => $img->order,
+                        'autopart_id' => $autopart->id,
+                        'created_at' => Carbon::now(),
+                        'updated_at' => Carbon::now()
+                    ]);
+                }
             }
+            // create qr
+            $qr = QrCode::format('png')->size(200)->margin(1)->generate($autopart->id);
+            Storage::put('autoparts/'.$autopart->id.'/qr/'.$autopart->id.'.png', (string) $qr);
+
             $progressBar->advance();
         }
         $this->output->writeln('');
-        $this->info('Completar ids de imagenes completado.');
+        $this->info('Crear imagenes completado.');
     }
 
     private function orderCompleteYears($skip,$limit)
