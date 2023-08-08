@@ -172,13 +172,20 @@ class ProcessNotifications extends Command
                                 'basename' => $img['name'],
                                 'img_ml_id' => $img['id'],
                                 'autopart_id' => $autopart->id,
-                                'order' => $key,
+                                'order' => $key + 90,
                                 'created_at' => Carbon::now(),
                                 'updated_at' => Carbon::now()
                             ]);
                         }
                     }
-    
+
+                    //Reordenar imágenes
+                    $imagesToReorder = AutopartImage::where('autopart_id', $autopart->id)->orderBy('order', 'asc')->get();
+                    foreach ($imagesToReorder as $key => $img) {
+                       $img->order = $key;
+                       $img->save();
+                    }
+
                     if ($change) {
                         $autopart->save();
                         
