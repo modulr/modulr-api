@@ -18,7 +18,7 @@ class FillAutopartsData extends Command
      *
      * @var string
      */
-    protected $signature = 'app:fill-autoparts-data {--skip=0} {--limit=5}';
+    protected $signature = 'app:fill-autoparts-data {--skip=0} {--limit=50}';
 
     /**
      * The console command description.
@@ -361,7 +361,7 @@ class FillAutopartsData extends Command
             ->orderBy('id', 'asc')
             // ->skip($skip)
             // ->take($limit)
-            //->where('id', '>', $lastImageId->autopart_id)
+            ->where('id', '>', $lastImageId->autopart_id)
             ->limit($limit)
             ->get();
 
