@@ -124,15 +124,19 @@ class ProcessNotifications extends Command
                     // Obtener los ids de las imágenes en la base de datos
                     $autopartImagesArray = $autopart->images->toArray();
                     $autopartImageIds = array_column($autopartImagesArray, 'img_ml_id');
+                    logger(['Imágenes en AG'=>$autopartImageIds]);
 
                     // Obtener los ids de las imágenes en la respuesta del API
                     $responseImageIds = array_column($response->autopart['images'], 'id');
+                    logger(['Imágenes en ML'=>$responseImageIds]);
 
                     // Encontrar los ids que están en $autopartImageIds pero no en $responseImageIds
                     $imagesToDeleteIds = array_diff($autopartImageIds, $responseImageIds);
+                    logger(['Imágenes a eliminar en AG'=>$responseImageIds]);
 
                     // Encontrar los ids que están en $responseImageIds pero no en $autopartImageIds
                     $imagesToCreateIds = array_diff($responseImageIds, $autopartImageIds);
+                    logger(['Imágenes por agregar en AG'=>$imagesToCreateIds]);
 
                     // Borrar las imágenes que están en $imagesToDeleteIds de la base de datos
                     AutopartImage::whereIn('img_ml_id', $imagesToDeleteIds)->where('autopart_id', $autopart->id)->delete();

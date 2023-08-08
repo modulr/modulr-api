@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\Storage;
 class AutopartImage extends Model
 {
     use HasFactory;
-    use SoftDeletes;
 
     protected $guarded = ['id'];
     protected $dates = ['deleted_at'];
