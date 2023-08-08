@@ -361,7 +361,7 @@ class FillAutopartsData extends Command
             ->orderBy('id', 'asc')
             // ->skip($skip)
             // ->take($limit)
-            ->where('id', '>', $lastImageId->autopart_id)
+            //->where('id', '>', $lastImageId->autopart_id)
             ->limit($limit)
             ->get();
 
