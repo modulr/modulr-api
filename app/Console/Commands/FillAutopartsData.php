@@ -382,9 +382,12 @@ class FillAutopartsData extends Command
                         foreach ($response->autopart['images'] as $key => $img) {
                             $contents = file_get_contents($img['url']);
                             $contentsThumbnail = file_get_contents($img['url_thumbnail']);
+
+                            if (!Storage::exists('autoparts/'.$autopart->id.'/images/'.$img['name'])) {
+                                Storage::put('autoparts/'.$autopart->id.'/images/'.$img['name'], $contents);
+                                Storage::put('autoparts/'.$autopart->id.'/images/thumbnail_'.$img['name'], $contentsThumbnail);
+                            }
                             
-                            Storage::put('autoparts/'.$autopart->id.'/images/'.$img['name'], $contents);
-                            Storage::put('autoparts/'.$autopart->id.'/images/thumbnail_'.$img['name'], $contentsThumbnail);
     
                             DB::table('autopart_images')->insert([
                                 'basename' => $img['name'],
@@ -405,8 +408,11 @@ class FillAutopartsData extends Command
 
                         foreach ($images as $key => $img) {
                             $image = Storage::disk('export')->get('autoparts/'.$autopart->id.'/images/'.$img->basename);
-                            Storage::put('autoparts/'.$autopart->id.'/images/'.$img->basename, $image);
-                            Storage::put('autoparts/'.$autopart->id.'/images/thumbnail_'.$img->basename, $image);
+
+                            if (!Storage::exists('autoparts/'.$autopart->id.'/images/'.$img->basename)) {
+                                Storage::put('autoparts/'.$autopart->id.'/images/'.$img->basename, $image);
+                                Storage::put('autoparts/'.$autopart->id.'/images/thumbnail_'.$img->basename, $image);
+                            }
 
                             DB::table('autopart_images')->insert([
                                 'basename' => $img->basename,
@@ -430,8 +436,11 @@ class FillAutopartsData extends Command
 
                 foreach ($images as $key => $img) {
                     $image = Storage::disk('export')->get('autoparts/'.$autopart->id.'/images/'.$img->basename);
-                    Storage::put('autoparts/'.$autopart->id.'/images/'.$img->basename, $image);
-                    Storage::put('autoparts/'.$autopart->id.'/images/thumbnail_'.$img->basename, $image);
+
+                    if (!Storage::exists('autoparts/'.$autopart->id.'/images/'.$img->basename)) {
+                        Storage::put('autoparts/'.$autopart->id.'/images/'.$img->basename, $image);
+                        Storage::put('autoparts/'.$autopart->id.'/images/thumbnail_'.$img->basename, $image);
+                    }
 
                     DB::table('autopart_images')->insert([
                         'basename' => $img->basename,
