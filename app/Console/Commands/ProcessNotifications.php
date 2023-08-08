@@ -130,13 +130,15 @@ class ProcessNotifications extends Command
                     $responseImageIds = array_column($response->autopart['images'], 'id');
                     logger(['Imágenes en ML'=>$responseImageIds]);
 
+                    //Encontrar los ids que no se moverán
+                    $imagesExist = array_intersect($responseImageIds, $autopartImageIds);
+                    logger(['Imágenes sin cambio AG'=>$imagesExist]);
+
                     // Encontrar los ids que están en $autopartImageIds pero no en $responseImageIds
                     $imagesToDeleteIds = array_diff($autopartImageIds, $responseImageIds);
-                    logger(['Imágenes a eliminar en AG'=>$imagesToDeleteIds]);
 
                     // Encontrar los ids que están en $responseImageIds pero no en $autopartImageIds
                     $imagesToCreateIds = array_diff($responseImageIds, $autopartImageIds);
-                    logger(['Imágenes por agregar en AG'=>$imagesToCreateIds]);
 
                     // Borrar las imágenes que están en $imagesToDeleteIds de la base de datos
                     AutopartImage::whereIn('img_ml_id', $imagesToDeleteIds)->where('autopart_id', $autopart->id)->delete();
@@ -172,18 +174,16 @@ class ProcessNotifications extends Command
                                 'basename' => $img['name'],
                                 'img_ml_id' => $img['id'],
                                 'autopart_id' => $autopart->id,
-                                'order' => $key + 90,
+                                'order' => $key,
                                 'created_at' => Carbon::now(),
                                 'updated_at' => Carbon::now()
                             ]);
+                        }else if(in_array($img['id'], $imagesExist)){
+                            DB::table('autopart_images')->where('img_ml_id', $img['id'])->update([
+                                'order' => $key,
+                                'updated_at' => Carbon::now()
+                            ]);
                         }
-                    }
-
-                    //Reordenar imágenes
-                    $imagesToReorder = AutopartImage::where('autopart_id', $autopart->id)->orderBy('order', 'asc')->get();
-                    foreach ($imagesToReorder as $key => $img) {
-                       $img->order = $key;
-                       $img->save();
                     }
 
                     if ($change) {
