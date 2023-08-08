@@ -132,7 +132,7 @@ class ProcessNotifications extends Command
 
                     // Encontrar los ids que están en $autopartImageIds pero no en $responseImageIds
                     $imagesToDeleteIds = array_diff($autopartImageIds, $responseImageIds);
-                    logger(['Imágenes a eliminar en AG'=>$responseImageIds]);
+                    logger(['Imágenes a eliminar en AG'=>$imagesToDeleteIds]);
 
                     // Encontrar los ids que están en $responseImageIds pero no en $autopartImageIds
                     $imagesToCreateIds = array_diff($responseImageIds, $autopartImageIds);
