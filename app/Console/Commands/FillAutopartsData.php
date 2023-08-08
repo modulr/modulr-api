@@ -18,7 +18,7 @@ class FillAutopartsData extends Command
      *
      * @var string
      */
-    protected $signature = 'app:fill-autoparts-data {--skip=0} {--limit=100}';
+    protected $signature = 'app:fill-autoparts-data {--skip=0} {--limit=5}';
 
     /**
      * The console command description.
@@ -36,41 +36,43 @@ class FillAutopartsData extends Command
         $skip = $this->option('skip');
         $limit = $this->option('limit');
 
-        // Mostrar las opciones al usuario
-        $options = ['Descripcion','Lado', 'Posicion', 'Numero_Parte','Anios','Imagenes','Orden_Anios'];
-        $question = new ChoiceQuestion('Elige una opción para editar autopartes:', $options);
-        $question->setErrorMessage('Opción inválida.');
+        $this->fillImagesIdMl($skip,$limit);
 
-        $helper = $this->getHelper('question');
-        $selectedOption = $helper->ask($this->input, $this->output, $question);
+        // // Mostrar las opciones al usuario
+        // $options = ['Descripcion', 'Lado', 'Posicion', 'Numero_Parte', 'Anios', 'Orden_Anios', 'Imagenes'];
+        // $question = new ChoiceQuestion('Elige una opción para editar autopartes:', $options);
+        // $question->setErrorMessage('Opción inválida.');
 
-        // Ejecutar la función correspondiente según la opción seleccionada
-        switch ($selectedOption) {
-            case 'Descripcion':
-                $this->fillDescription($skip,$limit);
-                break;
-            case 'Lado':
-                $this->fillSides($skip,$limit);
-                break;
-            case 'Posicion':
-                $this->fillPosition($skip,$limit);
-                break;
-            case 'Numero_Parte':
-                $this->fillPartNumber($skip,$limit);
-                break;
-            case 'Anios':
-                $this->fillYears($skip,$limit);
-                break;
-            case 'Imagenes':
-                $this->fillImagesIdMl($skip,$limit);
-                break;
-            case 'Orden_Anios':
-                $this->orderCompleteYears($skip,$limit);
-                break;
-            default:
-                $this->info('Opción no reconocida.');
-                break;
-        }
+        // $helper = $this->getHelper('question');
+        // $selectedOption = $helper->ask($this->input, $this->output, $question);
+
+        // // Ejecutar la función correspondiente según la opción seleccionada
+        // switch ($selectedOption) {
+        //     case 'Descripcion':
+        //         $this->fillDescription($skip,$limit);
+        //         break;
+        //     case 'Lado':
+        //         $this->fillSides($skip,$limit);
+        //         break;
+        //     case 'Posicion':
+        //         $this->fillPosition($skip,$limit);
+        //         break;
+        //     case 'Numero_Parte':
+        //         $this->fillPartNumber($skip,$limit);
+        //         break;
+        //     case 'Anios':
+        //         $this->fillYears($skip,$limit);
+        //         break;
+        //     case 'Orden_Anios':
+        //         $this->orderCompleteYears($skip,$limit);
+        //         break;
+        //     case 'Imagenes':
+        //         $this->fillImagesIdMl($skip,$limit);
+        //         break;
+        //     default:
+        //         $this->info('Opción no reconocida.');
+        //         break;
+        // }
     }
 
     // Aquí defines las funciones para cada opción
@@ -296,8 +298,53 @@ class FillAutopartsData extends Command
         $this->info('Completar años terminado.');
     }
 
+    private function orderCompleteYears($skip,$limit)
+    {
+        $autoparts = DB::table('autoparts')
+        ->whereNull('deleted_at')
+        ->where('status_id', '!=', 4)
+        ->whereNotNull('years')
+        ->orderBy('id', 'desc')
+        ->skip($skip)
+        ->take($limit)
+        ->get();
+
+        // Crea una instancia de ProgressBar
+        $progressBar = new ProgressBar($this->output, count($autoparts));
+        // Inicia la barra de progreso
+        $progressBar->start();
+
+        // Recorre las autoparts y realiza el proceso para cada una
+        foreach ($autoparts as $autopart) {
+            logger('ID: '.$autopart->id);
+            $autopart->years = json_decode($autopart->years);
+            try {
+                if (count($autopart->years) > 1) {
+                    $years = [];
+                    for ($i = min($autopart->years); $i <= max($autopart->years); $i++) {
+                        $years[] = (string) $i;
+                    }
+                    DB::table('autoparts')
+                        ->where('id', $autopart->id)
+                        ->update(['years' => $years]);
+                }
+            } catch (\Throwable $th) {
+                    logger($th);
+                    //throw $th;
+            }
+            $progressBar->advance();
+        }
+        $this->output->writeln('');
+        $this->info('Ordenar y completar años terminado.');
+    }
+
     private function fillImagesIdMl($skip,$limit)
     {
+        $lastImageId = DB::table('autopart_images')
+            ->select('autopart_id')
+            ->latest()
+            ->first();
+
         // $autopartsIds = DB::table('autopart_images')
         //     ->select('autopart_id')
         //     ->distinct()
@@ -312,8 +359,10 @@ class FillAutopartsData extends Command
             //->whereIn('id', $autopartsIds)
             //->whereNotNull('ml_id')
             ->orderBy('id', 'asc')
-            ->skip($skip)
-            ->take($limit)
+            // ->skip($skip)
+            // ->take($limit)
+            ->where('id', '>', $lastImageId->autopart_id)
+            ->limit($limit)
             ->get();
 
         // Crea una instancia de ProgressBar
@@ -323,7 +372,7 @@ class FillAutopartsData extends Command
 
         // Recorre las autoparts y realiza el proceso para cada una
         foreach ($autoparts as $autopart) {
-            logger('ID: '.$autopart->id);
+            //logger('ID: '.$autopart->id);
             
             if (isset($autopart->store_ml_id) && isset($autopart->ml_id)) {
                 try {
@@ -401,45 +450,5 @@ class FillAutopartsData extends Command
         }
         $this->output->writeln('');
         $this->info('Crear imagenes completado.');
-    }
-
-    private function orderCompleteYears($skip,$limit)
-    {
-        $autoparts = DB::table('autoparts')
-        ->whereNull('deleted_at')
-        ->where('status_id', '!=', 4)
-        ->whereNotNull('years')
-        ->orderBy('id', 'desc')
-        ->skip($skip)
-        ->take($limit)
-        ->get();
-
-        // Crea una instancia de ProgressBar
-        $progressBar = new ProgressBar($this->output, count($autoparts));
-        // Inicia la barra de progreso
-        $progressBar->start();
-
-        // Recorre las autoparts y realiza el proceso para cada una
-        foreach ($autoparts as $autopart) {
-            logger('ID: '.$autopart->id);
-            $autopart->years = json_decode($autopart->years);
-            try {
-                if (count($autopart->years) > 1) {
-                    $years = [];
-                    for ($i = min($autopart->years); $i <= max($autopart->years); $i++) {
-                        $years[] = (string) $i;
-                    }
-                    DB::table('autoparts')
-                        ->where('id', $autopart->id)
-                        ->update(['years' => $years]);
-                }
-            } catch (\Throwable $th) {
-                    logger($th);
-                    //throw $th;
-            }
-            $progressBar->advance();
-        }
-        $this->output->writeln('');
-        $this->info('Ordenar y completar años terminado.');
     }
 }
