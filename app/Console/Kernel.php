@@ -14,7 +14,7 @@ class Kernel extends ConsoleKernel
     {
         // $schedule->command('inspire')->hourly();
         //$schedule->command('app:process-notifications')->everyMinute()->sendOutputTo(storage_path("logs/scheduler.log"))->emailOutputOnFailure('alfredobarronc@gmail.com');
-        $schedule->command('app:fill-autoparts-data')->hourlyAt(25)->withoutOverlapping()->sendOutputTo(storage_path("logs/scheduler.log"))->emailOutputOnFailure('alfredobarronc@gmail.com');
+        $schedule->command('app:fill-autoparts-data')->everyThirtyMinutes()->withoutOverlapping()->sendOutputTo(storage_path("logs/scheduler.log"))->emailOutputOnFailure('alfredobarronc@gmail.com');
     }
 
     /**
