@@ -18,7 +18,7 @@ class FillAutopartsData extends Command
      *
      * @var string
      */
-    protected $signature = 'app:fill-autoparts-data {--skip=0} {--limit=1200}';
+    protected $signature = 'app:fill-autoparts-data {--skip=0} {--limit=900}';
 
     /**
      * The console command description.
