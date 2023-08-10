@@ -362,7 +362,7 @@ class FillAutopartsData extends Command
             // ->skip($skip)
             // ->take($limit)
             ->where('id', '>', $lastImageId->autopart_id)
-            ->where('store_ml_id', '!=', 7)
+            ->where('store_ml_id', '!=', 8)
             ->limit($limit)
             ->get();
 
