@@ -358,11 +358,11 @@ class FillAutopartsData extends Command
             //->where('status_id', '!=', 4)
             //->whereIn('id', $autopartsIds)
             //->whereNotNull('ml_id')
-            ->orderBy('id', 'asc')
             // ->skip($skip)
             // ->take($limit)
             ->where('id', '>', $lastImageId->autopart_id)
             ->where('store_ml_id', '!=', 8)
+            ->orderBy('id', 'asc')
             ->limit($limit)
             ->get();
 
