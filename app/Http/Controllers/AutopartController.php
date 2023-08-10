@@ -19,7 +19,7 @@ class AutopartController extends Controller
 
         $autoparts = DB::table('autoparts')
             ->select('autoparts.id', 'autoparts.name', 'autoparts.sale_price', 'autopart_images.basename')
-            ->join('autopart_images', function ($join) {
+            ->leftjoin('autopart_images', function ($join) {
                 $join->on('autopart_images.id', '=', DB::raw('(SELECT autopart_images.id FROM autopart_images WHERE autopart_images.autopart_id = autoparts.id ORDER BY autopart_images.order ASC LIMIT 1)'));
             })
             ->where('autoparts.status_id', '!=', 4)
@@ -45,15 +45,11 @@ class AutopartController extends Controller
                     });
                 });
             })
-            ->latest('autoparts.created_at')
+            //->latest('autoparts.created_at')
             ->paginate(52);
 
         foreach ($autoparts as $autopart) {
-            // if (Storage::exists('autoparts/'.$autopart->id.'/images/thumbnail_'.$autopart->basename)) {
-            //     $autopart->url = Storage::url('autoparts/'.$autopart->id.'/images/thumbnail_'.$autopart->basename);
-            // } else {
-                $autopart->url = Storage::url('autoparts/'.$autopart->id.'/images/'.$autopart->basename);
-            //}
+            $autopart->url_thumbnail = Storage::url('autoparts/'.$autopart->id.'/images/thumbnail_'.$autopart->basename);
         }
 
         return $autoparts;
