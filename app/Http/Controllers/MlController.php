@@ -41,12 +41,12 @@ class MlController extends Controller
                 'updated_at' => Carbon::now()
             ]);
 
-            $channel = '-858634389';
+            $channel = env('TELEGRAM_CHAT_LOG');
             $content = '*Create token:* '.$storeMl->name;
             $user = User::find(38);
             $user->notify(new AutopartNotification($channel, $content));
         } else {
-            $channel = '-858634389';
+            $channel = env('TELEGRAM_CHAT_LOG');
             $content = '*Do not create token:* '.$storeMl->name;
             $user = User::find(38);
             $user->notify(new AutopartNotification($channel, $content));

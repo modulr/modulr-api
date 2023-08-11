@@ -200,7 +200,7 @@ class ProcessNotifications extends Command
                     }
     
                 } else {
-                    $channel = '-858634389';
+                    $channel = env('TELEGRAM_CHAT_LOG');
                     $content = '*No se actualizó la autoparte:* '.$notification->ml_id;
                     $user = User::find(38);
                     $user->notify(new AutopartNotification($channel, $content));
@@ -265,7 +265,7 @@ class ProcessNotifications extends Command
                     $user->notify(new AutopartNotification($channel, $content, $button));
     
                 } else {
-                    $channel = '-858634389';
+                    $channel = env('TELEGRAM_CHAT_LOG');
                     $content = '*No se creo la autoparte:* '.$notification->ml_id;
                     $user = User::find(38);
                     $user->notify(new AutopartNotification($channel, $content));

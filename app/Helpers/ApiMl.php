@@ -54,14 +54,14 @@ class ApiMl
 
             self::$store = DB::table('stores_ml')->find(self::$store->id);
 
-            $channel = "-858634389";
+            $channel = env('TELEGRAM_CHAT_LOG');
             $content = "*Refresh access_token:* ".self::$store->name;
             $user = User::find(38);
             $user->notify(new AutopartNotification($channel, $content));
 
             return $response->status();
         } else {
-            $channel = "-858634389";
+            $channel = env('TELEGRAM_CHAT_LOG');
             $content = "*Do not refresh access_token:* ".self::$store->name;
             $user = User::find(38);
             $user->notify(new AutopartNotification($channel, $content));
@@ -419,7 +419,7 @@ class ApiMl
             }
 
         } else {
-            $channel = "-858634389";
+            $channel = env('TELEGRAM_CHAT_LOG');
             $content = "*ERROR:* ".$response->code." -> ".$mlId;
             $user = User::find(38);
             $user->notify(new AutopartNotification($channel, $content));
