@@ -63,11 +63,13 @@ class AutopartController extends Controller
         $number = $request->number;
 
         $autoparts = DB::table('autoparts')
-            ->select('autoparts.id', 'autoparts.name', 'autoparts.sale_price', 'autopart_images.basename')
+            ->select('autoparts.id', 'autoparts.name', 'autoparts.sale_price', 'autopart_images.basename', 'autoparts.status_id', 'autopart_list_status.name as status')
             ->leftjoin('autopart_images', function ($join) {
                 $join->on('autopart_images.id', '=', DB::raw('(SELECT autopart_images.id FROM autopart_images WHERE autopart_images.autopart_id = autoparts.id ORDER BY autopart_images.order ASC LIMIT 1)'));
             })
-            ->where('autoparts.status_id', '!=', 4)
+            ->leftjoin('autopart_list_status', function ($join) {
+                $join->on('autopart_list_status.id', '=', 'autoparts.status_id');
+            })
             ->where('autoparts.created_by', $request->user()->id)
             ->whereNull('autoparts.deleted_at')
             ->when($make, function ($query, $make) {
