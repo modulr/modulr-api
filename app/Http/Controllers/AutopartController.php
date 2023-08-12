@@ -45,7 +45,7 @@ class AutopartController extends Controller
                     });
                 });
             })
-            //->latest('autoparts.created_at')
+            ->latest('autoparts.created_at')
             ->paginate(52);
 
         foreach ($autoparts as $autopart) {
