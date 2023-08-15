@@ -354,18 +354,19 @@ class FillAutopartsData extends Command
         //     ->toArray();
 
         $autoparts = DB::table('autoparts')
+            //->select('id', 'store_id', 'store_ml_id', 'status_id', 'deleted_at')
             //->whereNull('deleted_at')
             //->where('status_id', '!=', 4)
             //->whereIn('id', $autopartsIds)
             //->whereNotNull('ml_id')
             // ->skip($skip)
             // ->take($limit)
-            //->whereNotIn('id', DB::table('autopart_images')->select('autopart_id'))
-            ->where('id', '>', $lastImageId->autopart_id)
-            ->where('store_ml_id', '!=', 8)
-            ->Where('store_ml_id', '!=', 10)
+            ->whereNotIn('id', DB::table('autopart_images')->select('autopart_id'))
+            //->where('id', '>', $lastImageId->autopart_id)
+            // ->where('store_ml_id', '!=', 8)
+            // ->Where('store_ml_id', '!=', 10)
             ->orderBy('id', 'asc')
-            ->limit($limit)
+            //->limit($limit)
             ->get();
 
         // logger(['r' => $autoparts, 'count' => count($autoparts)]);
@@ -380,7 +381,7 @@ class FillAutopartsData extends Command
         foreach ($autoparts as $autopart) {
             //logger('ID: '.$autopart->id);
             
-            if (isset($autopart->store_ml_id) && isset($autopart->ml_id)) {
+            if (isset($autopart->store_ml_id) && isset($autopart->ml_id) && $autopart->store_ml_id != 8 || $autopart->store_ml_id != 10) {
                 try {
                     $response = ApiMl::getItemValues($autopart->store_ml_id, $autopart->ml_id);
 
