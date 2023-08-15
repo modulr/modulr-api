@@ -369,8 +369,8 @@ class FillAutopartsData extends Command
             ->limit($limit)
             ->get();
 
-        logger(['r' => $autoparts, 'count' => count($autoparts)]);
-        return true;
+        // logger(['r' => $autoparts, 'count' => count($autoparts)]);
+        // return true;
 
         // Crea una instancia de ProgressBar
         $progressBar = new ProgressBar($this->output, count($autoparts));
