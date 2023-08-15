@@ -361,16 +361,16 @@ class FillAutopartsData extends Command
             //->whereNotNull('ml_id')
             // ->skip($skip)
             // ->take($limit)
-            //->where('id', '>', $lastImageId->autopart_id)
-            ->whereNotIn('id', DB::table('autopart_images')->select('autopart_id'))
+            //->whereNotIn('id', DB::table('autopart_images')->select('autopart_id'))
+            ->where('id', '>', $lastImageId->autopart_id)
             ->where('store_ml_id', '!=', 8)
             ->Where('store_ml_id', '!=', 10)
             ->orderBy('id', 'asc')
-            //->limit($limit)
+            ->limit($limit)
             ->get();
 
-        // logger(['r' => $autoparts, 'count' => count($autoparts)]);
-        // return true;
+        logger(['r' => $autoparts, 'count' => count($autoparts)]);
+        return true;
 
         // Crea una instancia de ProgressBar
         $progressBar = new ProgressBar($this->output, count($autoparts));
