@@ -354,7 +354,6 @@ class FillAutopartsData extends Command
         //     ->toArray();
 
         $autoparts = DB::table('autoparts')
-            ->select('id', 'store_id', 'store_ml_id')
             //->whereNull('deleted_at')
             //->where('status_id', '!=', 4)
             //->whereIn('id', $autopartsIds)
