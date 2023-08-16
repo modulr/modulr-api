@@ -366,7 +366,7 @@ class FillAutopartsData extends Command
             // ->where('store_ml_id', '!=', 8)
             // ->Where('store_ml_id', '!=', 10)
             ->orderBy('id', 'asc')
-            ->limit($limit)
+            //->limit($limit)
             ->get();
 
         // logger(['r' => $autoparts, 'count' => count($autoparts)]);
