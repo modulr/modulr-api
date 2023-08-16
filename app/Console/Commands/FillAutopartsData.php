@@ -7,6 +7,7 @@ use Symfony\Component\Console\Question\ChoiceQuestion;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Carbon\Carbon;
 use App\Helpers\ApiMl;
 
@@ -17,7 +18,7 @@ class FillAutopartsData extends Command
      *
      * @var string
      */
-    protected $signature = 'app:fill-autoparts-data {--skip=0} {--limit=100}';
+    protected $signature = 'app:fill-autoparts-data {--skip=0} {--limit=50}';
 
     /**
      * The console command description.
@@ -35,41 +36,43 @@ class FillAutopartsData extends Command
         $skip = $this->option('skip');
         $limit = $this->option('limit');
 
-        // Mostrar las opciones al usuario
-        $options = ['Descripcion','Lado', 'Posicion', 'Numero_Parte','Anios','Imagenes','Orden_Anios'];
-        $question = new ChoiceQuestion('Elige una opción para editar autopartes:', $options);
-        $question->setErrorMessage('Opción inválida.');
+        $this->fillImagesIdMl($skip,$limit);
 
-        $helper = $this->getHelper('question');
-        $selectedOption = $helper->ask($this->input, $this->output, $question);
+        // // Mostrar las opciones al usuario
+        // $options = ['Descripcion', 'Lado', 'Posicion', 'Numero_Parte', 'Anios', 'Orden_Anios', 'Imagenes'];
+        // $question = new ChoiceQuestion('Elige una opción para editar autopartes:', $options);
+        // $question->setErrorMessage('Opción inválida.');
 
-        // Ejecutar la función correspondiente según la opción seleccionada
-        switch ($selectedOption) {
-            case 'Descripcion':
-                $this->fillDescription($skip,$limit);
-                break;
-            case 'Lado':
-                $this->fillSides($skip,$limit);
-                break;
-            case 'Posicion':
-                $this->fillPosition($skip,$limit);
-                break;
-            case 'Numero_Parte':
-                $this->fillPartNumber($skip,$limit);
-                break;
-            case 'Anios':
-                $this->fillYears($skip,$limit);
-                break;
-            case 'Imagenes':
-                $this->fillImagesIdMl($skip,$limit);
-                break;
-            case 'Orden_Anios':
-                $this->orderCompleteYears($skip,$limit);
-                break;
-            default:
-                $this->info('Opción no reconocida.');
-                break;
-        }
+        // $helper = $this->getHelper('question');
+        // $selectedOption = $helper->ask($this->input, $this->output, $question);
+
+        // // Ejecutar la función correspondiente según la opción seleccionada
+        // switch ($selectedOption) {
+        //     case 'Descripcion':
+        //         $this->fillDescription($skip,$limit);
+        //         break;
+        //     case 'Lado':
+        //         $this->fillSides($skip,$limit);
+        //         break;
+        //     case 'Posicion':
+        //         $this->fillPosition($skip,$limit);
+        //         break;
+        //     case 'Numero_Parte':
+        //         $this->fillPartNumber($skip,$limit);
+        //         break;
+        //     case 'Anios':
+        //         $this->fillYears($skip,$limit);
+        //         break;
+        //     case 'Orden_Anios':
+        //         $this->orderCompleteYears($skip,$limit);
+        //         break;
+        //     case 'Imagenes':
+        //         $this->fillImagesIdMl($skip,$limit);
+        //         break;
+        //     default:
+        //         $this->info('Opción no reconocida.');
+        //         break;
+        // }
     }
 
     // Aquí defines las funciones para cada opción
@@ -295,71 +298,6 @@ class FillAutopartsData extends Command
         $this->info('Completar años terminado.');
     }
 
-    private function fillImagesIdMl($skip,$limit)
-    {
-        $autopartsIds = DB::table('autopart_images')
-            ->select('autopart_id')
-            ->distinct()
-            ->whereNull('img_ml_id')
-            ->whereNull('deleted_at')
-            ->pluck('autopart_id')
-            ->toArray();
-
-        $autoparts = DB::table('autoparts')
-            ->whereNull('deleted_at')
-            ->where('status_id', '!=', 4)
-            ->whereIn('id', $autopartsIds)
-            ->whereNotNull('ml_id')
-            ->orderBy('id', 'desc')
-            ->skip($skip)
-            ->take($limit)
-            ->get();
-
-        // Crea una instancia de ProgressBar
-        $progressBar = new ProgressBar($this->output, count($autoparts));
-        // Inicia la barra de progreso
-        $progressBar->start();
-
-        // Recorre las autoparts y realiza el proceso para cada una
-        foreach ($autoparts as $autopart) {
-            logger('ID: '.$autopart->id);
-            
-            if (isset($autopart->store_ml_id) && isset($autopart->ml_id)) {
-                try {
-                    $response = ApiMl::getItemValues($autopart->store_ml_id, $autopart->ml_id);
-
-                    if ($response->status == 200 && isset($response->autopart['images'])) {
-                        foreach ($response->autopart['images'] as $key => $img) {
-                            $contents = file_get_contents($img['url']);
-                            $contentsThumbnail = file_get_contents($img['url_thumbnail']);
-                            $name = substr($img['url'], strrpos($img['url'], '/') + 1);
-                            
-                            if (!Storage::exists('autoparts/'.$autopart->id.'/images/thumbnail_'.$name)){
-                                Storage::put('autoparts/'.$autopart->id.'/images/thumbnail_'.$name, $contentsThumbnail);
-                            }
-    
-                            DB::table('autopart_images')
-                            ->where('autopart_id', $autopart->id)
-                            ->where('order', $key)
-                            ->update([
-                                'basename' => $name,
-                                'img_ml_id' => $img['id'],
-                                'updated_at' => Carbon::now()
-                            ]);
-                            
-                        }
-                    }
-                } catch (\Throwable $th) {
-                    logger($th);
-                    //throw $th;
-                }
-            }
-            $progressBar->advance();
-        }
-        $this->output->writeln('');
-        $this->info('Completar ids de imagenes completado.');
-    }
-
     private function orderCompleteYears($skip,$limit)
     {
         $autoparts = DB::table('autoparts')
@@ -398,5 +336,135 @@ class FillAutopartsData extends Command
         }
         $this->output->writeln('');
         $this->info('Ordenar y completar años terminado.');
+    }
+
+    private function fillImagesIdMl($skip,$limit)
+    {
+        $lastImageId = DB::table('autopart_images')
+            ->select('autopart_id')
+            ->latest()
+            ->first();
+
+        // $autopartsIds = DB::table('autopart_images')
+        //     ->select('autopart_id')
+        //     ->distinct()
+        //     ->whereNull('img_ml_id')
+        //     ->whereNull('deleted_at')
+        //     ->pluck('autopart_id')
+        //     ->toArray();
+
+        $autoparts = DB::table('autoparts')
+            //->select('id', 'store_id', 'store_ml_id', 'status_id', 'deleted_at')
+            //->whereNull('deleted_at')
+            //->where('status_id', '!=', 4)
+            //->whereIn('id', $autopartsIds)
+            //->whereNotNull('ml_id')
+            // ->skip($skip)
+            // ->take($limit)
+            ->whereNotIn('id', DB::table('autopart_images')->select('autopart_id'))
+            //->where('id', '>', $lastImageId->autopart_id)
+            // ->where('store_ml_id', '!=', 8)
+            // ->Where('store_ml_id', '!=', 10)
+            ->orderBy('id', 'asc')
+            ->limit($limit)
+            ->get();
+
+        // logger(['r' => $autoparts, 'count' => count($autoparts)]);
+        // return true;
+
+        // Crea una instancia de ProgressBar
+        $progressBar = new ProgressBar($this->output, count($autoparts));
+        // Inicia la barra de progreso
+        $progressBar->start();
+
+        // Recorre las autoparts y realiza el proceso para cada una
+        foreach ($autoparts as $autopart) {
+            //logger('ID: '.$autopart->id);
+            
+            if (isset($autopart->ml_id)) {
+                try {
+                    $response = ApiMl::getItemValues($autopart->store_ml_id, $autopart->ml_id);
+
+                    if ($response->status == 200 && isset($response->autopart['images'])) {
+                        foreach ($response->autopart['images'] as $key => $img) {
+                            $contents = file_get_contents($img['url']);
+                            $contentsThumbnail = file_get_contents($img['url_thumbnail']);
+
+                            if (!Storage::exists('autoparts/'.$autopart->id.'/images/'.$img['name'])) {
+                                Storage::put('autoparts/'.$autopart->id.'/images/'.$img['name'], $contents);
+                                Storage::put('autoparts/'.$autopart->id.'/images/thumbnail_'.$img['name'], $contentsThumbnail);
+                            }
+                            
+    
+                            DB::table('autopart_images')->insert([
+                                'basename' => $img['name'],
+                                'img_ml_id' => $img['id'],
+                                'order' => $key,
+                                'autopart_id' => $autopart->id,
+                                'created_at' => Carbon::now(),
+                                'updated_at' => Carbon::now()
+                            ]);
+                            
+                        }
+                    } else {
+                        // search images in bucket
+                        $images = DB::connection('export')
+                            ->table('autopart_images')
+                            ->where('autopart_id', $autopart->id)
+                            ->get();
+
+                        foreach ($images as $key => $img) {
+                            $image = Storage::disk('export')->get('autoparts/'.$autopart->id.'/images/'.$img->basename);
+
+                            if (!Storage::exists('autoparts/'.$autopart->id.'/images/'.$img->basename)) {
+                                Storage::put('autoparts/'.$autopart->id.'/images/'.$img->basename, $image);
+                                Storage::put('autoparts/'.$autopart->id.'/images/thumbnail_'.$img->basename, $image);
+                            }
+
+                            DB::table('autopart_images')->insert([
+                                'basename' => $img->basename,
+                                'order' => $img->order,
+                                'autopart_id' => $autopart->id,
+                                'created_at' => Carbon::now(),
+                                'updated_at' => Carbon::now()
+                            ]);
+                        }
+                    }
+                } catch (\Throwable $th) {
+                    logger($th);
+                    //throw $th;
+                }
+            } else {
+                // search images in bucket
+                $images = DB::connection('export')
+                    ->table('autopart_images')
+                    ->where('autopart_id', $autopart->id)
+                    ->get();
+
+                foreach ($images as $key => $img) {
+                    $image = Storage::disk('export')->get('autoparts/'.$autopart->id.'/images/'.$img->basename);
+
+                    if (!Storage::exists('autoparts/'.$autopart->id.'/images/'.$img->basename)) {
+                        Storage::put('autoparts/'.$autopart->id.'/images/'.$img->basename, $image);
+                        Storage::put('autoparts/'.$autopart->id.'/images/thumbnail_'.$img->basename, $image);
+                    }
+
+                    DB::table('autopart_images')->insert([
+                        'basename' => $img->basename,
+                        'order' => $img->order,
+                        'autopart_id' => $autopart->id,
+                        'created_at' => Carbon::now(),
+                        'updated_at' => Carbon::now()
+                    ]);
+                }
+            }
+            // create qr
+            $qr = QrCode::format('png')->size(200)->margin(1)->generate($autopart->id);
+            Storage::put('autoparts/'.$autopart->id.'/qr/'.$autopart->id.'.png', (string) $qr);
+
+            $progressBar->advance();
+        }
+        $this->output->writeln('');
+        $this->info('Crear imagenes completado.');
     }
 }

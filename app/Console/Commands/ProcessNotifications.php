@@ -16,6 +16,7 @@ use App\Notifications\AutopartNotification;
 use App\Models\User;
 use App\Models\Autopart;
 use App\Models\AutopartActivity;
+use App\Models\AutopartImage;
 
 class ProcessNotifications extends Command
 {
@@ -119,7 +120,69 @@ class ProcessNotifications extends Command
                     //     $change = $change."🖋 Descripción actualizada\n".$autopart->description."\n🔽🔽🔽\n".$response->autopart['description']."\n";
                     //     $autopart->description = $response->autopart['description'];
                     // }
-    
+
+                    // Obtener los ids de las imágenes en la base de datos
+                    $autopartImagesArray = $autopart->images->toArray();
+                    $autopartImageIds = array_column($autopartImagesArray, 'img_ml_id');
+
+                    // Obtener los ids de las imágenes en la respuesta del API
+                    $responseImageIds = array_column($response->autopart['images'], 'id');
+
+                    //Encontrar los ids que no se moverán
+                    $imagesExist = array_intersect($responseImageIds, $autopartImageIds);
+
+                    // Encontrar los ids que están en $autopartImageIds pero no en $responseImageIds
+                    $imagesToDeleteIds = array_diff($autopartImageIds, $responseImageIds);
+
+                    // Encontrar los ids que están en $responseImageIds pero no en $autopartImageIds
+                    $imagesToCreateIds = array_diff($responseImageIds, $autopartImageIds);
+
+                    // Borrar las imágenes que están en $imagesToDeleteIds de la base de datos
+                    AutopartImage::whereIn('img_ml_id', $imagesToDeleteIds)->where('autopart_id', $autopart->id)->delete();
+
+                    //Borrar del bucket
+                    foreach ($autopart->images as $key => $image) {
+                        if (in_array($image->img_ml_id, $imagesToDeleteIds)) {
+                            if (!Storage::exists('autoparts/'.$autopart->id.'/images/'.$image->name)){
+                                Storage::delete('autoparts/'.$autopart->id.'/images/'.$image->name);
+                            }
+                            
+                            if (!Storage::exists('autoparts/'.$autopart->id.'/images/thumbnail_'.$image->name)){
+                                Storage::delete('autoparts/'.$autopart->id.'/images/thumbnail_'.$image->name);
+                            }
+                        }
+                    }
+
+                    // Agregar las imágenes que están en $imagesToCreateIds a la base de datos
+                    foreach ($response->autopart['images'] as $key => $img) {
+                        if (in_array($img['id'], $imagesToCreateIds)) {
+                            $contents = file_get_contents($img['url']);
+                            $contentsThumbnail = file_get_contents($img['url_thumbnail']);
+
+                            if (!Storage::exists('autoparts/'.$autopart->id.'/images/'.$img['name'])){
+                                Storage::put('autoparts/'.$autopart->id.'/images/'.$img['name'], $contents);
+                            }
+
+                            if (!Storage::exists('autoparts/'.$autopart->id.'/images/thumbnail_'.$img['name'])){
+                                Storage::put('autoparts/'.$autopart->id.'/images/thumbnail_'.$img['name'], $contentsThumbnail);
+                            }
+
+                            DB::table('autopart_images')->insert([
+                                'basename' => $img['name'],
+                                'img_ml_id' => $img['id'],
+                                'autopart_id' => $autopart->id,
+                                'order' => $key,
+                                'created_at' => Carbon::now(),
+                                'updated_at' => Carbon::now()
+                            ]);
+                        }else if(in_array($img['id'], $imagesExist)){
+                            DB::table('autopart_images')->where('img_ml_id', $img['id'])->update([
+                                'order' => $key,
+                                'updated_at' => Carbon::now()
+                            ]);
+                        }
+                    }
+
                     if ($change) {
                         $autopart->save();
                         
@@ -137,7 +200,7 @@ class ProcessNotifications extends Command
                     }
     
                 } else {
-                    $channel = '-858634389';
+                    $channel = env('TELEGRAM_CHAT_LOG');
                     $content = '*No se actualizó la autoparte:* '.$notification->ml_id;
                     $user = User::find(38);
                     $user->notify(new AutopartNotification($channel, $content));
@@ -173,12 +236,11 @@ class ProcessNotifications extends Command
                     foreach ($response->autopart['images'] as $key => $img) {
                         $contents = file_get_contents($img['url']);
                         $contentsThumbnail = file_get_contents($img['url_thumbnail']);
-                        $name = substr($img['url'], strrpos($img['url'], '/') + 1);
-                        Storage::put('autoparts/'.$autopartId.'/images/'.$name, $contents);
-                        Storage::put('autoparts/'.$autopartId.'/images/thumbnail_'.$name, $contentsThumbnail);
+                        Storage::put('autoparts/'.$autopartId.'/images/'.$img['name'], $contents);
+                        Storage::put('autoparts/'.$autopartId.'/images/thumbnail_'.$img['name'], $contentsThumbnail);
     
                         DB::table('autopart_images')->insert([
-                            'basename' => $name,
+                            'basename' => $img['name'],
                             'img_ml_id' => $img['id'],
                             'autopart_id' => $autopartId,
                             'order' => $key,
@@ -203,7 +265,7 @@ class ProcessNotifications extends Command
                     $user->notify(new AutopartNotification($channel, $content, $button));
     
                 } else {
-                    $channel = '-858634389';
+                    $channel = env('TELEGRAM_CHAT_LOG');
                     $content = '*No se creo la autoparte:* '.$notification->ml_id;
                     $user = User::find(38);
                     $user->notify(new AutopartNotification($channel, $content));

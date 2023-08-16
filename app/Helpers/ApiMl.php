@@ -54,14 +54,14 @@ class ApiMl
 
             self::$store = DB::table('stores_ml')->find(self::$store->id);
 
-            $channel = "-858634389";
+            $channel = env('TELEGRAM_CHAT_LOG');
             $content = "*Refresh access_token:* ".self::$store->name;
             $user = User::find(38);
             $user->notify(new AutopartNotification($channel, $content));
 
             return $response->status();
         } else {
-            $channel = "-858634389";
+            $channel = env('TELEGRAM_CHAT_LOG');
             $content = "*Do not refresh access_token:* ".self::$store->name;
             $user = User::find(38);
             $user->notify(new AutopartNotification($channel, $content));
@@ -189,10 +189,11 @@ class ApiMl
 
             if (isset($response->body->pictures)) {
                 foreach ($response->body->pictures as $value) {
-                    $url = str_replace("-O.jpg", "-F.jpg", $value->secure_url);
-                    $url_thumbnail = $value->secure_url;
                     $id = $value->id;
-                    array_push($autopart['images'], ['id' => $id, 'url' => $url, 'url_thumbnail' => $url_thumbnail]);
+                    $name = substr($value->secure_url, strrpos($value->secure_url, '/') + 1);
+                    $url = str_replace("-O.jpg", "-F.jpg", $value->secure_url);
+                    $url_thumbnail = str_replace("-O.jpg", "-C.jpg", $value->secure_url);
+                    array_push($autopart['images'], ['id' => $id, 'name' => $name,'url' => $url, 'url_thumbnail' => $url_thumbnail]);
                 };
             }
 
@@ -418,7 +419,7 @@ class ApiMl
             }
 
         } else {
-            $channel = "-858634389";
+            $channel = env('TELEGRAM_CHAT_LOG');
             $content = "*ERROR:* ".$response->code." -> ".$mlId;
             $user = User::find(38);
             $user->notify(new AutopartNotification($channel, $content));
