@@ -381,7 +381,7 @@ class FillAutopartsData extends Command
         foreach ($autoparts as $autopart) {
             //logger('ID: '.$autopart->id);
             
-            if (isset($autopart->store_ml_id) && isset($autopart->ml_id) && $autopart->store_ml_id != 8 && $autopart->store_ml_id != 10) {
+            if (isset($autopart->store_ml_id) && isset($autopart->ml_id) && $autopart->store_ml_id != 8 && $autopart->store_ml_id != 10 && $autopart->store_ml_id != 2) {
                 try {
                     $response = ApiMl::getItemValues($autopart->store_ml_id, $autopart->ml_id);
 
