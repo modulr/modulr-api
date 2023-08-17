@@ -340,10 +340,10 @@ class FillAutopartsData extends Command
 
     private function fillImagesIdMl($skip,$limit)
     {
-        $lastImageId = DB::table('autopart_images')
-            ->select('autopart_id')
-            ->latest()
-            ->first();
+        // $lastImageId = DB::table('autopart_images')
+        //     ->select('autopart_id')
+        //     ->latest()
+        //     ->first();
 
         // $autopartsIds = DB::table('autopart_images')
         //     ->select('autopart_id')
@@ -353,24 +353,58 @@ class FillAutopartsData extends Command
         //     ->pluck('autopart_id')
         //     ->toArray();
 
-        $autoparts = DB::table('autoparts')
-            //->select('id', 'store_id', 'store_ml_id', 'status_id', 'deleted_at')
-            //->whereNull('deleted_at')
-            //->where('status_id', '!=', 4)
-            //->whereIn('id', $autopartsIds)
-            //->whereNotNull('ml_id')
+        // $autoparts = DB::table('autoparts')
+            // ->select('id', 'store_id', 'store_ml_id', 'status_id', 'deleted_at')
+            // ->whereNull('deleted_at')
+            // ->where('status_id', '!=', 4)
+            // ->whereIn('id', $autopartsIds)
+            // ->whereNotNull('ml_id')
             // ->skip($skip)
             // ->take($limit)
-            ->whereNotIn('id', DB::table('autopart_images')->select('autopart_id'))
-            //->where('id', '>', $lastImageId->autopart_id)
+            // ->whereNotIn('id', DB::table('autopart_images')->select('autopart_id'))
+            // ->where('id', '>', $lastImageId->autopart_id)
             // ->where('store_ml_id', '!=', 8)
             // ->Where('store_ml_id', '!=', 10)
-            ->orderBy('id', 'asc')
+            // ->orderBy('id', 'asc')
             //->limit($limit)
+            // ->get();
+
+        $duplicadas = DB::table('autopart_images')
+            ->select('autopart_id', DB::raw('COUNT(*) as count'))
+            ->where('order', '=', 0)
+            ->groupBy('autopart_id')
+            ->having('count', '>', 1)
             ->get();
 
-        // logger(['r' => $autoparts, 'count' => count($autoparts)]);
-        // return true;
+        foreach ($duplicadas as $dup) {
+            $autopartImages = DB::table('autopart_images')->where('autopart_id', $dup->autopart_id)->get();
+
+            $repetidos = array();
+            $unicos = array();
+
+            foreach ($autopartImages as $img) {
+                if (in_array($img->basename, $unicos)) {
+                    $repetidos[] = $img->basename;
+
+                    DB::table('autopart_images')->where('id', $img->id)->delete();
+
+                    if (!Storage::exists('autoparts/'.$img->autopart_id.'/images/'.$img->basename)){
+                        Storage::delete('autoparts/'.$img->autopart_id.'/images/'.$img->basename);
+                    }
+
+                    if (!Storage::exists('autoparts/'.$img->autopart_id.'/images/thumbnail_'.$img->basename)){
+                        Storage::delete('autoparts/'.$img->autopart_id.'/images/thumbnail_'.$img->basename);
+                    }
+
+                } else {
+                    $unicos[] = $img->basename;
+                }
+            }
+        }
+
+        logger(['count' => count($duplicadas), 'r' => $duplicadas]);
+        return true;
+
 
         // Crea una instancia de ProgressBar
         $progressBar = new ProgressBar($this->output, count($autoparts));
