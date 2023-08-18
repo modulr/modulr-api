@@ -11,15 +11,8 @@ class AutopartListModel extends Model
     use HasFactory;
     use SoftDeletes;
 
-    protected $dates = ['deleted_at'];
     protected $guarded = ['id'];
-
-    protected $casts = ['name'];
-
-    public function getNameAttribute($value)
-    {
-        return strtoupper($this->attributes['name']);
-    }
+    protected $dates = ['deleted_at'];
 
     public function make()
     {

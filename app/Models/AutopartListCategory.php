@@ -13,11 +13,4 @@ class AutopartListCategory extends Model
     
     protected $guarded = ['id'];
     protected $dates = ['deleted_at'];
-
-    protected $casts = ['name'];
-
-    public function getNameAttribute($value)
-    {
-        return strtoupper($this->attributes['name']);
-    }
 }

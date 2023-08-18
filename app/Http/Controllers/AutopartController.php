@@ -117,4 +117,26 @@ class AutopartController extends Controller
             ])
             ->find($request->id);
     }
+
+    public function store (Request $request)
+    {
+        $this->validate($request, [
+            'name' => 'required|string',
+            'origin_id' => 'required|string',
+            'location' => 'required|string',
+        ]);
+
+        $autopart = Autopart::create([
+            'name' => $request->name,
+            'origin_id' => $request->origin_id,
+            'location' => $request->location,
+            'make_id' => $request->make_id,
+            'model_id' => $request->model_id,
+            'status_id' => 5,
+            'store_id' => $request->user()->store_id,
+        ]);
+
+        return true;
+    }
+
 }

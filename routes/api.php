@@ -23,6 +23,11 @@ use App\Http\Controllers\MlController;
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/user', function (Request $request) { return $request->user(); });
     Route::post('autoparts/searchByUser', [AutopartController::class, 'searchByUser']);
+
+    Route::post('autoparts/store', [AutopartController::class, 'store']);
+    Route::put('autoparts/update/{id}', [AutopartController::class, 'update']);
+    Route::delete('autoparts/destroy/{id}', [AutopartController::class, 'destroy']);
+
 });
 
 Route::post('autoparts/search', [AutopartController::class, 'search']);

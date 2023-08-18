@@ -26,6 +26,11 @@ class Autopart extends Model
         return $this->belongsTo(AutopartListModel::class);
     }
 
+    public function category()
+    {
+        return $this->belongsTo(AutopartListCategory::class);
+    }
+
     public function origin()
     {
         return $this->belongsTo(AutopartListOrigin::class);
