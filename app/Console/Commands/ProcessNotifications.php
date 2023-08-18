@@ -122,7 +122,7 @@ class ProcessNotifications extends Command
                     // }
 
                     $autopartImagesArray = $autopart->images->toArray();
-                    $autopartImageIds = array_column($autopartImagesArray, ['id','img_ml_id','order']);
+                    $autopartImageIds = array_column($autopartImagesArray, ['img_ml_id']);
                     logger(["DB IMAGES"=>$autopartImageIds]);
 
                     // Obtener los ids de las imágenes en la respuesta del API
