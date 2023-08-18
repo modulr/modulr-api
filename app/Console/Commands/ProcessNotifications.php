@@ -135,7 +135,7 @@ class ProcessNotifications extends Command
 
                     function udiffCompare($a, $b)
                     {
-                        return $a['ITEM'] - $b['ITEM'];
+                        return $a['img_ml_id'] - $b['id'];
                     }
 
                     $arrdiff = array_udiff($autopartImageIds, $responseImageIds, 'udiffCompare');
