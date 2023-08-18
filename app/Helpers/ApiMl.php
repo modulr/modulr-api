@@ -111,7 +111,7 @@ class ApiMl
             'ids' => $mlId,
         ]);
 
-        if($response->code == 200){
+        if($response->status == 200){
             return $response->object()[0];
         }else{
             logger(['OBJECT'=>$response->object()]);
