@@ -138,7 +138,7 @@ class ProcessNotifications extends Command
                         return $a['img_ml_id'] - $b['id'];
                     }
 
-                    $arrdiff = array_udiff($autopartImageIds, $responseImageIds, 'udiffCompare');
+                    $arrdiff = array_udiff($autopartImagesArray, $response->autopart['images'], 'udiffCompare');
                     logger(["IMAGEs delete"=>$arrdiff]);
 
                     // Encontrar los ids que están en $autopartImageIds pero no en $responseImageIds
