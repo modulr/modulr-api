@@ -111,7 +111,12 @@ class ApiMl
             'ids' => $mlId,
         ]);
 
-        return $response->object()[0];
+        if($response->status() == 200){
+            return $response->object()[0];
+        }else{
+            logger(['OBJECT'=>$response->object()]);
+            return $response->object();
+        }
     }
 
     private static function getItemDescription($mlId)
