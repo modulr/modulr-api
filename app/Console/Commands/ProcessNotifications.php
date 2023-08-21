@@ -133,14 +133,6 @@ class ProcessNotifications extends Command
                     $imagesExist = array_intersect($responseImageIds, $autopartImageIds);
                     logger(["IMAGES BOTH SIDES"=>$imagesExist]);
 
-                    function udiffCompare($a, $b)
-                    {
-                        return $a['img_ml_id'] - $b['id'];
-                    }
-
-                    $arrdiff = array_udiff($autopartImagesArray, $response->autopart['images'], 'udiffCompare');
-                    logger(["IMAGEs delete"=>$arrdiff]);
-
                     // Encontrar los ids que están en $autopartImageIds pero no en $responseImageIds
                     $imagesToDeleteIds = array_diff($autopartImageIds, $responseImageIds);
                     logger(["IMAGES TO DELETE"=>$imagesToDeleteIds]);
@@ -149,7 +141,12 @@ class ProcessNotifications extends Command
                     $imagesToCreateIds = array_diff($responseImageIds, $autopartImageIds);
                     logger(["IMAGES TO CREATE"=>$imagesToCreateIds]);
 
-                    AutopartImage::whereIn('img_ml_id', $imagesToDeleteIds)->where('autopart_id', $autopart->id)->delete();
+                    AutopartImage::where(function($query) use ($imagesToDeleteIds, $autopart) {
+                        $query->whereIn('img_ml_id', $imagesToDeleteIds)
+                            ->orWhereNull('img_ml_id')
+                            ->where('autopart_id', $autopart->id);
+                    })->delete();
+
                     //Borrar del bucket
                     foreach ($autopart->images as $key => $image) {
                         if (in_array($image->img_ml_id, $imagesToDeleteIds)) {
