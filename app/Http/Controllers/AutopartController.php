@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\File;
+use Image;
 
 use App\Models\Autopart;
 
@@ -120,7 +122,7 @@ class AutopartController extends Controller
 
     public function store (Request $request)
     {
-        $this->validate($request, [
+        $request->validate([
             'name' => 'required|string',
             'origin_id' => 'required|string',
             'location' => 'required|string',
@@ -137,6 +139,28 @@ class AutopartController extends Controller
         ]);
 
         return true;
+    }
+
+    public function upload (Request $request)
+    {
+        $request->validate([
+            'file' => 'required|image|mimes:jpg,jpeg,png|max:20000',
+        ]);
+
+        $url = Storage::putFile('temp', $request->file('file'));
+        $img = pathinfo($url);
+
+        $thumb = Image::make($request->file('file'));
+        $thumb->resize(400, 400, function ($constraint) {
+            $constraint->aspectRatio();
+            $constraint->upsize();
+        });
+        $thumb->resizeCanvas(400, 400);
+        $thumb->encode('jpg');
+    
+        $url_thumbnail = Storage::put($img['dirname'].'/thumbnail_'.$img['basename'], (string) $thumb);
+
+        return Storage::url($img['dirname'].'/thumbnail_'.$img['basename']);
     }
 
 }
