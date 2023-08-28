@@ -236,4 +236,22 @@ class AutopartController extends Controller
             ])
             ->find($autopart->id);;
     }
+
+    public function getDescription (Request $request)
+    {
+        return DB::table('stores')->where('id', $request->user()->store_id)->first();
+    }
+
+    public function updateDescription (Request $request)
+    {
+        $request->validate([
+            'description' => 'required|string'
+        ]);
+
+        $autopart = Autopart::find($request->id);
+        $autopart->description = $request->description;    
+        $autopart->save(); 
+
+        return $autopart;
+    }
 }

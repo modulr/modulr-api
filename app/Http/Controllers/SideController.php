@@ -12,7 +12,7 @@ class SideController extends Controller
         return DB::table('autopart_list_sides')
             ->select('id', 'name')
             ->whereNull('deleted_at')
-            ->orderBy('name', 'asc')
+            ->orderBy('name', 'desc')
             ->get();
     }
 }
