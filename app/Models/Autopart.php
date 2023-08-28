@@ -61,6 +61,16 @@ class Autopart extends Model
         return $this->belongsTo(AutopartStore::class);
     }
 
+    public function position()
+    {
+        return $this->belongsTo(AutopartListPosition::class);
+    }
+
+    public function side()
+    {
+        return $this->belongsTo(AutopartListSide::class);
+    }
+
     public function storeMl()
     {
         return $this->belongsTo(AutopartStoreMl::class);

@@ -116,6 +116,8 @@ class AutopartController extends Controller
             'model',
             'store',
             'storeMl',
+            'position',
+            'side',
             'images' => function ($query) {
                 $query->orderBy('order', 'asc');
             }
@@ -180,6 +182,8 @@ class AutopartController extends Controller
             'category',
             'make',
             'model',
+            'position',
+            'side',
             'images' => function ($query) {
                 $query->orderBy('order', 'asc');
             }
@@ -224,6 +228,8 @@ class AutopartController extends Controller
             'category',
             'make',
             'model',
+            'position',
+            'side',
             'images' => function ($query) {
                 $query->orderBy('order', 'asc');
             }
