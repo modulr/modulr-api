@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Image;
 use QrCode;
+use Illuminate\Support\Arr;
 
 use App\Models\Autopart;
 use App\Models\AutopartImage;
@@ -127,16 +127,23 @@ class AutopartController extends Controller
     {
         $request->validate([
             'name' => 'required|string',
-            'location' => 'required|string',
+            //'location' => 'required|string',
         ]);
 
         $autopart = Autopart::create([
             'name' => $request->name,
+            'autopart_number' => $request->autopart_number,
             'location' => $request->location,
-            'origin_id' => $request->origin_id,
             'category_id' => $request->category_id,
+            'position_id' => $request->position_id,
+            'side_id' => $request->side_id,
+            'condition_id' => $request->condition_id,
+            'origin_id' => $request->origin_id,
             'make_id' => $request->make_id,
             'model_id' => $request->model_id,
+            'years' => json_encode(Arr::wrap(data_get($request->years, 'name'))),
+            'quality' => $request->quality,
+            'sale_price' => $request->sale_price,
             'status_id' => 5,
             'store_id' => $request->user()->store_id,
             'created_by' => $request->user()->id,
@@ -184,16 +191,26 @@ class AutopartController extends Controller
     {
         $request->validate([
             'name' => 'required|string',
-            'location' => 'required|string',
+            //'location' => 'required|string',
         ]);
+
+        logger(Arr::pluck($request->years, 'name'));
 
         $autopart = Autopart::find($request->id);
         $autopart->name = $request->name;     
+        $autopart->autopart_number = $request->autopart_number;     
         $autopart->location = $request->location;
-        $autopart->origin_id = $request->origin_id;
         $autopart->category_id = $request->category_id;
+        $autopart->position_id = $request->position_id;
+        $autopart->side_id = $request->side_id;
+        $autopart->condition_id = $request->condition_id;
+        $autopart->origin_id = $request->origin_id;
         $autopart->make_id = $request->make_id;
         $autopart->model_id = $request->model_id;
+        $autopart->years = json_encode(Arr::pluck($request->years, 'name'));
+        $autopart->quality = $request->quality;
+        $autopart->sale_price = $request->sale_price;
+        $autopart->created_by = $request->user()->id;
         $autopart->save();
 
         AutopartActivity::create([
@@ -213,61 +230,4 @@ class AutopartController extends Controller
             ])
             ->find($autopart->id);;
     }
-
-    public function uploadTemp (Request $request)
-    {
-        $request->validate([
-            'file' => 'required|image|mimes:jpg,jpeg,png|max:20000',
-        ]);
-
-        $url = Storage::putFile('temp/'.$request->user()->id, $request->file('file'));
-        $img = pathinfo($url);
-
-        $thumb = Image::make($request->file('file'));
-        $thumb->resize(400, 400, function ($constraint) {
-            $constraint->aspectRatio();
-            $constraint->upsize();
-        });
-        $thumb->resizeCanvas(400, 400);
-        $thumb->encode('jpg');
-    
-        $url_thumbnail = Storage::put($img['dirname'].'/thumbnail_'.$img['basename'], (string) $thumb);
-
-        return ['url' => Storage::url($url), 'url_thumbnail' => Storage::url($img['dirname'].'/thumbnail_'.$img['basename'])];
-    }
-
-    public function upload (Request $request)
-    {
-        $request->validate([
-            'file' => 'required|image|mimes:jpg,jpeg,png|max:20000',
-        ]);
-
-        $url = Storage::putFile('autoparts/'.$request->id.'/images', $request->file('file'));
-        $img = pathinfo($url);
-
-        $thumb = Image::make($request->file('file'));
-        $thumb->resize(400, 400, function ($constraint) {
-            $constraint->aspectRatio();
-            $constraint->upsize();
-        });
-        $thumb->resizeCanvas(400, 400);
-        $thumb->encode('jpg');
-    
-        Storage::put($img['dirname'].'/thumbnail_'.$img['basename'], (string) $thumb);
-
-        $lastImg = AutopartImage::where('autopart_id', $request->id)->orderBy('order', 'desc')->first();
-
-        if (isset($lastImg)) {
-            $order = $lastImg->order + 1;
-        } else {
-            $order = 0;
-        }
-
-        return AutopartImage::create([
-            'basename' => $img['basename'],
-            'order' => $order,
-            'autopart_id' => $request->id
-        ]);
-    }
-
 }
