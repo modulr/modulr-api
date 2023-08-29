@@ -148,6 +148,7 @@ class AutopartController extends Controller
             'sale_price' => $request->sale_price,
             'status_id' => 5,
             'store_id' => $request->user()->store_id,
+            'autopart'=> $request->store_ml_id,
             'created_by' => $request->user()->id,
         ]);
 
@@ -215,6 +216,7 @@ class AutopartController extends Controller
         $autopart->quality = $request->quality;
         $autopart->sale_price = $request->sale_price;
         $autopart->created_by = $request->user()->id;
+        $autopart->store_ml_id = $request->store_ml_id;
         $autopart->save();
 
         AutopartActivity::create([

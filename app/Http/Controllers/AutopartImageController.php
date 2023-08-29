@@ -80,4 +80,14 @@ class AutopartImageController extends Controller
         return $autopart->delete();
     }
 
+    public function sortImage (Request $request, $autopartId)
+    {
+        foreach ($request->images as $key => $v) {
+            AutopartImage::where('id', $v['id'])
+                        ->where('autopart_id', $autopartId)
+                        ->update(['order' => $key]);
+        }
+        return AutopartImage::where('autopart_id', $autopartId)->orderBy('order', 'asc')->get();
+    }
+
 }
