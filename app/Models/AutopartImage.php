@@ -12,7 +12,6 @@ class AutopartImage extends Model
     use HasFactory;
 
     protected $guarded = ['id'];
-    protected $dates = ['deleted_at'];
     protected $appends = ['url', 'url_thumbnail'];
 
     public function autopart()

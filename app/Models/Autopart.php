@@ -26,6 +26,26 @@ class Autopart extends Model
         return $this->belongsTo(AutopartListModel::class);
     }
 
+    public function category()
+    {
+        return $this->belongsTo(AutopartListCategory::class);
+    }
+
+    public function position()
+    {
+        return $this->belongsTo(AutopartListPosition::class);
+    }
+
+    public function side()
+    {
+        return $this->belongsTo(AutopartListSide::class);
+    }
+
+    public function condition()
+    {
+        return $this->belongsTo(AutopartListCondition::class);
+    }
+
     public function origin()
     {
         return $this->belongsTo(AutopartListOrigin::class);
@@ -34,6 +54,16 @@ class Autopart extends Model
     public function status()
     {
         return $this->belongsTo(AutopartListStatus::class);
+    }
+
+    public function store()
+    {
+        return $this->belongsTo(AutopartStore::class);
+    }
+
+    public function storeMl()
+    {
+        return $this->belongsTo(AutopartStoreMl::class);
     }
 
     public function images()
@@ -49,16 +79,6 @@ class Autopart extends Model
     public function activity()
     {
         return $this->hasMany(AutopartActivity::class);
-    }
-
-    public function store()
-    {
-        return $this->belongsTo(AutopartStore::class);
-    }
-
-    public function storeMl()
-    {
-        return $this->belongsTo(AutopartStoreMl::class);
     }
 
     public function getQrAttribute()
