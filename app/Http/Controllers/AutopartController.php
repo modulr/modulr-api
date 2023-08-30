@@ -144,11 +144,8 @@ class AutopartController extends Controller
             'make_id' => $request->make_id,
             'model_id' => $request->model_id,
             'years' => json_encode(Arr::wrap(data_get($request->years, 'name'))),
-            'quality' => $request->quality,
-            'sale_price' => $request->sale_price,
             'status_id' => 5,
             'store_id' => $request->user()->store_id,
-            'autopart'=> $request->store_ml_id,
             'created_by' => $request->user()->id,
         ]);
 
@@ -179,12 +176,13 @@ class AutopartController extends Controller
         ]);
 
         return Autopart::with([
-            'origin',
             'category',
-            'make',
-            'model',
             'position',
             'side',
+            'condition',
+            'origin',
+            'make',
+            'model',
             'images' => function ($query) {
                 $query->orderBy('order', 'asc');
             }
@@ -198,8 +196,6 @@ class AutopartController extends Controller
             'name' => 'required|string',
             //'location' => 'required|string',
         ]);
-
-        logger(Arr::pluck($request->years, 'name'));
 
         $autopart = Autopart::find($request->id);
         $autopart->name = $request->name;     
@@ -215,8 +211,8 @@ class AutopartController extends Controller
         $autopart->years = json_encode(Arr::pluck($request->years, 'name'));
         $autopart->quality = $request->quality;
         $autopart->sale_price = $request->sale_price;
-        $autopart->created_by = $request->user()->id;
         $autopart->store_ml_id = $request->store_ml_id;
+        $autopart->updated_by = $request->user()->id;
         $autopart->save();
 
         AutopartActivity::create([
@@ -226,12 +222,13 @@ class AutopartController extends Controller
         ]);
 
         return Autopart::with([
-            'origin',
             'category',
-            'make',
-            'model',
             'position',
             'side',
+            'condition',
+            'origin',
+            'make',
+            'model',
             'images' => function ($query) {
                 $query->orderBy('order', 'asc');
             }
