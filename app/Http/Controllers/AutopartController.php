@@ -254,26 +254,29 @@ class AutopartController extends Controller
         return $autopart;
     }
 
-    public function qr (Request $request)
+    public function qr(Request $request)
     {
-        $autopart = Autopart::with(['make','model'])->find($request->id);;
+        $autopart = Autopart::with(['make', 'model'])->find($request->id);
+        
+        // Decodificar los años y guardarlos en una variable local
+        $years = json_decode($autopart->years);
 
-        $autopart->years = json_decode($autopart->years);
+        if (count($years) > 0) {
 
-        if (count($autopart->years) > 0) {
-            
-            if (count($autopart->years) > 1) {
-                $autopart->yearsRange .= " ".array_first($autopart->years).' - '.array_last($autopart->years);
+            if (count($years) > 1) {
+                $yearsRange = " " . array_shift($years) . ' - ' . end($years);
             } else {
-                $autopart->yearsRange .= " ".array_first($autopart->years);
+                $yearsRange = " " . array_shift($years);
             }
+        } else {
+            $yearsRange = "";
         }
-
-        if (!Storage::exists('autoparts/'.$autopart->id.'/qr/'.$autopart->id.'.png')) {
+        if (!Storage::exists('autoparts/' . $autopart->id . '/qr/' . $autopart->id . '.png')) {
             $qr = QrCode::format('png')->size(200)->margin(1)->generate($autopart->id);
-            Storage::put('autoparts/'.$autopart->id.'/qr/'.$autopart->id.'.png', (string) $qr);
+            Storage::put('autoparts/' . $autopart->id . '/qr/' . $autopart->id . '.png', (string) $qr);
         }
+        logger(["Yrs"=>$yearsRange]);
 
-        return view('qr', ['autopart' => $autopart]);
+        return view('qr', ['autopart' => $autopart, 'yearsRange' => $yearsRange]);
     }
 }

@@ -81,11 +81,11 @@
                             </td>
                         </tr>
                         @endif
-                        @if ($autopart->yearsRange)
+                        @if ($yearsRange)
                         <tr>
                             <td>
                                 <span class="title">Años</span>
-                                {{ $autopart->yearsRange }}
+                                {{ $yearsRange }}
                             </td>
                         </tr>
                         @endif
