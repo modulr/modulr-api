@@ -39,6 +39,9 @@
             font-size: 34pt;
             margin-left: 18px;
         }
+        .location {
+            font-size: 10pt;
+        }
         .date {
             font-size: 6pt;
         }
@@ -91,7 +94,7 @@
                         @endif
                         @if ($autopart->location)
                         <tr>
-                            <td class="date">
+                            <td class="location">
                                 <span class="title">Ubicación</span>
                                 {{ $autopart->location }}
                             </td>

@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use QrCode;
 use Illuminate\Support\Arr;
+use QrCode;
 
 use App\Models\Autopart;
 use App\Models\AutopartImage;
@@ -263,9 +263,9 @@ class AutopartController extends Controller
         if (count($autopart->years) > 0) {
             
             if (count($autopart->years) > 1) {
-                $autopart->yearsRange .= " ".array_first($autopart->years).' - '.array_last($autopart->years);
+                $autopart->yearsRange .= " ".Arr::first($autopart->years).' - '.Arr::last($autopart->years);
             } else {
-                $autopart->yearsRange .= " ".array_first($autopart->years);
+                $autopart->yearsRange .= " ".Arr::first($autopart->years);
             }
         }
 
