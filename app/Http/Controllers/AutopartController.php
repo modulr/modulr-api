@@ -233,7 +233,7 @@ class AutopartController extends Controller
                 $query->orderBy('order', 'asc');
             }
             ])
-            ->find($autopart->id);;
+            ->find($autopart->id);
     }
 
     public function getDescription (Request $request)
@@ -252,5 +252,28 @@ class AutopartController extends Controller
         $autopart->save(); 
 
         return $autopart;
+    }
+
+    public function qr (Request $request)
+    {
+        $autopart = Autopart::with(['make','model'])->find($request->id);;
+
+        $autopart->years = json_decode($autopart->years);
+
+        if (count($autopart->years) > 0) {
+            
+            if (count($autopart->years) > 1) {
+                $autopart->yearsRange .= " ".array_first($autopart->years).' - '.array_last($autopart->years);
+            } else {
+                $autopart->yearsRange .= " ".array_first($autopart->years);
+            }
+        }
+
+        if (!Storage::exists('autoparts/'.$autopart->id.'/qr/'.$autopart->id.'.png')) {
+            $qr = QrCode::format('png')->size(200)->margin(1)->generate($autopart->id);
+            Storage::put('autoparts/'.$autopart->id.'/qr/'.$autopart->id.'.png', (string) $qr);
+        }
+
+        return view('qr', ['autopart' => $autopart]);
     }
 }
