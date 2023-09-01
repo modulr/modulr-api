@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Storage;
 use Image;
 
 use App\Models\AutopartImage;
+use App\Models\Autopart;
 
 class AutopartImageController extends Controller
 {
@@ -83,16 +84,24 @@ class AutopartImageController extends Controller
 
     public function destroy (Request $request)
     {
-        $autopart = AutopartImage::find($request->id);
+        $image = AutopartImage::find($request->id);
+        $autopart = Autopart::find($image->autopart_id);
 
-        if (Storage::exists('autoparts/'.$autopart->autopart_id.'/images/'.$autopart->basename)){
-            Storage::delete('autoparts/'.$autopart->autopart_id.'/images/'.$autopart->basename);
+        if (Storage::exists('autoparts/'.$image->autopart_id.'/images/'.$image->basename)){
+            Storage::delete('autoparts/'.$image->autopart_id.'/images/'.$image->basename);
         }
-        if (Storage::exists('autoparts/'.$autopart->autopart_id.'/images/thumbnail_'.$autopart->basename)){
-            Storage::delete('autoparts/'.$autopart->autopart_id.'/images/thumbnail_'.$autopart->basename);
+        if (Storage::exists('autoparts/'.$image->autopart_id.'/images/thumbnail_'.$image->basename)){
+            Storage::delete('autoparts/'.$image->autopart_id.'/images/thumbnail_'.$image->basename);
         }
 
-        return $autopart->delete();
+        $image->delete();
+        foreach ($autopart->images as $key => $value) {
+            AutopartImage::where('id', $value['id'])
+                        ->where('autopart_id', $value['autopart_id'])
+                        ->update(['order' => $key]);
+        }
+
+        return true;
     }
 
     public function sort (Request $request)
