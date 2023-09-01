@@ -66,6 +66,21 @@ class AutopartImageController extends Controller
         ]);
     }
 
+    public function destroyTemp (Request $request)
+    {
+        $img = pathinfo($request->url);
+
+        if (Storage::exists('temp/'.$request->user()->id.'/'.$img['basename'])){
+            Storage::delete('temp/'.$request->user()->id.'/'.$img['basename']);
+        }
+        
+        if (Storage::exists('temp/'.$request->user()->id.'/thumbnail_'.$img['basename'])){
+            Storage::delete('temp/'.$request->user()->id.'/thumbnail_'.$img['basename']);
+        }
+
+        return true;
+    }
+
     public function destroy (Request $request)
     {
         $autopart = AutopartImage::find($request->id);

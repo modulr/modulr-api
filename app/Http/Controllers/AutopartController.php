@@ -98,7 +98,7 @@ class AutopartController extends Controller
                 });
             })
             ->latest('autoparts.created_at')
-            ->paginate(52);
+            ->paginate(24);
 
         foreach ($autoparts as $autopart) {
             $autopart->url_thumbnail = Storage::url('autoparts/'.$autopart->id.'/images/thumbnail_'.$autopart->basename);
@@ -110,14 +110,15 @@ class AutopartController extends Controller
     public function show(Request $request)
     {
         return Autopart::with([
-            'origin',
             'category',
+            'position',
+            'side',
+            'origin',
+            'condition',
             'make',
             'model',
             'store',
             'storeMl',
-            'position',
-            'side',
             'images' => function ($query) {
                 $query->orderBy('order', 'asc');
             }
@@ -178,6 +179,7 @@ class AutopartController extends Controller
             'origin',
             'make',
             'model',
+            'store',
             'images' => function ($query) {
                 $query->orderBy('order', 'asc');
             }
@@ -224,6 +226,7 @@ class AutopartController extends Controller
             'origin',
             'make',
             'model',
+            'store',
             'storeMl',
             'images' => function ($query) {
                 $query->orderBy('order', 'asc');
