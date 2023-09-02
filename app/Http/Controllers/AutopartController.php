@@ -138,6 +138,7 @@ class AutopartController extends Controller
             'autopart_number' => $request->autopart_number,
             'location' => $request->location,
             'category_id' => $request->category_id,
+            'years' => '[]',
             'quality' => $request->quality,
             'sale_price' => $request->sale_price,
             'status_id' => 5,
