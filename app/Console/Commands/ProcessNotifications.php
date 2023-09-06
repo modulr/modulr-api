@@ -123,23 +123,18 @@ class ProcessNotifications extends Command
 
                     $autopartImagesArray = $autopart->images->toArray();
                     $autopartImageIds = array_column($autopartImagesArray, 'img_ml_id');
-                    logger(["DB IMAGES"=>$autopartImageIds]);
 
                     // Obtener los ids de las imágenes en la respuesta del API
                     $responseImageIds = array_column($response->autopart['images'], 'id');
-                    logger(["ML IMAGES"=>$responseImageIds]);
 
                     //Encontrar los ids que no se moverán
                     $imagesExist = array_intersect($responseImageIds, $autopartImageIds);
-                    logger(["IMAGES BOTH SIDES"=>$imagesExist]);
 
                     // Encontrar los ids que están en $autopartImageIds pero no en $responseImageIds
                     $imagesToDeleteIds = array_diff($autopartImageIds, $responseImageIds);
-                    logger(["IMAGES TO DELETE"=>$imagesToDeleteIds]);
 
                     // Encontrar los ids que están en $responseImageIds pero no en $autopartImageIds
                     $imagesToCreateIds = array_diff($responseImageIds, $autopartImageIds);
-                    logger(["IMAGES TO CREATE"=>$imagesToCreateIds]);
 
                     AutopartImage::where(function($query) use ($imagesToDeleteIds, $autopart) {
                         $query->whereIn('img_ml_id', $imagesToDeleteIds)
@@ -191,7 +186,6 @@ class ProcessNotifications extends Command
                     }
 
                     $imagesFinal = DB::table('autopart_images')->where('autopart_id', $autopart->id)->orderBy('order','asc')->get();
-                    logger(["IMAGES FINAL"=>$imagesFinal]);
 
 
                     if ($change) {
