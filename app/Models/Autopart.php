@@ -6,15 +6,23 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
+use Laravel\Scout\Searchable;
 
 class Autopart extends Model
 {
-    use HasFactory;
+    use HasFactory, Searchable;
     use SoftDeletes;
 
     protected $guarded = ['id'];
     protected $dates = ['deleted_at'];
     protected $appends = ['qr'];
+
+    const SEARCHABLE_FIELDS = ['id', 'name', 'description','autopart_number','ml_id','years'];
+
+    public function toSearchableArray()
+    {
+        return $this->only(self::SEARCHABLE_FIELDS);
+    }
 
     public function make()
     {

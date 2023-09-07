@@ -65,3 +65,6 @@ Route::get('stores_ml', [StoresMlController::class, 'index']);
 // Mercado libre
 Route::get('/ml/auth', [MlController::class, 'auth']);
 Route::post('/ml/notifications', [MlController::class, 'notifications']);
+
+
+Route::get('/site-search', [\App\Http\Controllers\SitewideSearchController::class, 'search']);
