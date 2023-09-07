@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
 use App\Http\Controllers\AutopartController;
 use App\Http\Controllers\AutopartImageController;
 use App\Http\Controllers\CategoryController;
@@ -28,10 +29,13 @@ use App\Http\Controllers\StoresMlController;
 
 
 Route::middleware(['auth:sanctum'])->group(function () {
-    Route::get('/user', function (Request $request) { return $request->user(); });
+    Route::get('/user', function (Request $request) {
+        $user = $request->user();
+        $request->user()->roles;
+        return $user;
+    });
     Route::post('autoparts/searchByUser', [AutopartController::class, 'searchByUser']);
 
-    
     Route::post('autoparts/store', [AutopartController::class, 'store']);
     Route::put('autoparts/update/{id}', [AutopartController::class, 'update']);
     Route::delete('autoparts/destroy/{id}', [AutopartController::class, 'destroy']);
