@@ -206,7 +206,7 @@ class AutopartController extends Controller
         $autopart->origin_id = $request->origin_id;
         $autopart->make_id = $request->make_id;
         $autopart->model_id = $request->model_id;
-        $autopart->years = json_encode(Arr::pluck($request->years, 'name'));
+        $autopart->years = $request->years ? json_encode(Arr::pluck($request->years, 'name')): [];
         $autopart->quality = $request->quality;
         $autopart->sale_price = $request->sale_price;
         $autopart->store_ml_id = $request->store_ml_id;
