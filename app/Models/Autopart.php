@@ -17,7 +17,7 @@ class Autopart extends Model
     protected $dates = ['deleted_at'];
     protected $appends = ['qr'];
 
-    const SEARCHABLE_FIELDS = ['id', 'name', 'description','autopart_number','ml_id','years'];
+    const SEARCHABLE_FIELDS = ['id', 'name', 'description','autopart_number','ml_id','years', 'make', 'model','category','position','side'];
 
     public function toSearchableArray()
     {

@@ -144,7 +144,7 @@ class SitewideSearchController extends Controller
         // Here we list down all the alternative model-link mappings
         // if we dont have a record here, will default to /{model-name}/{model_id} 
         $mapping = [
-            \App\Models\Comment::class => '/comments/view/{id}'
+            \App\Models\Autopart::class => '/autoparts/view/{id}'
         ];
 
         // getting the Fully Qualified Class Name of model
