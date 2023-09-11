@@ -115,6 +115,7 @@ class AutopartController extends Controller
             'side',
             'origin',
             'condition',
+            'status',
             'make',
             'model',
             'store',
