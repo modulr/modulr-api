@@ -71,6 +71,29 @@ class AutopartController extends Controller
         $position = $request->position;
         $quality = $request->quality;
         $store_ml = $request->store_ml;
+        $sort = $request->sort;
+
+        $sortColumn = 'autoparts.created_at';
+        $sortDirection = 'desc'; 
+
+        // Verifica la opción de ordenamiento seleccionada y establece la columna y dirección correspondientes
+        if ($sort === 'oldest') {
+            $sortColumn = 'autoparts.created_at';
+            $sortDirection = 'asc';
+        } elseif ($sort === 'atoz') {
+            $sortColumn = 'autoparts.name';
+            $sortDirection = 'asc';
+        } elseif ($sort === 'ztoa') {
+            $sortColumn = 'autoparts.name';
+            $sortDirection = 'desc';
+        } elseif ($sort === 'pricetohigh') {
+            $sortColumn = 'autoparts.sale_price';
+            $sortDirection = 'desc';
+        } elseif ($sort === 'pricetolow') {
+            $sortColumn = 'autoparts.sale_price';
+            $sortDirection = 'asc';
+        }
+
 
         $autoparts = DB::table('autoparts')
             ->select('autoparts.id', 'autoparts.name', 'autoparts.sale_price', 'autopart_images.basename', 'autoparts.status_id', 'autopart_list_status.name as status')
@@ -80,7 +103,7 @@ class AutopartController extends Controller
             ->leftjoin('autopart_list_status', function ($join) {
                 $join->on('autopart_list_status.id', '=', 'autoparts.status_id');
             })
-            // ->where('autoparts.created_by', $request->user()->id)
+            ->where('autoparts.created_by', $request->user()->id)
             ->whereNull('autoparts.deleted_at')
             ->when($make, function ($query, $make) {
                 return $query->where('autoparts.make_id', $make['id']);
@@ -121,7 +144,7 @@ class AutopartController extends Controller
                     });
                 });
             })
-            ->latest('autoparts.created_at')
+            ->orderBy($sortColumn, $sortDirection) // Aplicar la columna y dirección de ordenamiento
             ->paginate(24);
 
         foreach ($autoparts as $autopart) {
