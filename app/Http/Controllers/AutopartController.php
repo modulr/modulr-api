@@ -70,6 +70,7 @@ class AutopartController extends Controller
         $side = $request->side;
         $position = $request->position;
         $quality = $request->quality;
+        $store_ml = $request->store_ml;
 
         $autoparts = DB::table('autoparts')
             ->select('autoparts.id', 'autoparts.name', 'autoparts.sale_price', 'autopart_images.basename', 'autoparts.status_id', 'autopart_list_status.name as status')
@@ -79,7 +80,7 @@ class AutopartController extends Controller
             ->leftjoin('autopart_list_status', function ($join) {
                 $join->on('autopart_list_status.id', '=', 'autoparts.status_id');
             })
-            ->where('autoparts.created_by', $request->user()->id)
+            // ->where('autoparts.created_by', $request->user()->id)
             ->whereNull('autoparts.deleted_at')
             ->when($make, function ($query, $make) {
                 return $query->where('autoparts.make_id', $make['id']);
@@ -104,6 +105,9 @@ class AutopartController extends Controller
             })
             ->when($quality, function ($query, $quality) {
                 return $query->where('autoparts.quality', $quality);
+            })
+            ->when($store_ml, function ($query, $store_ml) {
+                return $query->where('autoparts.store_ml_id', $store_ml['id']);
             })
             ->when($number, function ($query, $number) {
                 $query->where(function($q) use ($number) {
