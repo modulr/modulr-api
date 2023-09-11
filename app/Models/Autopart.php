@@ -21,7 +21,13 @@ class Autopart extends Model
 
     public function toSearchableArray()
     {
-        return $this->only(self::SEARCHABLE_FIELDS);
+        // return $this->only(self::SEARCHABLE_FIELDS);
+        return [
+            'id' => (int) $this->id,
+            'name' => $this->name,
+            'categoryName' => $this->category['name'] ?? '', 
+            'categoryVariants' => $this->category['variant'] ?? '', 
+        ];
     }
 
     public function make()

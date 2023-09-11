@@ -9,7 +9,7 @@ use Laravel\Scout\Searchable;
 
 class AutopartListMake extends Model
 {
-    use HasFactory, Searchable;
+    use HasFactory;
     use SoftDeletes;
     
     protected $guarded = ['id'];

@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Symfony\Component\Finder\SplFileInfo;
+use App\Models\Autopart;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class SitewideSearchController extends Controller
 {
@@ -25,7 +27,7 @@ class SitewideSearchController extends Controller
     }
 
     public function search(Request $request)
-    {
+    { 
         $keyword = $request->search;
 
         // just for demonstration, you can include models that you want to exclude from the searches here
@@ -64,6 +66,8 @@ class SitewideSearchController extends Controller
             return $isModel && $searchable && !in_array($reflection->getName(), $toExclude, true);
 
         })->map(function ($classname) use ($keyword) {
+
+            logger(['Keyword'=>$keyword]);
             // for each class, call the search function
             $model = app($this->modelNamespacePrefix() . $classname);
 
@@ -133,6 +137,48 @@ class SitewideSearchController extends Controller
         // using a standardised site search resource
         return SiteSearchResource::collection($results);
 
+    }
+
+    public function search2(Request $request)
+    {
+        $search = explode(' ', $request->search);
+        $combinedResults = collect([]); // Crear una colección para almacenar los resultados combinados
+
+        foreach ($search as $key => $keyword) {
+            $result = Autopart::search($keyword)
+                ->query(function ($query) {
+                    $query->join('autopart_list_categories as category', 'autoparts.category_id', '=', 'category.id')
+                        ->join('autopart_list_makes as make', 'autoparts.make_id', '=', 'make.id')
+                        ->join('autopart_list_models as model', 'autoparts.model_id', '=', 'model.id')
+                        ->select(
+                            'autoparts.id',
+                            'autoparts.name',
+                            'make.name as marca',
+                            'make.variants as marca_variante',
+                            'model.name as modelo',
+                            'model.variants as modelo_variante',
+                            'category.name as categoria',
+                            'category.variants AS categoria_variante'
+                        );
+                })
+                ->get();
+
+            // Agregar los resultados de esta consulta a la colección de resultados combinados
+            $combinedResults = $combinedResults->merge($result);
+            logger(["result" => $result->count()]);
+        }
+
+         // Eliminar elementos duplicados de la colección combinada
+        $combinedResults = $combinedResults->unique('id'); // Puedes usar 'id' u otro campo único
+        logger(["r" => $combinedResults->count()]);
+
+        // Paginar el resultado final y limitar a 25 registros por página
+        $perPage = 25;
+        $currentPage = request('page', 1);
+        $paginatedResults = $combinedResults->slice(($currentPage - 1) * $perPage, $perPage)->all();
+        $combinedResults = new LengthAwarePaginator($paginatedResults, count($combinedResults), $perPage);
+
+        return $combinedResults->values()->all();
     }
 
     /** Helper function to retrieve resource URL

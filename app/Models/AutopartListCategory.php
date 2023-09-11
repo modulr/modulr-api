@@ -20,5 +20,10 @@ class AutopartListCategory extends Model
     public function toSearchableArray()
     {
         return $this->only(self::SEARCHABLE_FIELDS);
+        return [
+            'id' => (int) $this->id,
+            'name' => $this->name,
+            'variants' => implode(" ",$this->variants),
+        ];
     }
 }

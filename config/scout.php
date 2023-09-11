@@ -145,12 +145,11 @@ return [
         'fuzzy' => [
             'prefix_length' => 2,
             'max_expansions' => 50,
-            'distance' => 2,
-        'no_limit' => true
+            'distance' => 2
         ],
         'asYouType' => true,
-        'searchBoolean' => env('TNTSEARCH_BOOLEAN', false),
-        'maxDocs' => env('TNTSEARCH_MAX_DOCS', 500),
+        'stemmer'=> \TeamTNT\TNTSearch\Stemmer\NoStemmer::class,
+        'tokenizer' =>\TeamTNT\TNTSearch\Support\ProductTokenizer::class
     ],
 
 ];
