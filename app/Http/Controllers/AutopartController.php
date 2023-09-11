@@ -65,6 +65,11 @@ class AutopartController extends Controller
         $model = $request->model;
         $category = $request->category;
         $number = $request->number;
+        $origin = $request->origin;
+        $condition = $request->condition;
+        $side = $request->side;
+        $position = $request->position;
+        $quality = $request->quality;
 
         $autoparts = DB::table('autoparts')
             ->select('autoparts.id', 'autoparts.name', 'autoparts.sale_price', 'autopart_images.basename', 'autoparts.status_id', 'autopart_list_status.name as status')
@@ -84,6 +89,21 @@ class AutopartController extends Controller
             })
             ->when($category, function ($query, $category) {
                 return $query->where('autoparts.category_id', $category['id']);
+            })
+            ->when($origin, function ($query, $origin) {
+                return $query->where('autoparts.origin_id', $origin['id']);
+            })
+            ->when($condition, function ($query, $condition) {
+                return $query->where('autoparts.condition_id', $condition['id']);
+            })
+            ->when($side, function ($query, $side) {
+                return $query->where('autoparts.side_id', $side['id']);
+            })
+            ->when($position, function ($query, $position) {
+                return $query->where('autoparts.position_id', $position['id']);
+            })
+            ->when($quality, function ($query, $quality) {
+                return $query->where('autoparts.quality', $quality);
             })
             ->when($number, function ($query, $number) {
                 $query->where(function($q) use ($number) {
