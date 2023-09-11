@@ -71,7 +71,12 @@ class AutopartController extends Controller
         $position = $request->position;
         $quality = $request->quality;
         $store_ml = $request->store_ml;
+        $years = $request->years;
         $sort = $request->sort;
+
+
+        // Usando la función pluck y map
+        $yrs = collect($years)->pluck('name')->toArray();
 
         $sortColumn = 'autoparts.created_at';
         $sortDirection = 'desc'; 
@@ -132,6 +137,13 @@ class AutopartController extends Controller
             ->when($store_ml, function ($query, $store_ml) {
                 return $query->where('autoparts.store_ml_id', $store_ml['id']);
             })
+            ->when($yrs, function ($query, $yrs) {
+                return $query->where(function ($subQuery) use ($yrs) {
+                    foreach ($yrs as $yr) {
+                        $subQuery->orWhereJsonContains('autoparts.years', $yr);
+                    }
+                });
+            })            
             ->when($number, function ($query, $number) {
                 $query->where(function($q) use ($number) {
                     return $q->where('autoparts.name', 'like', '%'.$number.'%')
