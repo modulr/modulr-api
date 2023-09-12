@@ -266,7 +266,28 @@ class AutopartController extends Controller
         $autopart->origin_id = $request->origin_id;
         $autopart->make_id = $request->make_id;
         $autopart->model_id = $request->model_id;
-        $autopart->years = $request->years ? json_encode(Arr::pluck($request->years, 'name')): [];
+        //Validar y llenar rango de años
+        $years = $request->years ? Arr::pluck($request->years, 'name'): [];
+        if (count($years) > 1) {
+            sort($years);
+            $firstYear = min($years);
+            $lastYear = max($years);
+            $missingYears = [];
+
+            for ($year = $firstYear; $year <= $lastYear; $year++) {
+                if (!in_array($year, $years)) {
+                    $missingYears[] = json_encode($year);
+                }
+            }
+    
+            if (!empty($missingYears)) {
+                // Agregar los años faltantes al array de años
+                $years = array_merge($years, $missingYears);
+            }
+            sort($years);
+        }
+        $autopart->years = json_encode($years);
+
         $autopart->quality = $request->quality;
         $autopart->sale_price = $request->sale_price;
         $autopart->store_ml_id = $request->store_ml_id;
