@@ -240,6 +240,7 @@ class AutopartController extends Controller
             'origin',
             'make',
             'model',
+            'status',
             'store',
             'images' => function ($query) {
                 $query->orderBy('order', 'asc');
@@ -256,16 +257,7 @@ class AutopartController extends Controller
         ]);
 
         $autopart = Autopart::find($request->id);
-        $autopart->name = $request->name;     
-        $autopart->autopart_number = $request->autopart_number;     
-        $autopart->location = $request->location;
-        $autopart->category_id = $request->category_id;
-        $autopart->position_id = $request->position_id;
-        $autopart->side_id = $request->side_id;
-        $autopart->condition_id = $request->condition_id;
-        $autopart->origin_id = $request->origin_id;
-        $autopart->make_id = $request->make_id;
-        $autopart->model_id = $request->model_id;
+
         //Validar y llenar rango de años
         $years = $request->years ? Arr::pluck($request->years, 'name'): [];
         if (count($years) > 1) {
@@ -286,10 +278,27 @@ class AutopartController extends Controller
             }
             sort($years);
         }
-        $autopart->years = json_encode($years);
 
+        if (($autopart->sale_price != $request->sale_price) && $request->sale_price > 0) {
+            $status = 1;
+        } else {
+            $status = 5;
+        }
+        
+        $autopart->name = $request->name;     
+        $autopart->autopart_number = $request->autopart_number;     
+        $autopart->location = $request->location;
+        $autopart->category_id = $request->category_id;
+        $autopart->position_id = $request->position_id;
+        $autopart->side_id = $request->side_id;
+        $autopart->condition_id = $request->condition_id;
+        $autopart->origin_id = $request->origin_id;
+        $autopart->make_id = $request->make_id;
+        $autopart->model_id = $request->model_id;
+        $autopart->years = json_encode($years);
         $autopart->quality = $request->quality;
         $autopart->sale_price = $request->sale_price;
+        $autopart->status_id = $status;
         $autopart->store_ml_id = $request->store_ml_id;
         $autopart->updated_by = $request->user()->id;
         $autopart->save();
@@ -308,6 +317,7 @@ class AutopartController extends Controller
             'origin',
             'make',
             'model',
+            'status',
             'store',
             'storeMl',
             'images' => function ($query) {
