@@ -11,6 +11,7 @@ use QrCode;
 use App\Models\Autopart;
 use App\Models\AutopartImage;
 use App\Models\AutopartActivity;
+use App\Models\AutopartListLocation;
 
 class AutopartController extends Controller
 {
@@ -179,6 +180,7 @@ class AutopartController extends Controller
             'model',
             'store',
             'storeMl',
+            'location',
             'images' => function ($query) {
                 $query->orderBy('order', 'asc');
             }
@@ -196,8 +198,8 @@ class AutopartController extends Controller
         $autopart = Autopart::create([
             'name' => $request->name,
             'autopart_number' => $request->autopart_number,
-            'location' => $request->location,
             'category_id' => $request->category_id,
+            'location_id' => $request->location_id,
             'years' => '[]',
             'quality' => 0,
             'sale_price' => 0,
@@ -221,6 +223,12 @@ class AutopartController extends Controller
                     ]);
                 }
             }
+        }
+
+        if($request->location_id){
+            $location = AutopartListLocation::find($request->location_id);
+            $location->stock = $location->stock + 1;
+            $location->save();
         }
 
         $qr = QrCode::format('png')->size(200)->margin(1)->generate($autopart->id);
@@ -257,8 +265,23 @@ class AutopartController extends Controller
 
         $autopart = Autopart::find($request->id);
         $autopart->name = $request->name;     
-        $autopart->autopart_number = $request->autopart_number;     
-        $autopart->location = $request->location;
+        $autopart->autopart_number = $request->autopart_number;
+        
+        //Validar cambio ubicacion
+        if($autopart->location_id !== $request->location_id){
+            if($request->location_id){
+                $alta_stock = AutopartListLocation::find($request->location_id);
+                $alta_stock->stock = $alta_stock->stock + 1;
+                $alta_stock->save();
+            }
+            
+            if($autopart->location_id){
+                $baja_stock = AutopartListLocation::find($autopart->location_id);
+                $baja_stock->stock = $baja_stock->stock - 1;
+                $baja_stock->save();
+            }
+        }
+        $autopart->location_id = $request->location_id;
         $autopart->category_id = $request->category_id;
         $autopart->position_id = $request->position_id;
         $autopart->side_id = $request->side_id;
@@ -310,6 +333,7 @@ class AutopartController extends Controller
             'model',
             'store',
             'storeMl',
+            'location',
             'images' => function ($query) {
                 $query->orderBy('order', 'asc');
             }
