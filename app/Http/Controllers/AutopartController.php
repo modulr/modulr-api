@@ -256,8 +256,6 @@ class AutopartController extends Controller
             //'location' => 'required|string',
         ]);
 
-        $autopart = Autopart::find($request->id);
-
         //Validar y llenar rango de años
         $years = $request->years ? Arr::pluck($request->years, 'name'): [];
         if (count($years) > 1) {
@@ -279,12 +277,13 @@ class AutopartController extends Controller
             sort($years);
         }
 
-        if (($autopart->sale_price != $request->sale_price) && $request->sale_price > 0) {
+        if ($request->sale_price > 0) {
             $status = 1;
         } else {
             $status = 5;
         }
         
+        $autopart = Autopart::find($request->id);
         $autopart->name = $request->name;     
         $autopart->autopart_number = $request->autopart_number;     
         $autopart->location = $request->location;
