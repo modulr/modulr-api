@@ -39,40 +39,43 @@ class FillAutopartsData extends Command
         $this->fillImagesIdMl($skip,$limit);
 
         // // Mostrar las opciones al usuario
-        // $options = ['Descripcion', 'Lado', 'Posicion', 'Numero_Parte', 'Anios', 'Orden_Anios', 'Imagenes'];
-        // $question = new ChoiceQuestion('Elige una opción para editar autopartes:', $options);
-        // $question->setErrorMessage('Opción inválida.');
+        $options = ['Descripcion', 'Lado', 'Posicion', 'Numero_Parte', 'Anios', 'Orden_Anios', 'Imagenes', 'Condicion'];
+        $question = new ChoiceQuestion('Elige una opción para editar autopartes:', $options);
+        $question->setErrorMessage('Opción inválida.');
 
-        // $helper = $this->getHelper('question');
-        // $selectedOption = $helper->ask($this->input, $this->output, $question);
+        $helper = $this->getHelper('question');
+        $selectedOption = $helper->ask($this->input, $this->output, $question);
 
-        // // Ejecutar la función correspondiente según la opción seleccionada
-        // switch ($selectedOption) {
-        //     case 'Descripcion':
-        //         $this->fillDescription($skip,$limit);
-        //         break;
-        //     case 'Lado':
-        //         $this->fillSides($skip,$limit);
-        //         break;
-        //     case 'Posicion':
-        //         $this->fillPosition($skip,$limit);
-        //         break;
-        //     case 'Numero_Parte':
-        //         $this->fillPartNumber($skip,$limit);
-        //         break;
-        //     case 'Anios':
-        //         $this->fillYears($skip,$limit);
-        //         break;
-        //     case 'Orden_Anios':
-        //         $this->orderCompleteYears($skip,$limit);
-        //         break;
-        //     case 'Imagenes':
-        //         $this->fillImagesIdMl($skip,$limit);
-        //         break;
-        //     default:
-        //         $this->info('Opción no reconocida.');
-        //         break;
-        // }
+        // Ejecutar la función correspondiente según la opción seleccionada
+        switch ($selectedOption) {
+            case 'Descripcion':
+                $this->fillDescription($skip,$limit);
+                break;
+            case 'Lado':
+                $this->fillSides($skip,$limit);
+                break;
+            case 'Posicion':
+                $this->fillPosition($skip,$limit);
+                break;
+            case 'Numero_Parte':
+                $this->fillPartNumber($skip,$limit);
+                break;
+            case 'Anios':
+                $this->fillYears($skip,$limit);
+                break;
+            case 'Orden_Anios':
+                $this->orderCompleteYears($skip,$limit);
+                break;
+            case 'Imagenes':
+                $this->fillImagesIdMl($skip,$limit);
+                break;
+            case 'Condicion':
+                $this->copyOriginToCondition($skip,$limit);
+                break;
+            default:
+                $this->info('Opción no reconocida.');
+                break;
+        }
     }
 
     // Aquí defines las funciones para cada opción
@@ -500,5 +503,36 @@ class FillAutopartsData extends Command
         }
         $this->output->writeln('');
         $this->info('Crear imagenes completado.');
+    }
+
+    private function copyOriginToCondition($skip,$limit)
+    {
+        $autoparts = DB::table('autoparts')
+        ->whereNull('deleted_at')
+        ->where('status_id', '!=', 4)
+        ->orderBy('id', 'desc')
+        ->skip($skip)
+        ->take($limit)
+        ->get();
+
+        // Crea una instancia de ProgressBar
+        $progressBar = new ProgressBar($this->output, count($autoparts));
+        // Inicia la barra de progreso
+        $progressBar->start();
+
+        // Recorre las autoparts y realiza el proceso para cada una
+        foreach ($autoparts as $autopart) {
+            logger('ID: '.$autopart->id);
+
+            // Copiar los valores de origin_id a condition_id
+            DB::table('autoparts')
+            ->where('id', $autopart->id)
+            ->update(['condition_id' => $autopart->origin_id]);
+
+        
+            $progressBar->advance();
+        }
+        $this->output->writeln('');
+        $this->info('Copiar origen a condición terminado.');
     }
 }

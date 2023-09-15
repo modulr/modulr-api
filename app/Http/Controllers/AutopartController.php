@@ -249,6 +249,7 @@ class AutopartController extends Controller
             'make',
             'model',
             'store',
+            'location',
             'images' => function ($query) {
                 $query->orderBy('order', 'asc');
             }
