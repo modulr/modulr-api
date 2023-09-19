@@ -15,6 +15,7 @@ use App\Http\Controllers\ModelController;
 use App\Http\Controllers\YearController;
 use App\Http\Controllers\MlController;
 use App\Http\Controllers\StoresMlController;
+use App\Http\Controllers\LocationsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -64,6 +65,7 @@ Route::get('makes', [MakeController::class, 'index']);
 Route::get('models', [ModelController::class, 'index']);
 Route::get('years', [YearController::class, 'index']);
 Route::get('stores_ml', [StoresMlController::class, 'index']);
+Route::get('locations/getByStore', [LocationsController::class, 'getByStore']);
 
 
 // Mercado libre
