@@ -262,12 +262,9 @@ class AutopartController extends Controller
     {
         $request->validate([
             'name' => 'required|string',
-            //'location' => 'required|string',
         ]);
 
         $autopart = Autopart::find($request->id);
-        $autopart->name = $request->name;     
-        $autopart->autopart_number = $request->autopart_number;
         
         //Validar cambio ubicacion
         if($autopart->location_id !== $request->location_id){
@@ -283,14 +280,7 @@ class AutopartController extends Controller
                 $baja_stock->save();
             }
         }
-        $autopart->location_id = $request->location_id;
-        $autopart->category_id = $request->category_id;
-        $autopart->position_id = $request->position_id;
-        $autopart->side_id = $request->side_id;
-        $autopart->condition_id = $request->condition_id;
-        $autopart->origin_id = $request->origin_id;
-        $autopart->make_id = $request->make_id;
-        $autopart->model_id = $request->model_id;
+        
         //Validar y llenar rango de años
         $years = $request->years ? Arr::pluck($request->years, 'name'): [];
         if (count($years) > 1) {
@@ -320,8 +310,8 @@ class AutopartController extends Controller
         
         $autopart = Autopart::find($request->id);
         $autopart->name = $request->name;     
-        $autopart->autopart_number = $request->autopart_number;     
-        $autopart->location = $request->location;
+        $autopart->autopart_number = $request->autopart_number;
+        $autopart->location_id = $request->location_id;
         $autopart->category_id = $request->category_id;
         $autopart->position_id = $request->position_id;
         $autopart->side_id = $request->side_id;
