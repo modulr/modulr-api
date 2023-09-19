@@ -11,6 +11,7 @@ class AutopartListLocationsSeeder extends Seeder
     public function run()
     {
         $data = [
+            'Bodega 2',
             'P1-C1-1A',
             'P1-C1-1B',
             'P1-C1-1C',

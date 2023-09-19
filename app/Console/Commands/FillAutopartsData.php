@@ -36,10 +36,10 @@ class FillAutopartsData extends Command
         $skip = $this->option('skip');
         $limit = $this->option('limit');
 
-        $this->fillImagesIdMl($skip,$limit);
+        // $this->fillImagesIdMl($skip,$limit);
 
         // // Mostrar las opciones al usuario
-        $options = ['Descripcion', 'Lado', 'Posicion', 'Numero_Parte', 'Anios', 'Orden_Anios', 'Imagenes', 'Condicion'];
+        $options = ['Descripcion', 'Lado', 'Posicion', 'Numero_Parte', 'Anios', 'Orden_Anios', 'Imagenes', 'Condicion','Ubicacion'];
         $question = new ChoiceQuestion('Elige una opción para editar autopartes:', $options);
         $question->setErrorMessage('Opción inválida.');
 
@@ -71,6 +71,9 @@ class FillAutopartsData extends Command
                 break;
             case 'Condicion':
                 $this->copyOriginToCondition($skip,$limit);
+                break;
+            case 'Ubicacion':
+                $this->fillLocation($skip,$limit);
                 break;
             default:
                 $this->info('Opción no reconocida.');
@@ -534,5 +537,64 @@ class FillAutopartsData extends Command
         }
         $this->output->writeln('');
         $this->info('Copiar origen a condición terminado.');
+    }
+
+    private function fillLocation($skip,$limit)
+    {
+
+        $autoparts = DB::table('autoparts')
+        ->where('location_id', null)
+        ->where('store_id', 1)
+        ->where('status_id', 1)
+        ->get();
+        // $autoparts = DB::table('autoparts')
+        // ->select('id', 'ml_id', 'name', 'location','location_id')
+        // ->selectRaw('
+        //     CASE
+        //         WHEN `location` LIKE "%P2-%" THEN "P2-"
+        //         WHEN `description` LIKE "%P2-%" THEN 
+        //             CASE 
+        //                 WHEN LOCATE("P2-", `description`) > 0 THEN 
+        //                     SUBSTRING(`description`, LOCATE("P2-", `description`), 8) -- Ajusta la longitud según tus necesidades
+        //                 ELSE `description`
+        //             END
+        //         ELSE NULL
+        //     END AS `description`
+        // ')
+        // ->where(function ($query) {
+        //     $query->where('location', 'LIKE', '%P2-%')
+        //         ->orWhere('description', 'LIKE', '%P2-%');
+        // })
+        // ->where('store_id', 1)
+        // ->where('status_id', 1)
+        // ->where('location_id', null)
+        // ->orderBy('id')
+        // ->get();
+
+        // Crea una instancia de ProgressBar
+        $progressBar = new ProgressBar($this->output, count($autoparts));
+        // Inicia la barra de progreso
+        $progressBar->start();
+        foreach ($autoparts as $key => $aut) {
+        
+            $location = $aut->location;
+            $description = $aut->description;
+        
+            $result = DB::table('autopart_list_locations')
+                ->where('name', 'LIKE', "$location")
+                ->orWhere('name', 'LIKE', "$description")
+                ->get();
+
+            // Verificar si se encontró un resultado antes de acceder al ID
+            if (count($result) > 0) {
+                DB::table('autoparts')
+                ->where('id', $aut->id)
+                ->update(['location_id' => $result[0]->id]);
+            }
+        
+            $progressBar->advance();
+        }
+        $this->output->writeln('');
+        $this->info('Completar ubicaciones terminado.');
     }
 }
