@@ -9,7 +9,7 @@ class AddLocationIdToAutoparts extends Migration
     public function up()
     {
         Schema::table('autoparts', function (Blueprint $table) {
-            $table->unsignedInteger('location_id')->nullable()->after('description');
+            $table->unsignedBigInteger('location_id')->nullable()->after('description');
 
             $table->foreign('location_id')->references('id')->on('autopart_list_locations');
         });
