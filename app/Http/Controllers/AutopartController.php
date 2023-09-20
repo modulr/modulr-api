@@ -12,6 +12,7 @@ use App\Models\Autopart;
 use App\Models\AutopartImage;
 use App\Models\AutopartActivity;
 use App\Models\AutopartListLocation;
+use App\Helpers\ApiMl;
 
 class AutopartController extends Controller
 {
@@ -240,7 +241,7 @@ class AutopartController extends Controller
             'user_id' => $request->user()->id
         ]);
 
-        return Autopart::with([
+        $newAutopart = Autopart::with([
             'category',
             'position',
             'side',
@@ -256,18 +257,23 @@ class AutopartController extends Controller
             }
             ])
             ->find($autopart->id);
+
+        if ($autopart->store_ml_id) {
+            $createML = ApiMl::createAutopartMl($newAutopart);
+        } else {
+            $createML = false;
+        }
+
+        return $newAutopart;
     }
 
     public function update (Request $request)
     {
         $request->validate([
             'name' => 'required|string',
-            //'location' => 'required|string',
         ]);
 
         $autopart = Autopart::find($request->id);
-        $autopart->name = $request->name;     
-        $autopart->autopart_number = $request->autopart_number;
         
         //Validar cambio ubicacion
         if($autopart->location_id !== $request->location_id){
@@ -283,14 +289,7 @@ class AutopartController extends Controller
                 $baja_stock->save();
             }
         }
-        $autopart->location_id = $request->location_id;
-        $autopart->category_id = $request->category_id;
-        $autopart->position_id = $request->position_id;
-        $autopart->side_id = $request->side_id;
-        $autopart->condition_id = $request->condition_id;
-        $autopart->origin_id = $request->origin_id;
-        $autopart->make_id = $request->make_id;
-        $autopart->model_id = $request->model_id;
+        
         //Validar y llenar rango de años
         $years = $request->years ? Arr::pluck($request->years, 'name'): [];
         if (count($years) > 1) {
@@ -320,8 +319,8 @@ class AutopartController extends Controller
         
         $autopart = Autopart::find($request->id);
         $autopart->name = $request->name;     
-        $autopart->autopart_number = $request->autopart_number;     
-        $autopart->location = $request->location;
+        $autopart->autopart_number = $request->autopart_number;
+        $autopart->location_id = $request->location_id;
         $autopart->category_id = $request->category_id;
         $autopart->position_id = $request->position_id;
         $autopart->side_id = $request->side_id;
@@ -337,13 +336,25 @@ class AutopartController extends Controller
         $autopart->updated_by = $request->user()->id;
         $autopart->save();
 
+        if ($autopart->store_ml_id !== $request->store_ml_id) {
+            $changeStore = true;
+        } else {
+            $changeStore = false;
+        }
+
+        if ($request->store_ml_id && (($autopart->status_id !== $request->status_id) || ($autopart->sale_price !== $request->sale_price) || ($autopart->name !== $request->name) || ($autopart->description !== $request->description))) {
+            $changeStatus = true;
+        } else {
+            $changeStatus = false;
+        }
+
         AutopartActivity::create([
             'activity' => 'Autoparte actualizada',
             'autopart_id' => $request->id,
             'user_id' => $request->user()->id
         ]);
 
-        return Autopart::with([
+        $updatedAutopart = Autopart::with([
             'category',
             'position',
             'side',
@@ -360,7 +371,23 @@ class AutopartController extends Controller
             }
             ])
             ->find($autopart->id);
+
+        if ($changeStore) {
+            $sync = ApiMl::createAutopartMl($updatedAutopart);
+        } else if ($changeStatus) {
+            $response = ApiMl::getupdatedAutopartMl($updatedAutopart);
+            if ($response->response) {
+                $sync = ApiMl::updateAutopartMl($updatedAutopart);
+            } else {
+                $sync = false;
+            }
+        } else {
+            $sync = false;
+        }
+
+        return $updatedAutopart;
     }
+
 
     public function getDescription (Request $request)
     {

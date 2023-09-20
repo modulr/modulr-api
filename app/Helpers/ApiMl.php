@@ -9,6 +9,9 @@ use Carbon\Carbon;
 use App\Notifications\AutopartNotification;
 
 use App\Models\User;
+use App\Models\Autopart;
+use App\Models\AutopartImage;
+use App\Models\AutopartListCategory;
 
 class ApiMl
 {
@@ -520,5 +523,299 @@ class ApiMl
         }
 
         return $nameArray;
+    }
+
+    public static function createAutopartMl ($autopart)
+    {
+        self::checkAccessToken($autopart->store_ml_id);
+        $name = $autopart->name;
+
+        $images = [];
+        if (count($autopart->images) > 0) {
+            $sortedImages = $autopart->images->sortBy('order')->take(10);
+            foreach ($sortedImages as $value) {
+                array_push($images, ['source' => $value['url']]);
+            };
+        }
+
+        if ($autopart->origin_id == 1) {
+            $origin = 'new';
+            $listing_type_id = 'gold_special';
+        } else {
+            $origin = 'used';
+            $listing_type_id = 'gold_special';
+        }
+        
+        if(is_null($autopart->category->ml_id)){
+            $categoryId = self::getCategoryMl($autopart);
+        }else{
+            $categoryId = $autopart->category->ml_id;
+        }
+
+        $storeMl = DB::table('stores_ml')->find($autopart->store_ml_id);
+        $client = new \GuzzleHttp\Client(['base_uri' => 'https://api.mercadolibre.com']);
+
+        try {
+            $update = $client->request('POST', 'items', [
+                'headers' => [
+                    'Accept' => '*/*',
+                    'Content-Type' => 'application/json',
+                    'Authorization' => 'Bearer '. $storeMl->access_token
+                ],
+                'json' => [
+                    "title" => substr($name, 0, 60),
+                    "price" => $autopart->sale_price,
+                    "category_id" => $categoryId,
+                    "currency_id" => "MXN",
+                    "available_quantity" => 1,
+                    "buying_mode" => "buy_it_now",
+                    "listing_type_id" => $listing_type_id,
+                    "pictures" => 
+                        $images
+                    ,
+                    "attributes" => [
+                        [
+                            "id" => "BRAND",
+                            "value_name" => $autopart->make->name
+                        ],
+                        [
+                            "id" => "MODEL",
+                            "value_name" => $autopart->model->name
+                        ],
+                        [
+                            "id" => "PART_NUMBER",
+                            "value_name" => $autopart->autopart_number
+                        ],
+                        [
+                            "id" => "ITEM_CONDITION",
+                            "value_name" => $autopart->condition->name
+                        ],
+                        [
+                            "id" => "ORIGIN",
+                            "value_name" => $autopart->origin->name
+                        ],
+                        [
+                            "id" => "SELLER_SKU",
+                            "value_name" => $autopart->id
+                        ]
+                        
+                    ]
+                ]
+            ]);
+            $autopartMl = json_decode($update->getBody());
+            $mlId = trim($update->getHeaders()['location'][0], 'http://api.mercadolibre.com/items/');
+
+            if(count($autopartMl->pictures > 0)){
+                foreach ($autopartMl->pictures as $key => $imageMl) {
+                    $img = AutopartImage::where('autopart_id', $autopart->id)->where('order',$key)->first();
+                    $img->img_ml_id = $imageMl->id;
+                    $img->save(); 
+                }
+            }
+            $autopart = Autopart::find($autopart->id);
+            $autopart->ml_id = $mlId;
+            $autopart->store_ml_id = $storeMl->id;
+            $autopart->store_id = $storeMl->store_id;
+            $autopart->status_id = 5;
+            $autopart->save();
+
+            if($autopart->ml_id && $autopart->description !== null){
+                self::updateDescriptionAutopartMl($autopart,false);
+            }
+            logger('Se creo la autoparte en mercadolibre '.$autopart->id.' - '.$mlId);
+            return true;
+        }
+        catch (\GuzzleHttp\Exception\ClientException $e) {
+            logger($e->getResponse()->getBody());
+
+            $autopart = Autopart::find($autopart->id);
+            $autopart->store_ml_id = null;
+            $autopart->save();
+
+            logger('No se creo la autoparte en mercadolibre '.$autopart->id);
+            return false;
+        }
+    }
+
+    private function updateAutopartMl ($autopart)
+    {
+        self::checkAccessToken($autopart->store_ml_id);
+
+        if ($autopart->status_id == 4) {
+            $status = 'closed';
+        } else if ($autopart->status_id == 3){
+            $status = 'paused';
+        }else {
+            $status = 'active';
+        }
+
+        $name = $autopart->name;
+
+        $images = [];
+        if (count($autopart->images) > 0) {
+            $sortedImages = $autopart->images->sortBy('order')->take(10);
+            foreach ($sortedImages as $value) {
+                if (isset($value['img_ml_id'])) {
+                    array_push($images, ['id' => $value['img_ml_id']]);
+                }else{
+                    array_push($images, ['source' => $value['url']]);
+                }
+            };
+        }
+        $storeMl = DB::table('stores_ml')->find($autopart->store_ml_id);
+        $client = new \GuzzleHttp\Client(['base_uri' => 'https://api.mercadolibre.com']);
+
+        try {
+            $response = $client->request('PUT', 'items/'.$autopart->ml_id, [
+                'headers' => [
+                    'Accept' => '*/*',
+                    'Content-Type' => 'application/json',
+                    'Authorization' => 'Bearer '. $storeMl->access_token
+                ],
+                'json' => [
+                    "title" => substr($name, 0, 60),
+                    'status' => $status,
+                    "pictures" => $images
+                ]
+            ]);
+
+            $autopartMl = json_decode($response->getBody());
+
+            if(count($autopartMl->pictures > 0)){
+                foreach ($autopartMl->pictures as $key => $imageMl) {
+                    $img = AutopartImage::where('autopart_id', $autopart->id)->where('order',$key)->first();
+                    if(isset($img) && !isset($img->img_ml_id)){
+                        $img->img_ml_id = $imageMl->id;
+                        $img->save();
+                    } 
+                }
+            }
+
+            if($autopart->description !== null){
+                self::updateDescriptionAutopartMl($autopart,true);
+            }
+            logger('Se actualizo la autoparte en mercadolibre '.$autopart->ml_id);
+            return true;
+        }
+        catch (\GuzzleHttp\Exception\ClientException $e) {
+            logger($e->getResponse()->getBody());
+            logger('No se actualizo la autoparte en mercadolibre '.$autopart->ml_id);
+            return false;
+        }
+    }
+
+    private function getAutopartMl ($autopart)
+    {
+        self::checkAccessToken($autopart->store_ml_id);
+
+        $storeMl = DB::table('stores_ml')->find($autopart->store_ml_id);
+
+        $client = new \GuzzleHttp\Client(['base_uri' => 'https://api.mercadolibre.com']);
+
+        try {
+            $response = $client->request('GET', 'items?ids='.$autopart->ml_id, [
+                'headers' => [
+                    'Accept' => '*/*',
+                    'Authorization' => 'Bearer '. $storeMl->access_token
+                ]
+            ]);
+
+            $autopartMl = json_decode($response->getBody());
+
+            return (object) ['response' => true, 'autopart' => $autopartMl[0]->body];
+        }
+        catch (\GuzzleHttp\Exception\ClientException $e) {
+
+            logger('Do not get autopart '. $autopart->ml_id);
+            return (object) ['response' => false];
+        }
+    }
+
+    private static function getCategoryMl ($autopart)
+    {
+        self::checkAccessToken($autopart->store_ml_id);
+
+        $storeMl = DB::table('stores_ml')->find($autopart->store_ml_id);
+
+        $client = new \GuzzleHttp\Client(['base_uri' => 'https://api.mercadolibre.com']);
+
+        $name = $autopart->name;
+
+        try {
+            $response = $client->request('GET', 'sites/MLM/domain_discovery/search?q='.$name, [
+                'headers' => [
+                    'Authorization' => 'Bearer '.$storeMl->access_token,
+                ]
+            ]);
+
+            $category = json_decode($response->getBody());
+
+            if (count($category) > 0) {
+                $categoryId = $category[0]->category_id;
+
+                $cat = AutopartListCategory::where('id',$autopart->category_id)->first();
+                if($cat !== null){
+                    $cat->ml_id = $category[0]->category_id;
+                    $cat->name_ml = $category[0]->category_name;
+                    $cat->save();
+                }
+                
+
+            } else {
+                $categoryId = "MLM2232";
+
+                $cat = AutopartListCategory::where('name','otros')->first();
+                if(!$cat){
+
+                    AutopartListCategory::create([
+                        'name' => "OTROS",
+                        'ml_id' => "MLM2232",
+                        'name_ml' => "Otros"
+                    ]);
+                }
+                
+            }
+
+            return $categoryId;
+        }
+        catch (\GuzzleHttp\Exception\ClientException $e) {
+            logger($e->getResponse()->getBody());
+
+            return "MLM2232";
+        }
+    }
+
+    private function updateDescriptionAutopartMl ($autopart,$put)
+    {
+        $storeMl = DB::table('stores_ml')->find($autopart->store_ml_id);
+        $client = new \GuzzleHttp\Client(['base_uri' => 'https://api.mercadolibre.com']);
+
+        try {
+            if($put){
+                $request_type = 'PUT';
+            }else{
+                $request_type = 'POST';
+            }
+            
+            $client->request($request_type, 'items/'.$autopart->ml_id.'/description', [
+                'headers' => [
+                    'Accept' => '*/*',
+                    'Content-Type' => 'application/json',
+                    'Authorization' => 'Bearer '. $storeMl->access_token
+                ],
+                'json' => [
+                    "plain_text" => $autopart->description
+                ]
+            ]);
+
+            // logger('Se actualizó la descripción en mercadolibre '.$autopart->ml_id);
+            return true;
+        }
+        catch (\GuzzleHttp\Exception\ClientException $e) {
+            logger($e->getResponse()->getBody());
+            logger('No se actualizó la descripción en mercadolibre '.$autopart->ml_id);
+            return false;
+        }
+        
     }
 }
