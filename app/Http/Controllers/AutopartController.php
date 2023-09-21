@@ -334,8 +334,8 @@ class AutopartController extends Controller
         $autopart->status_id = $status;
         $autopart->store_ml_id = $request->store_ml_id;
         $autopart->updated_by = $request->user()->id;
-        $autopart->save();
-
+        logger(["Store Guardada"=>$autopart->store_ml_id]);
+        logger(["Store Nueva"=>$changeStore]);
         if ($autopart->store_ml_id !== $request->store_ml_id) {
             $changeStore = true;
         } else {
@@ -347,6 +347,7 @@ class AutopartController extends Controller
         } else {
             $changeStatus = false;
         }
+        $autopart->save();
 
         AutopartActivity::create([
             'activity' => 'Autoparte actualizada',
