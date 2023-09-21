@@ -556,6 +556,7 @@ class ApiMl
         $client = new \GuzzleHttp\Client(['base_uri' => 'https://api.mercadolibre.com']);
 
         try {
+            logger(["POST"=>1]);
             $update = $client->request('POST', 'items', [
                 'headers' => [
                     'Accept' => '*/*',
@@ -617,6 +618,8 @@ class ApiMl
             $autopart->store_ml_id = $storeMl->id;
             $autopart->store_id = $storeMl->store_id;
             $autopart->status_id = 5;
+            logger(["autopart"=>$autopart]);
+
             $autopart->save();
 
             if($autopart->ml_id && $autopart->description !== null){
