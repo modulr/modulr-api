@@ -335,7 +335,7 @@ class AutopartController extends Controller
         $autopart->store_ml_id = $request->store_ml_id;
         $autopart->updated_by = $request->user()->id;
         logger(["Store Guardada"=>$autopart->store_ml_id]);
-        logger(["Store Nueva"=>$changeStore]);
+        logger(["Store Nueva"=>$request->store_ml_id]);
         if ($autopart->store_ml_id !== $request->store_ml_id) {
             $changeStore = true;
         } else {
