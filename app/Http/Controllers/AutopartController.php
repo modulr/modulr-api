@@ -274,7 +274,6 @@ class AutopartController extends Controller
         ]);
 
         $autopart = Autopart::find($request->id);
-        logger(["Store Guardada"=>$autopart]);
         
         //Validar cambio ubicacion
         if($autopart->location_id !== $request->location_id){
