@@ -375,7 +375,7 @@ class AutopartController extends Controller
         if ($changeStore) {
             $sync = ApiMl::createAutopartMl($updatedAutopart);
         } else if ($changeStatus) {
-            $response = ApiMl::getupdatedAutopartMl($updatedAutopart);
+            $response = ApiMl::getAutopartMl($updatedAutopart);
             if ($response->response) {
                 $sync = ApiMl::updateAutopartMl($updatedAutopart);
             } else {
