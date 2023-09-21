@@ -274,6 +274,7 @@ class AutopartController extends Controller
         ]);
 
         $autopart = Autopart::find($request->id);
+        logger(["Store Guardada"=>$autopart]);
         
         //Validar cambio ubicacion
         if($autopart->location_id !== $request->location_id){
@@ -316,8 +317,19 @@ class AutopartController extends Controller
         } else {
             $status = 5;
         }
+
+        if ($autopart->store_ml_id !== $request->store_ml_id) {
+            $changeStore = true;
+        } else {
+            $changeStore = false;
+        }
+
+        if ($request->store_ml_id && (($autopart->status_id !== $request->status_id) || ($autopart->sale_price !== $request->sale_price) || ($autopart->name !== $request->name) || ($autopart->description !== $request->description))) {
+            $changeStatus = true;
+        } else {
+            $changeStatus = false;
+        }
         
-        $autopart = Autopart::find($request->id);
         $autopart->name = $request->name;     
         $autopart->autopart_number = $request->autopart_number;
         $autopart->location_id = $request->location_id;
@@ -334,19 +346,6 @@ class AutopartController extends Controller
         $autopart->status_id = $status;
         $autopart->store_ml_id = $request->store_ml_id;
         $autopart->updated_by = $request->user()->id;
-        logger(["Store Guardada"=>$autopart->store_ml_id]);
-        logger(["Store Nueva"=>$request->store_ml_id]);
-        if ($autopart->store_ml_id !== $request->store_ml_id) {
-            $changeStore = true;
-        } else {
-            $changeStore = false;
-        }
-
-        if ($request->store_ml_id && (($autopart->status_id !== $request->status_id) || ($autopart->sale_price !== $request->sale_price) || ($autopart->name !== $request->name) || ($autopart->description !== $request->description))) {
-            $changeStatus = true;
-        } else {
-            $changeStatus = false;
-        }
         $autopart->save();
 
         AutopartActivity::create([
