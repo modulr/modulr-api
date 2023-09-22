@@ -608,7 +608,7 @@ class ApiMl
             logger(["mlId"=>$mlId]);
             logger(["pictures"=>$autopartMl->pictures]);
 
-            if(count($autopartMl->pictures > 0)){
+            if(count($autopartMl->pictures) > 0){
                 foreach ($autopartMl->pictures as $key => $imageMl) {
                     $img = AutopartImage::where('autopart_id', $autopart->id)->where('order',$key)->first();
                     $img->img_ml_id = $imageMl->id;
