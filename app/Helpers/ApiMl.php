@@ -549,58 +549,56 @@ class ApiMl
         }
 
         // $storeMl = DB::table('stores_ml')->find($autopart->store_ml_id);
-        $client = new \GuzzleHttp\Client(['base_uri' => 'https://api.mercadolibre.com']);
+        // $client = new \GuzzleHttp\Client(['base_uri' => 'https://api.mercadolibre.com']);
 
         try {
             $update = Http::withHeaders([
                 'Authorization' => 'Bearer '.$autopart->storeMl->access_token,
             ])->post('https://api.mercadolibre.com/items', [
-                'json' => [
-                    "title" => substr($autopart->name, 0, 60),
-                    "price" => $autopart->sale_price,
-                    "category_id" => $categoryId,
-                    "currency_id" => "MXN",
-                    "available_quantity" => 1,
-                    "buying_mode" => "buy_it_now",
-                    "listing_type_id" => "gold_special",
-                    "pictures" => 
-                        $images
-                    ,
-                    "attributes" => [
-                        [
-                            "id" => "BRAND",
-                            "value_name" => $autopart->make->name
-                        ],
-                        [
-                            "id" => "MODEL",
-                            "value_name" => $autopart->model->name
-                        ],
-                        [
-                            "id" => "PART_NUMBER",
-                            "value_name" => $autopart->autopart_number
-                        ],
-                        [
-                            "id" => "ITEM_CONDITION",
-                            "value_name" => $autopart->condition->name
-                        ],
-                        [
-                            "id" => "ORIGIN",
-                            "value_name" => $autopart->origin->name
-                        ],
-                        [
-                            "id" => "SELLER_SKU",
-                            "value_name" => $autopart->id
-                        ],
-                        [
-                            "id" => "SIDE",
-                            "value_name" => $autopart->side->name
-                        ],
-                        [
-                            "id" => "POSITION",
-                            "value_name" => $autopart->position->name
-                        ]
-                        
+                "title" => substr($autopart->name, 0, 60),
+                "price" => $autopart->sale_price,
+                "category_id" => $categoryId,
+                "currency_id" => "MXN",
+                "available_quantity" => 1,
+                "buying_mode" => "buy_it_now",
+                "listing_type_id" => "gold_special",
+                "pictures" => 
+                    $images
+                ,
+                "attributes" => [
+                    [
+                        "id" => "BRAND",
+                        "value_name" => $autopart->make->name
+                    ],
+                    [
+                        "id" => "MODEL",
+                        "value_name" => $autopart->model->name
+                    ],
+                    [
+                        "id" => "PART_NUMBER",
+                        "value_name" => $autopart->autopart_number
+                    ],
+                    [
+                        "id" => "ITEM_CONDITION",
+                        "value_name" => $autopart->condition->name
+                    ],
+                    [
+                        "id" => "ORIGIN",
+                        "value_name" => $autopart->origin->name
+                    ],
+                    [
+                        "id" => "SELLER_SKU",
+                        "value_name" => $autopart->id
+                    ],
+                    [
+                        "id" => "SIDE",
+                        "value_name" => $autopart->side->name
+                    ],
+                    [
+                        "id" => "POSITION",
+                        "value_name" => $autopart->position->name
                     ]
+                    
                 ]
             ]);
 
