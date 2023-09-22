@@ -660,6 +660,7 @@ class ApiMl
             // ]);
 
             $autopartMl = json_decode($update->getBody());
+            logger(["autopart ML"=>$autopartMl]);
             $mlId = trim($update->getHeaders()['location'][0], 'http://api.mercadolibre.com/items/');
 
             if(count($autopartMl->pictures) > 0){
