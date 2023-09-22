@@ -553,7 +553,7 @@ class ApiMl
 
         try {
             $update = Http::withHeaders([
-                'Authorization' => 'Bearer '.self::$autopart->storeMl->access_token,
+                'Authorization' => 'Bearer '.$autopart->storeMl->access_token,
             ])->post('https://api.mercadolibre.com/items', [
                 'json' => [
                     "title" => substr($autopart->name, 0, 60),
