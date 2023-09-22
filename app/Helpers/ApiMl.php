@@ -529,7 +529,7 @@ class ApiMl
     {
         self::checkAccessToken($autopart->store_ml_id);
         $name = $autopart->name;
-
+        $changeDescription = false;
         $images = [];
         if (count($autopart->images) > 0) {
             $sortedImages = $autopart->images->sortBy('order')->take(10);
