@@ -560,7 +560,6 @@ class ApiMl
         $client = new \GuzzleHttp\Client(['base_uri' => 'https://api.mercadolibre.com']);
 
         try {
-            logger(["POST"=>1]);
             $update = $client->request('POST', 'items', [
                 'headers' => [
                     'Accept' => '*/*',
@@ -609,8 +608,6 @@ class ApiMl
             ]);
             $autopartMl = json_decode($update->getBody());
             $mlId = trim($update->getHeaders()['location'][0], 'http://api.mercadolibre.com/items/');
-            logger(["mlId"=>$mlId]);
-            logger(["pictures"=>$autopartMl->pictures]);
 
             if(count($autopartMl->pictures) > 0){
                 foreach ($autopartMl->pictures as $key => $imageMl) {
@@ -629,6 +626,7 @@ class ApiMl
             $autopart->save();
 
             if($autopart->ml_id && $changeDescription){
+                logger(["ChangeDescription"=>1]);
                 self::updateDescriptionAutopartMl($autopart,false);
             }
             logger('Se creo la autoparte en mercadolibre '.$autopart->id.' - '.$mlId);
@@ -796,6 +794,8 @@ class ApiMl
 
     private function updateDescriptionAutopartMl ($autopart,$put)
     {
+        logger(["ChangeDescription"=>$autopart->description]);
+
         $storeMl = DB::table('stores_ml')->find($autopart->store_ml_id);
         $client = new \GuzzleHttp\Client(['base_uri' => 'https://api.mercadolibre.com']);
 

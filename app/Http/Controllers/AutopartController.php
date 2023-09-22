@@ -330,6 +330,7 @@ class AutopartController extends Controller
         }
         
         $autopart->name = $request->name;     
+        $autopart->description = $request->description;     
         $autopart->autopart_number = $request->autopart_number;
         $autopart->location_id = $request->location_id;
         $autopart->category_id = $request->category_id;
