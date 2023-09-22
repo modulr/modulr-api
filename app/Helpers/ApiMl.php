@@ -552,6 +552,10 @@ class ApiMl
             $categoryId = $autopart->category->ml_id;
         }
 
+        if($autopart->description !== null){
+            $changeDescription = true;
+        }
+
         $storeMl = DB::table('stores_ml')->find($autopart->store_ml_id);
         $client = new \GuzzleHttp\Client(['base_uri' => 'https://api.mercadolibre.com']);
 
@@ -624,7 +628,7 @@ class ApiMl
 
             $autopart->save();
 
-            if($autopart->ml_id && $autopart->description !== null){
+            if($autopart->ml_id && $changeDescription){
                 self::updateDescriptionAutopartMl($autopart,false);
             }
             logger('Se creo la autoparte en mercadolibre '.$autopart->id.' - '.$mlId);
