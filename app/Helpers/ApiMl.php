@@ -659,7 +659,7 @@ class ApiMl
             //     ]
             // ]);
 
-            $autopartMl = json_decode($update->getBody()[0]);
+            $autopartMl = json_decode($update->getBody());
             $mlId = trim($update->getHeaders()['location'][0], 'http://api.mercadolibre.com/items/');
 
             if(count($autopartMl->pictures) > 0){
@@ -692,7 +692,7 @@ class ApiMl
         }
     }
 
-    private static function updateAutopartMl ($autopart)
+    public static function updateAutopartMl ($autopart)
     {
         self::checkAccessToken($autopart->store_ml_id);
 
@@ -759,7 +759,7 @@ class ApiMl
         }
     }
 
-    private static function getAutopartMl ($autopart)
+    public static function getAutopartMl ($autopart)
     {
         self::checkAccessToken($autopart->store_ml_id);
 
