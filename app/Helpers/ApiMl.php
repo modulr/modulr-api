@@ -644,7 +644,7 @@ class ApiMl
         }
     }
 
-    private function updateAutopartMl ($autopart)
+    private static function updateAutopartMl ($autopart)
     {
         self::checkAccessToken($autopart->store_ml_id);
 
@@ -711,7 +711,7 @@ class ApiMl
         }
     }
 
-    private function getAutopartMl ($autopart)
+    private static function getAutopartMl ($autopart)
     {
         self::checkAccessToken($autopart->store_ml_id);
 
@@ -792,7 +792,7 @@ class ApiMl
         }
     }
 
-    private function updateDescriptionAutopartMl ($autopart,$put)
+    private static function updateDescriptionAutopartMl ($autopart,$put)
     {
         logger(["ChangeDescription"=>$autopart->description]);
 
