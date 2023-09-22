@@ -601,6 +601,14 @@ class ApiMl
                         [
                             "id" => "SELLER_SKU",
                             "value_name" => $autopart->id
+                        ],
+                        [
+                            "id" => "SIDE",
+                            "value_name" => $autopart->side->name
+                        ],
+                        [
+                            "id" => "POSITION",
+                            "value_name" => $autopart->position->name
                         ]
                         
                     ]
@@ -621,12 +629,10 @@ class ApiMl
             $autopart->store_ml_id = $storeMl->id;
             $autopart->store_id = $storeMl->store_id;
             $autopart->status_id = 5;
-            logger(["autopart"=>$autopart]);
 
             $autopart->save();
 
             if($autopart->ml_id && $changeDescription){
-                logger(["ChangeDescription"=>1]);
                 self::updateDescriptionAutopartMl($autopart,false);
             }
             logger('Se creo la autoparte en mercadolibre '.$autopart->id.' - '.$mlId);
@@ -794,7 +800,6 @@ class ApiMl
 
     private static function updateDescriptionAutopartMl ($autopart,$put)
     {
-        logger(["ChangeDescription"=>$autopart->description]);
 
         $storeMl = DB::table('stores_ml')->find($autopart->store_ml_id);
         $client = new \GuzzleHttp\Client(['base_uri' => 'https://api.mercadolibre.com']);
