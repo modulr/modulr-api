@@ -599,7 +599,7 @@ class ApiMl
         ]);
         logger(["response"=>$response]);
 
-        if($response->successfull()){
+        if($response->successful()){
             $autopartMl = $response->object();
             logger(["autopart ML"=>$autopartMl]);
 
