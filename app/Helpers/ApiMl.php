@@ -548,118 +548,59 @@ class ApiMl
             $changeDescription = true;
         }
 
-        // $storeMl = DB::table('stores_ml')->find($autopart->store_ml_id);
-        // $client = new \GuzzleHttp\Client(['base_uri' => 'https://api.mercadolibre.com']);
-
-        try {
-            $update = Http::withHeaders([
-                'Authorization' => 'Bearer '.$autopart->storeMl->access_token,
-            ])->post('https://api.mercadolibre.com/items', [
-                "title" => substr($autopart->name, 0, 60),
-                "price" => $autopart->sale_price,
-                "category_id" => $categoryId,
-                "currency_id" => "MXN",
-                "available_quantity" => 1,
-                "buying_mode" => "buy_it_now",
-                "listing_type_id" => "gold_special",
-                "pictures" => 
-                    $images
-                ,
-                "attributes" => [
-                    [
-                        "id" => "BRAND",
-                        "value_name" => $autopart->make->name
-                    ],
-                    [
-                        "id" => "MODEL",
-                        "value_name" => $autopart->model->name
-                    ],
-                    [
-                        "id" => "PART_NUMBER",
-                        "value_name" => $autopart->autopart_number
-                    ],
-                    [
-                        "id" => "ITEM_CONDITION",
-                        "value_name" => $autopart->condition->name
-                    ],
-                    [
-                        "id" => "ORIGIN",
-                        "value_name" => $autopart->origin->name
-                    ],
-                    [
-                        "id" => "SELLER_SKU",
-                        "value_name" => $autopart->id
-                    ],
-                    [
-                        "id" => "SIDE",
-                        "value_name" => $autopart->side->name
-                    ],
-                    [
-                        "id" => "POSITION",
-                        "value_name" => $autopart->position->name
-                    ]
-                    
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer '.$autopart->storeMl->access_token,
+        ])->post('https://api.mercadolibre.com/items', [
+            "title" => substr($autopart->name, 0, 60),
+            "price" => $autopart->sale_price,
+            "category_id" => $categoryId,
+            "currency_id" => "MXN",
+            "available_quantity" => 1,
+            "buying_mode" => "buy_it_now",
+            "listing_type_id" => "gold_special",
+            "pictures" => 
+                $images
+            ,
+            "attributes" => [
+                [
+                    "id" => "BRAND",
+                    "value_name" => $autopart->make ? $autopart->make->name : null
+                ],
+                [
+                    "id" => "MODEL",
+                    "value_name" => $autopart->model ? $autopart->model->name : null
+                ],
+                [
+                    "id" => "PART_NUMBER",
+                    "value_name" => $autopart->autopart_number
+                ],
+                [
+                    "id" => "ITEM_CONDITION",
+                    "value_name" => $autopart->condition ? $autopart->condition->name : null
+                ],
+                [
+                    "id" => "ORIGIN",
+                    "value_name" => $autopart->origin ? $autopart->origin->name : null
+                ],
+                [
+                    "id" => "SELLER_SKU",
+                    "value_name" => $autopart->id
+                ],
+                [
+                    "id" => "SIDE",
+                    "value_name" => $autopart->side ? $autopart->side->name : null
+                ],
+                [
+                    "id" => "POSITION",
+                    "value_name" => $autopart->position ? $autopart->position->name : null
                 ]
-            ]);
+                
+            ]
+        ]);
 
-            // $update = $client->request('POST', 'items', [
-            //     'headers' => [
-            //         'Accept' => '*/*',
-            //         'Content-Type' => 'application/json',
-            //         'Authorization' => 'Bearer '. $autopart->storeMl->access_token
-            //     ],
-            //     'json' => [
-            //         "title" => substr($autopart->name, 0, 60),
-            //         "price" => $autopart->sale_price,
-            //         "category_id" => $categoryId,
-            //         "currency_id" => "MXN",
-            //         "available_quantity" => 1,
-            //         "buying_mode" => "buy_it_now",
-            //         "listing_type_id" => "gold_special",
-            //         "pictures" => 
-            //             $images
-            //         ,
-            //         "attributes" => [
-            //             [
-            //                 "id" => "BRAND",
-            //                 "value_name" => $autopart->make->name
-            //             ],
-            //             [
-            //                 "id" => "MODEL",
-            //                 "value_name" => $autopart->model->name
-            //             ],
-            //             [
-            //                 "id" => "PART_NUMBER",
-            //                 "value_name" => $autopart->autopart_number
-            //             ],
-            //             [
-            //                 "id" => "ITEM_CONDITION",
-            //                 "value_name" => $autopart->condition->name
-            //             ],
-            //             [
-            //                 "id" => "ORIGIN",
-            //                 "value_name" => $autopart->origin->name
-            //             ],
-            //             [
-            //                 "id" => "SELLER_SKU",
-            //                 "value_name" => $autopart->id
-            //             ],
-            //             [
-            //                 "id" => "SIDE",
-            //                 "value_name" => $autopart->side->name
-            //             ],
-            //             [
-            //                 "id" => "POSITION",
-            //                 "value_name" => $autopart->position->name
-            //             ]
-                        
-            //         ]
-            //     ]
-            // ]);
-
-            $autopartMl = json_decode($update->getBody());
+        if($response->status() == 200){
+            $autopartMl = $response->object();
             logger(["autopart ML"=>$autopartMl]);
-            $mlId = trim($update->getHeaders()['location'][0], 'http://api.mercadolibre.com/items/');
 
             if(count($autopartMl->pictures) > 0){
                 foreach ($autopartMl->pictures as $key => $imageMl) {
@@ -669,26 +610,26 @@ class ApiMl
                 }
             }
             $autopart = Autopart::find($autopart->id);
-            $autopart->ml_id = $mlId;
+            $autopart->store_ml_id = $autopart->store_ml_id;
+            $autopart->ml_id = $autopartMl->id;
 
             $autopart->save();
 
             if($autopart->ml_id && $changeDescription){
                 self::updateDescriptionAutopartMl($autopart,false);
             }
-            logger('Se creo la autoparte en mercadolibre '.$autopart->id.' - '.$mlId);
+            logger('Se creo la autoparte en mercadolibre '.$autopart->id.' - '.$autopartMl->id);
             return true;
-        }
-        catch (\GuzzleHttp\Exception\ClientException $e) {
-            logger($e->getResponse()->getBody());
 
+        }else{
+            logger('No creo la autoparte en mercadolibre '.$autopart->id);
             $autopart = Autopart::find($autopart->id);
             $autopart->store_ml_id = null;
             $autopart->save();
 
-            logger('No se creo la autoparte en mercadolibre '.$autopart->id);
             return false;
         }
+
     }
 
     public static function updateAutopartMl ($autopart)
