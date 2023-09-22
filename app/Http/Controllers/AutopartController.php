@@ -372,8 +372,6 @@ class AutopartController extends Controller
             ])
             ->find($autopart->id);
             
-            logger(["Change Store"=>$changeStore]);
-            logger(["Change Status"=>$changeStatus]);
         if ($changeStore) {
             $sync = ApiMl::createAutopartMl($updatedAutopart);
         } else if ($changeStatus) {
@@ -387,7 +385,7 @@ class AutopartController extends Controller
             $sync = false;
         }
 
-        return $updatedAutopart;
+        return ["autopart" => $updatedAutopart, "sync" => $sync];
     }
 
 

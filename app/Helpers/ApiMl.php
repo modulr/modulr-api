@@ -528,22 +528,14 @@ class ApiMl
     public static function createAutopartMl ($autopart)
     {
         self::checkAccessToken($autopart->store_ml_id);
-        $name = $autopart->name;
         $changeDescription = false;
         $images = [];
+
         if (count($autopart->images) > 0) {
             $sortedImages = $autopart->images->sortBy('order')->take(10);
             foreach ($sortedImages as $value) {
                 array_push($images, ['source' => $value['url']]);
             };
-        }
-
-        if ($autopart->origin_id == 1) {
-            $origin = 'new';
-            $listing_type_id = 'gold_special';
-        } else {
-            $origin = 'used';
-            $listing_type_id = 'gold_special';
         }
         
         if(is_null($autopart->category->ml_id)){
@@ -556,24 +548,21 @@ class ApiMl
             $changeDescription = true;
         }
 
-        $storeMl = DB::table('stores_ml')->find($autopart->store_ml_id);
+        // $storeMl = DB::table('stores_ml')->find($autopart->store_ml_id);
         $client = new \GuzzleHttp\Client(['base_uri' => 'https://api.mercadolibre.com']);
 
         try {
-            $update = $client->request('POST', 'items', [
-                'headers' => [
-                    'Accept' => '*/*',
-                    'Content-Type' => 'application/json',
-                    'Authorization' => 'Bearer '. $storeMl->access_token
-                ],
+            $update = Http::withHeaders([
+                'Authorization' => 'Bearer '.self::$autopart->storeMl->access_token,
+            ])->post('https://api.mercadolibre.com/items', [
                 'json' => [
-                    "title" => substr($name, 0, 60),
+                    "title" => substr($autopart->name, 0, 60),
                     "price" => $autopart->sale_price,
                     "category_id" => $categoryId,
                     "currency_id" => "MXN",
                     "available_quantity" => 1,
                     "buying_mode" => "buy_it_now",
-                    "listing_type_id" => $listing_type_id,
+                    "listing_type_id" => "gold_special",
                     "pictures" => 
                         $images
                     ,
@@ -614,7 +603,63 @@ class ApiMl
                     ]
                 ]
             ]);
-            $autopartMl = json_decode($update->getBody());
+
+            // $update = $client->request('POST', 'items', [
+            //     'headers' => [
+            //         'Accept' => '*/*',
+            //         'Content-Type' => 'application/json',
+            //         'Authorization' => 'Bearer '. $autopart->storeMl->access_token
+            //     ],
+            //     'json' => [
+            //         "title" => substr($autopart->name, 0, 60),
+            //         "price" => $autopart->sale_price,
+            //         "category_id" => $categoryId,
+            //         "currency_id" => "MXN",
+            //         "available_quantity" => 1,
+            //         "buying_mode" => "buy_it_now",
+            //         "listing_type_id" => "gold_special",
+            //         "pictures" => 
+            //             $images
+            //         ,
+            //         "attributes" => [
+            //             [
+            //                 "id" => "BRAND",
+            //                 "value_name" => $autopart->make->name
+            //             ],
+            //             [
+            //                 "id" => "MODEL",
+            //                 "value_name" => $autopart->model->name
+            //             ],
+            //             [
+            //                 "id" => "PART_NUMBER",
+            //                 "value_name" => $autopart->autopart_number
+            //             ],
+            //             [
+            //                 "id" => "ITEM_CONDITION",
+            //                 "value_name" => $autopart->condition->name
+            //             ],
+            //             [
+            //                 "id" => "ORIGIN",
+            //                 "value_name" => $autopart->origin->name
+            //             ],
+            //             [
+            //                 "id" => "SELLER_SKU",
+            //                 "value_name" => $autopart->id
+            //             ],
+            //             [
+            //                 "id" => "SIDE",
+            //                 "value_name" => $autopart->side->name
+            //             ],
+            //             [
+            //                 "id" => "POSITION",
+            //                 "value_name" => $autopart->position->name
+            //             ]
+                        
+            //         ]
+            //     ]
+            // ]);
+
+            $autopartMl = json_decode($update->getBody()[0]);
             $mlId = trim($update->getHeaders()['location'][0], 'http://api.mercadolibre.com/items/');
 
             if(count($autopartMl->pictures) > 0){
@@ -626,9 +671,6 @@ class ApiMl
             }
             $autopart = Autopart::find($autopart->id);
             $autopart->ml_id = $mlId;
-            $autopart->store_ml_id = $storeMl->id;
-            $autopart->store_id = $storeMl->store_id;
-            $autopart->status_id = 5;
 
             $autopart->save();
 
