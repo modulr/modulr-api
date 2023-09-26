@@ -597,11 +597,9 @@ class ApiMl
                 
             ]
         ]);
-        logger(["response"=>$response]);
 
         if($response->successful()){
             $autopartMl = $response->object();
-            logger(["autopart ML"=>$autopartMl]);
 
             if(count($autopartMl->pictures) > 0){
                 foreach ($autopartMl->pictures as $key => $imageMl) {
