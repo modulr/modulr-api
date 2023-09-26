@@ -316,7 +316,8 @@ class AutopartController extends Controller
         } else {
             $status = 5;
         }
-
+logger(["STORE GUARDADA"=>$autopart->store_ml_id]);
+logger(["STORE REQUEST"=>$request->store_ml_id]);
         if ($autopart->store_ml_id !== $request->store_ml_id) {
             $changeStore = true;
         } else {

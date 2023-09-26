@@ -666,7 +666,6 @@ class ApiMl
             "status" => $status,
             "pictures" => $images
         ]);
-        logger(["response"=>$response]);
 
         if($response->successful()){
             $autopartMl = $response->object();
