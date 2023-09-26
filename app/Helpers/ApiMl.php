@@ -661,7 +661,7 @@ class ApiMl
 
         $response = Http::withHeaders([
             'Authorization' => 'Bearer '.$autopart->storeMl->access_token,
-        ])->put('https://api.mercadolibre.com/items', [
+        ])->put('https://api.mercadolibre.com/items/'.$autopart->ml_id, [
             "title" => substr($name, 0, 60),
             "status" => $status,
             "pictures" => $images
@@ -685,10 +685,10 @@ class ApiMl
                 self::updateDescriptionAutopartMl($autopart,true);
             }
 
-            logger('Se creo la autoparte en mercadolibre '.$autopart->id.' - '.$autopartMl->id);
+            logger('Se actualizó la autoparte en mercadolibre '.$autopart->id.' - '.$autopartMl->id);
             return true;
         }else{
-            logger('No creo la autoparte en mercadolibre '.$autopart->id);
+            logger('No actualizó la autoparte en mercadolibre '.$autopart->id);
             $autopart = Autopart::find($autopart->id);
             $autopart->store_ml_id = null;
             $autopart->save();
