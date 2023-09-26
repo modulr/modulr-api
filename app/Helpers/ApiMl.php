@@ -664,6 +664,7 @@ class ApiMl
         ])->put('https://api.mercadolibre.com/items/'.$autopart->ml_id, [
             "title" => substr($name, 0, 60),
             "status" => $status,
+            "price" => $autopart->sale_price,
             "pictures" => $images
         ]);
 
