@@ -658,26 +658,20 @@ class ApiMl
                 }
             };
         }
-        $storeMl = DB::table('stores_ml')->find($autopart->store_ml_id);
-        $client = new \GuzzleHttp\Client(['base_uri' => 'https://api.mercadolibre.com']);
 
-        try {
-            $response = $client->request('PUT', 'items/'.$autopart->ml_id, [
-                'headers' => [
-                    'Accept' => '*/*',
-                    'Content-Type' => 'application/json',
-                    'Authorization' => 'Bearer '. $storeMl->access_token
-                ],
-                'json' => [
-                    "title" => substr($name, 0, 60),
-                    'status' => $status,
-                    "pictures" => $images
-                ]
-            ]);
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer '.$autopart->storeMl->access_token,
+        ])->put('https://api.mercadolibre.com/items', [
+            "title" => substr($name, 0, 60),
+            "status" => $status,
+            "pictures" => $images
+        ]);
+        logger(["response"=>$response]);
 
-            $autopartMl = json_decode($response->getBody());
-
-            if(count($autopartMl->pictures > 0)){
+        if($response->successful()){
+            $autopartMl = $response->object();
+            
+            if(count($autopartMl->pictures) > 0){
                 foreach ($autopartMl->pictures as $key => $imageMl) {
                     $img = AutopartImage::where('autopart_id', $autopart->id)->where('order',$key)->first();
                     if(isset($img) && !isset($img->img_ml_id)){
@@ -690,12 +684,15 @@ class ApiMl
             if($autopart->description !== null){
                 self::updateDescriptionAutopartMl($autopart,true);
             }
-            logger('Se actualizo la autoparte en mercadolibre '.$autopart->ml_id);
+
+            logger('Se creo la autoparte en mercadolibre '.$autopart->id.' - '.$autopartMl->id);
             return true;
-        }
-        catch (\GuzzleHttp\Exception\ClientException $e) {
-            logger($e->getResponse()->getBody());
-            logger('No se actualizo la autoparte en mercadolibre '.$autopart->ml_id);
+        }else{
+            logger('No creo la autoparte en mercadolibre '.$autopart->id);
+            $autopart = Autopart::find($autopart->id);
+            $autopart->store_ml_id = null;
+            $autopart->save();
+
             return false;
         }
     }
