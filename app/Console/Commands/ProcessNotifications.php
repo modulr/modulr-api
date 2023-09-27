@@ -62,7 +62,6 @@ class ProcessNotifications extends Command
                     }
 
                     if (($autopart->status_id == 1 || $autopart->status_id == 2 || $autopart->status_id == 5) && ($response->autopart['status'] == 'paused' || $response->autopart['status'] == 'closed')) {
-                        logger(["Fecha creacion"=>$response->autopart['date_created']]);
                         $dateCreated = Carbon::parse($response->autopart['date_created']);
                         logger(["Fecha carbon"=>$dateCreated]);
                         $minutesAgo = Carbon::now()->subMinutes(5);
