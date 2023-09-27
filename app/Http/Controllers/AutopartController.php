@@ -267,6 +267,38 @@ class AutopartController extends Controller
         return $newAutopart;
     }
 
+    public function destroy (Request $request)
+    {
+        $autopart = Autopart::with([
+            'category',
+            'position',
+            'side',
+            'condition',
+            'origin',
+            'make',
+            'model',
+            'status',
+            'store',
+            'storeMl',
+            'location',
+            'images' => function ($query) {
+                $query->orderBy('order', 'asc');
+            }
+            ])
+            ->find($request->id);
+        if($autopart->ml_id){
+            $autopart->status_id == 3;
+            ApiMl::updateAutopartMl($autopart);   
+        }
+
+        AutopartActivity::create([
+            'activity' => 'Autoparte Eliminada',
+            'autopart_id' => $autopart->id,
+            'user_id' => $request->user()->id
+        ]);
+        return Autopart::destroy($request->id);
+    }
+
     public function update (Request $request)
     {
         $request->validate([
