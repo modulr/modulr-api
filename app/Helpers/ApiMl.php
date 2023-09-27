@@ -165,7 +165,7 @@ class ApiMl
             $autopart['side_id'] = null;
             $autopart['years'] = [];
             $autopart['images'] = [];
-            $autopart['date_created'] = $response->body->date_create;
+            $autopart['date_created'] = $response->body->date_created;
 
             if ($response->body->condition == 'new') {
                 $autopart['origin_id'] = 1;
