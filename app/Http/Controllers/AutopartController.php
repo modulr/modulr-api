@@ -287,7 +287,7 @@ class AutopartController extends Controller
             ])
             ->find($request->id);
         if($autopart->ml_id){
-            $autopart->status_id == 3;
+            $autopart->status_id = 3;
             ApiMl::updateAutopartMl($autopart);   
         }
 
