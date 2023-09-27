@@ -62,7 +62,14 @@ class ProcessNotifications extends Command
                     }
 
                     if (($autopart->status_id == 1 || $autopart->status_id == 2 || $autopart->status_id == 5) && ($response->autopart['status'] == 'paused' || $response->autopart['status'] == 'closed')) {
-                        $newStatusId = 4; // Vendido
+                        $dateCreated = Carbon::parse($response->autopart['date_created']);
+                        $minutesAgo = Carbon::now()->subMinutes(5);
+
+                        if ($dateCreated->greaterThanOrEqualTo($minutesAgo)) {
+                            $newStatusId = 2; //No Disponible
+                        } else {
+                            $newStatusId = 4; //Vendido
+                        }
                     }
 
                     if ($autopart->status_id == 3 && $response->autopart['status'] == 'closed') {
