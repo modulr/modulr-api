@@ -74,14 +74,17 @@ class AutopartController extends Controller
         $quality = $request->quality;
         $store = $request->store;
         $store_ml = $request->store_ml;
-        $status = $request->status;
-        $years = $request->years;
+        $status = collect($request->status)->pluck('id')->toArray();;
+        $years = collect($request->years)->pluck('name')->toArray();
         $sort = $request->sort;
+        $user = $request->user();
 
-
-        // Usando la función pluck y map
-        $yrs = collect($years)->pluck('name')->toArray();
-        $statusIds = collect($status)->pluck('id')->toArray();
+        $inventory = false;
+        if (count($user->roles) > 0) {
+            if ($user->roles[0]->role_id == 3) {
+                $inventory = true;
+            }
+        }
 
         $sortColumn = 'autoparts.created_at';
         $sortDirection = 'desc'; 
@@ -104,7 +107,6 @@ class AutopartController extends Controller
             $sortDirection = 'asc';
         }
 
-
         $autoparts = DB::table('autoparts')
             ->select('autoparts.id', 'autoparts.name', 'autoparts.sale_price', 'autopart_images.basename', 'autoparts.status_id', 'autopart_list_status.name as status')
             ->leftjoin('autopart_images', function ($join) {
@@ -113,8 +115,11 @@ class AutopartController extends Controller
             ->leftjoin('autopart_list_status', function ($join) {
                 $join->on('autopart_list_status.id', '=', 'autoparts.status_id');
             })
-            ->where('autoparts.created_by', $request->user()->id)
             ->whereNull('autoparts.deleted_at')
+            ->where('autoparts.store_id', $user->store_id)
+            ->when($inventory, function ($query, $inventory) use ($user) {
+                return $query->where('autoparts.created_by', $user->id);
+            })
             ->when($make, function ($query, $make) {
                 return $query->where('autoparts.make_id', $make['id']);
             })
@@ -145,13 +150,13 @@ class AutopartController extends Controller
             ->when($store_ml, function ($query, $store_ml) {
                 return $query->where('autoparts.store_ml_id', $store_ml['id']);
             })
-            ->when($statusIds, function ($query, $statusIds) {
-                return $query->whereIn('autoparts.status_id', $statusIds);
+            ->when($status, function ($query, $status) {
+                return $query->whereIn('autoparts.status_id', $status);
             })
-            ->when($yrs, function ($query, $yrs) {
-                return $query->where(function ($subQuery) use ($yrs) {
-                    foreach ($yrs as $yr) {
-                        $subQuery->orWhereJsonContains('autoparts.years', $yr);
+            ->when($years, function ($query, $years) {
+                return $query->where(function ($subQuery) use ($years) {
+                    foreach ($years as $year) {
+                        $subQuery->orWhereJsonContains('autoparts.years', $year);
                     }
                 });
             })            
@@ -339,7 +344,7 @@ class AutopartController extends Controller
         }
         
         $autopart->name = $request->name;     
-        $autopart->description = $request->description;     
+        $autopart->description = $request->description;
         $autopart->autopart_number = $request->autopart_number;
         $autopart->location_id = $request->location_id;
         $autopart->category_id = $request->category_id;
