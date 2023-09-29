@@ -10,7 +10,7 @@ class SideController extends Controller
     public function index()
     {
         return DB::table('autopart_list_sides')
-            ->select('id', 'name')
+            ->select('id', 'name', 'variants')
             ->whereNull('deleted_at')
             ->orderBy('name', 'desc')
             ->get();

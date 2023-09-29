@@ -12,6 +12,7 @@ use App\Models\Autopart;
 use App\Models\AutopartImage;
 use App\Models\AutopartActivity;
 use App\Models\AutopartListLocation;
+use App\Helpers\ApiMl;
 
 class AutopartController extends Controller
 {
@@ -71,7 +72,9 @@ class AutopartController extends Controller
         $side = $request->side;
         $position = $request->position;
         $quality = $request->quality;
+        $store = $request->store;
         $store_ml = $request->store_ml;
+        $status = collect($request->status)->pluck('id')->toArray();;
         $years = collect($request->years)->pluck('name')->toArray();
         $sort = $request->sort;
         $user = $request->user();
@@ -141,13 +144,19 @@ class AutopartController extends Controller
             ->when($quality, function ($query, $quality) {
                 return $query->where('autoparts.quality', $quality);
             })
+            ->when($store, function ($query, $store) {
+                return $query->where('autoparts.store_id', $store['id']);
+            })
             ->when($store_ml, function ($query, $store_ml) {
                 return $query->where('autoparts.store_ml_id', $store_ml['id']);
             })
+            ->when($status, function ($query, $status) {
+                return $query->whereIn('autoparts.status_id', $status);
+            })
             ->when($years, function ($query, $years) {
                 return $query->where(function ($subQuery) use ($years) {
-                    foreach ($years as $yr) {
-                        $subQuery->orWhereJsonContains('autoparts.years', $yr);
+                    foreach ($years as $year) {
+                        $subQuery->orWhereJsonContains('autoparts.years', $year);
                     }
                 });
             })            
@@ -246,7 +255,7 @@ class AutopartController extends Controller
             'user_id' => $request->user()->id
         ]);
 
-        return Autopart::with([
+        $newAutopart = Autopart::with([
             'category',
             'position',
             'side',
@@ -262,6 +271,14 @@ class AutopartController extends Controller
             }
             ])
             ->find($autopart->id);
+
+        if ($autopart->store_ml_id) {
+            $createML = ApiMl::createAutopartMl($newAutopart);
+        } else {
+            $createML = false;
+        }
+
+        return $newAutopart;
     }
 
     public function update (Request $request)
@@ -313,9 +330,21 @@ class AutopartController extends Controller
         } else {
             $status = 5;
         }
+
+        if ($autopart->store_ml_id !== $request->store_ml_id) {
+            $changeStore = true;
+        } else {
+            $changeStore = false;
+        }
+
+        if ($request->store_ml_id && (($autopart->status_id !== $request->status_id) || ($autopart->sale_price !== $request->sale_price) || ($autopart->name !== $request->name) || ($autopart->description !== $request->description))) {
+            $changeStatus = true;
+        } else {
+            $changeStatus = false;
+        }
         
-        $autopart = Autopart::find($request->id);
         $autopart->name = $request->name;     
+        $autopart->description = $request->description;
         $autopart->autopart_number = $request->autopart_number;
         $autopart->location_id = $request->location_id;
         $autopart->category_id = $request->category_id;
@@ -339,7 +368,7 @@ class AutopartController extends Controller
             'user_id' => $request->user()->id
         ]);
 
-        return Autopart::with([
+        $updatedAutopart = Autopart::with([
             'category',
             'position',
             'side',
@@ -356,24 +385,62 @@ class AutopartController extends Controller
             }
             ])
             ->find($autopart->id);
+            
+        if ($changeStore) {
+            $sync = ApiMl::createAutopartMl($updatedAutopart);
+        } else if ($changeStatus) {
+            $response = ApiMl::getAutopartMl($updatedAutopart);
+            if ($response->response) {
+                $sync = ApiMl::updateAutopartMl($updatedAutopart);
+            } else {
+                $sync = false;
+            }
+        } else {
+            $sync = false;
+        }
+        if($sync){
+            $autopart = Autopart::find($updatedAutopart->id);
+            $updatedAutopart->ml_id = $autopart->ml_id;
+        }
+
+        return ["autopart" => $updatedAutopart, "sync" => $sync];
+    }
+
+    public function destroy (Request $request)
+    {
+        $autopart = Autopart::with([
+            'category',
+            'position',
+            'side',
+            'condition',
+            'origin',
+            'make',
+            'model',
+            'status',
+            'store',
+            'storeMl',
+            'location',
+            'images' => function ($query) {
+                $query->orderBy('order', 'asc');
+            }
+            ])
+            ->find($request->id);
+        if($autopart->ml_id){
+            $autopart->status_id = 3;
+            ApiMl::updateAutopartMl($autopart);   
+        }
+
+        AutopartActivity::create([
+            'activity' => 'Autoparte Eliminada',
+            'autopart_id' => $autopart->id,
+            'user_id' => $request->user()->id
+        ]);
+        return Autopart::destroy($request->id);
     }
 
     public function getDescription (Request $request)
     {
         return DB::table('stores')->where('id', $request->user()->store_id)->first();
-    }
-
-    public function updateDescription (Request $request)
-    {
-        $request->validate([
-            'description' => 'required|string'
-        ]);
-
-        $autopart = Autopart::find($request->id);
-        $autopart->description = $request->description;    
-        $autopart->save(); 
-
-        return $autopart;
     }
 
     public function qr (Request $request)
