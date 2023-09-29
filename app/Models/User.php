@@ -52,4 +52,9 @@ class User extends Authenticatable
     {
         return Storage::url('avatars/'.$this->id.'/'.$this->avatar);
     }
+
+    public function roles()
+    {
+        return $this->hasMany(RoleUser::class);
+    }
 }

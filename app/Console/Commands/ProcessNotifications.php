@@ -121,7 +121,6 @@ class ProcessNotifications extends Command
                     //     $autopart->description = $response->autopart['description'];
                     // }
 
-                    // Obtener los ids de las imágenes en la base de datos
                     $autopartImagesArray = $autopart->images->toArray();
                     $autopartImageIds = array_column($autopartImagesArray, 'img_ml_id');
 
@@ -137,8 +136,11 @@ class ProcessNotifications extends Command
                     // Encontrar los ids que están en $responseImageIds pero no en $autopartImageIds
                     $imagesToCreateIds = array_diff($responseImageIds, $autopartImageIds);
 
-                    // Borrar las imágenes que están en $imagesToDeleteIds de la base de datos
-                    AutopartImage::whereIn('img_ml_id', $imagesToDeleteIds)->where('autopart_id', $autopart->id)->delete();
+                    AutopartImage::where(function($query) use ($imagesToDeleteIds, $autopart) {
+                        $query->whereIn('img_ml_id', $imagesToDeleteIds)
+                            ->orWhereNull('img_ml_id')
+                            ->where('autopart_id', $autopart->id);
+                    })->delete();
 
                     //Borrar del bucket
                     foreach ($autopart->images as $key => $image) {
@@ -182,6 +184,9 @@ class ProcessNotifications extends Command
                             ]);
                         }
                     }
+
+                    $imagesFinal = DB::table('autopart_images')->where('autopart_id', $autopart->id)->orderBy('order','asc')->get();
+
 
                     if ($change) {
                         $autopart->save();

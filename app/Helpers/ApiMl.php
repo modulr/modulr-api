@@ -111,7 +111,12 @@ class ApiMl
             'ids' => $mlId,
         ]);
 
-        return $response->object()[0];
+        if($response->status() == 200){
+            return $response->object()[0];
+        }else{
+            logger(['OBJECT'=>$response->object()]);
+            return $response->object();
+        }
     }
 
     private static function getItemDescription($mlId)
@@ -142,7 +147,8 @@ class ApiMl
 
         if ($response->code == 200) {
 
-            $autopart['name'] = $response->body->title;
+            $name = str_replace(['*', '#'], '', $response->body->title);
+            $autopart['name'] = $name;
             $autopart['description'] = '';
             $autopart['autopart_number'] = null;
             $autopart['ml_id'] = $response->body->id;
