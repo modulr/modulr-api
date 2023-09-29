@@ -10,7 +10,7 @@ class PositionController extends Controller
     public function index()
     {
         return DB::table('autopart_list_positions')
-            ->select('id', 'name')
+            ->select('id', 'name', 'variants')
             ->whereNull('deleted_at')
             ->orderBy('name', 'asc')
             ->get();
