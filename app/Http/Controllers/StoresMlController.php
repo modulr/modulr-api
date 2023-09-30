@@ -7,11 +7,29 @@ use Illuminate\Support\Facades\DB;
 
 class StoresMlController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return DB::table('stores_ml')
-            ->select('id', 'name','store_id')
-            ->whereNull('deleted_at')
-            ->get();
+        $user = $request->user();
+
+        $superadmin = false;
+        if (count($user->roles) > 0) {
+            if ($user->roles[0]->role_id == 1) {
+                $superadmin = true;
+            }
+        }
+
+        if ($superadmin) {
+            return DB::table('stores_ml')
+                ->select('id', 'name','store_id')
+                ->whereNull('deleted_at')
+                ->get();
+        } else {
+            return DB::table('stores_ml')
+                ->select('id', 'name','store_id')
+                ->whereNull('deleted_at')
+                ->where('store_id', $user->store_id)
+                ->get();
+        }
+
     }
 }
