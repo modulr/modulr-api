@@ -400,7 +400,7 @@ class ApiMl
                 if (!isset($autopart['origin_id'])) {
                     if ($value->id == 'ORIGIN'&& isset($value->value_name)) {
                         $autopart['originMl'] = $value->value_name;
-                        $origin = DB::table('autopart_list_origin')
+                        $origin = DB::table('autopart_list_origins')
                             ->where('name', 'like', $value->value_name)
                             ->whereNull('deleted_at')->first();
                         
