@@ -382,6 +382,34 @@ class ApiMl
                         }
                     }
                 }
+
+                if (!isset($autopart['condition_id'])) {
+                    if ($value->id == 'ITEM_CONDITION'&& isset($value->value_name)) {
+                        $autopart['conditionMl'] = $value->value_name;
+                        $condition = DB::table('autopart_list_conditions')
+                            ->where('name', 'like', $value->value_name)
+                            ->whereNull('deleted_at')->first();
+                        
+                        if ($condition) {
+                            $autopart['condition_id'] = $condition->id;
+                            $autopart['condition'] = $condition->name;
+                        }
+                    }
+                }
+
+                if (!isset($autopart['origin_id'])) {
+                    if ($value->id == 'ORIGIN'&& isset($value->value_name)) {
+                        $autopart['originMl'] = $value->value_name;
+                        $origin = DB::table('autopart_list_origin')
+                            ->where('name', 'like', $value->value_name)
+                            ->whereNull('deleted_at')->first();
+                        
+                        if ($origin) {
+                            $autopart['origin_id'] = $origin->id;
+                            $autopart['origin'] = $origin->name;
+                        }
+                    }
+                }
             }
 
             foreach ($response->body->variations as $val) {
