@@ -692,7 +692,42 @@ class ApiMl
             "title" => substr($name, 0, 60),
             "status" => $status,
             "price" => $autopart->sale_price,
-            "pictures" => $images
+            "pictures" => $images,
+            "attributes" => [
+                [
+                    "id" => "BRAND",
+                    "value_name" => $autopart->make ? $autopart->make->name : null
+                ],
+                [
+                    "id" => "MODEL",
+                    "value_name" => $autopart->model ? $autopart->model->name : null
+                ],
+                [
+                    "id" => "PART_NUMBER",
+                    "value_name" => $autopart->autopart_number
+                ],
+                [
+                    "id" => "ITEM_CONDITION",
+                    "value_name" => $autopart->condition ? $autopart->condition->name : null
+                ],
+                [
+                    "id" => "ORIGIN",
+                    "value_name" => $autopart->origin ? $autopart->origin->name : null
+                ],
+                [
+                    "id" => "SELLER_SKU",
+                    "value_name" => $autopart->id
+                ],
+                [
+                    "id" => "SIDE",
+                    "value_name" => $autopart->side ? $autopart->side->name : null
+                ],
+                [
+                    "id" => "POSITION",
+                    "value_name" => $autopart->position ? $autopart->position->name : null
+                ]
+                
+            ]
         ]);
 
         if($response->successful()){
