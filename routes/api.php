@@ -18,6 +18,7 @@ use App\Http\Controllers\StoreController;
 use App\Http\Controllers\StoresMlController;
 use App\Http\Controllers\StatusController;
 use App\Http\Controllers\LocationsController;
+use App\Http\Controllers\AutopartCommentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -50,6 +51,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('autoparts/images/sort',  [AutopartImageController::class, 'sort']);
     Route::post('autoparts/images/destroyTemp', [AutopartImageController::class, 'destroyTemp']);
     Route::delete('autoparts/images/destroy/{id}', [AutopartImageController::class, 'destroy']);
+   
+    Route::post('/autoparts/comments/store', [AutopartCommentController::class, 'store']);
+    Route::delete('/autoparts/comments/destroy/{id}', [AutopartCommentController::class, 'destroy']);
+
 });
 
 Route::get('/autoparts/qr/{id}', [AutopartController::class, 'qr']);

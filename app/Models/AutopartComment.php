@@ -18,4 +18,9 @@ class AutopartComment extends Model
     {
         return $this->belongsTo(Autopart::class);
     }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
 }
