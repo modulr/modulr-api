@@ -67,6 +67,7 @@ class AutopartController extends Controller
         $model = $request->model;
         $category = $request->category;
         $number = $request->number;
+        $keywords = preg_split('/\s+/', $number, -1, PREG_SPLIT_NO_EMPTY);
         $origin = $request->origin;
         $condition = $request->condition;
         $side = $request->side;
@@ -160,19 +161,21 @@ class AutopartController extends Controller
                     }
                 });
             })            
-            ->when($number, function ($query, $number) {
-                $query->where(function($q) use ($number) {
-                    return $q->where('autoparts.name', 'like', '%'.$number.'%')
-                    ->orWhere('autoparts.id', 'like', '%'.$number.'%')
-                    ->orWhere('autoparts.description', 'like', '%'.$number.'%')
-                    ->orWhere('autoparts.ml_id', 'like', '%'.$number.'%')
-                    ->orWhere('autoparts.autopart_number', 'like', '%'.$number.'%')
-                    ->orWhere(function ($subQuery) use ($number) {
-                        $subQuery->whereJsonContains('autoparts.years', $number);
-                    });
+            ->when($number, function ($query, $number) use ($keywords) {
+                $query->where(function ($q) use ($keywords) {
+                    foreach ($keywords as $keyword) {
+                        $q->orWhere('autoparts.name', 'like', '%' . $keyword . '%')
+                          ->orWhere('autoparts.id', 'like', '%' . $keyword . '%')
+                          ->orWhere('autoparts.description', 'like', '%' . $keyword . '%')
+                          ->orWhere('autoparts.ml_id', 'like', '%' . $keyword . '%')
+                          ->orWhere('autoparts.autopart_number', 'like', '%' . $keyword . '%')
+                          ->orWhere(function ($subQuery) use ($keyword) {
+                              $subQuery->whereJsonContains('autoparts.years', $keyword);
+                          });
+                    }
                 });
             })
-            ->orderBy($sortColumn, $sortDirection) // Aplicar la columna y dirección de ordenamiento
+            ->orderBy($sortColumn, $sortDirection)
             ->paginate(24);
 
         foreach ($autoparts as $autopart) {
