@@ -73,7 +73,7 @@ Route::get('years', [YearController::class, 'index']);
 Route::get('stores', [StoreController::class, 'index']);
 Route::get('stores_ml', [StoresMlController::class, 'index']);
 Route::get('statuses', [StatusController::class, 'index']);
-Route::get('locations/getByStore', [LocationsController::class, 'getByStore']);
+Route::get('locations', [LocationsController::class, 'index']);
 
 
 // Mercado libre

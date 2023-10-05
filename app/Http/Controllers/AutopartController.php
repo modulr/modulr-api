@@ -73,6 +73,7 @@ class AutopartController extends Controller
         $side = $request->side;
         $position = $request->position;
         $quality = $request->quality;
+        $location = $request->location;
         $store = $request->store;
         $store_ml = $request->store_ml;
         $status = collect($request->status)->pluck('id')->toArray();;
@@ -144,6 +145,9 @@ class AutopartController extends Controller
             })
             ->when($quality, function ($query, $quality) {
                 return $query->where('autoparts.quality', $quality);
+            })
+            ->when($location, function ($query, $location) {
+                return $query->where('autoparts.location_id', $location['id']);
             })
             ->when($store, function ($query, $store) {
                 return $query->where('autoparts.store_id', $store['id']);
