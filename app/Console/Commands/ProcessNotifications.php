@@ -236,6 +236,7 @@ class ProcessNotifications extends Command
                         'years' => json_encode($response->autopart['years']),
                         'sale_price' => $response->autopart['sale_price'],
                         'origin_id' => $response->autopart['origin_id'],
+                        'condition_id' => $response->autopart['condition_id'],
                         'status_id' => $response->autopart['status_id'],
                         'ml_id' => $response->autopart['ml_id'],
                         'store_ml_id' => $storeMl->id,

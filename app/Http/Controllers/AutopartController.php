@@ -199,6 +199,14 @@ class AutopartController extends Controller
             'store',
             'storeMl',
             'location',
+            'comments' => function ($query) {
+                $query->orderBy('id', 'desc');
+            },
+            'comments.user',
+            'activity' => function ($query) {
+                $query->orderBy('id', 'desc');
+            },
+            'activity.user',
             'images' => function ($query) {
                 $query->orderBy('order', 'asc');
             }

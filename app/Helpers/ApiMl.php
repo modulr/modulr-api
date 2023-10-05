@@ -382,6 +382,34 @@ class ApiMl
                         }
                     }
                 }
+
+                if (!isset($autopart['condition_id'])) {
+                    if ($value->id == 'ITEM_CONDITION'&& isset($value->value_name)) {
+                        $autopart['conditionMl'] = $value->value_name;
+                        $condition = DB::table('autopart_list_conditions')
+                            ->where('name', 'like', $value->value_name)
+                            ->whereNull('deleted_at')->first();
+                        
+                        if ($condition) {
+                            $autopart['condition_id'] = $condition->id;
+                            $autopart['condition'] = $condition->name;
+                        }
+                    }
+                }
+
+                if (!isset($autopart['origin_id'])) {
+                    if ($value->id == 'ORIGIN'&& isset($value->value_name)) {
+                        $autopart['originMl'] = $value->value_name;
+                        $origin = DB::table('autopart_list_origins')
+                            ->where('name', 'like', $value->value_name)
+                            ->whereNull('deleted_at')->first();
+                        
+                        if ($origin) {
+                            $autopart['origin_id'] = $origin->id;
+                            $autopart['origin'] = $origin->name;
+                        }
+                    }
+                }
             }
 
             foreach ($response->body->variations as $val) {
@@ -664,7 +692,42 @@ class ApiMl
             "title" => substr($name, 0, 60),
             "status" => $status,
             "price" => $autopart->sale_price,
-            "pictures" => $images
+            "pictures" => $images,
+            "attributes" => [
+                [
+                    "id" => "BRAND",
+                    "value_name" => $autopart->make ? $autopart->make->name : null
+                ],
+                [
+                    "id" => "MODEL",
+                    "value_name" => $autopart->model ? $autopart->model->name : null
+                ],
+                [
+                    "id" => "PART_NUMBER",
+                    "value_name" => $autopart->autopart_number
+                ],
+                [
+                    "id" => "ITEM_CONDITION",
+                    "value_name" => $autopart->condition ? $autopart->condition->name : null
+                ],
+                [
+                    "id" => "ORIGIN",
+                    "value_name" => $autopart->origin ? $autopart->origin->name : null
+                ],
+                [
+                    "id" => "SELLER_SKU",
+                    "value_name" => $autopart->id
+                ],
+                [
+                    "id" => "SIDE",
+                    "value_name" => $autopart->side ? $autopart->side->name : null
+                ],
+                [
+                    "id" => "POSITION",
+                    "value_name" => $autopart->position ? $autopart->position->name : null
+                ]
+                
+            ]
         ]);
 
         if($response->successful()){
