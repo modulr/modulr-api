@@ -88,6 +88,13 @@ class AutopartController extends Controller
             }
         }
 
+        $superamdin = false;
+        if (count($user->roles) > 0) {
+            if ($user->roles[0]->role_id == 1) {
+                $superamdin = true;
+            }
+        }
+
         $sortColumn = 'autoparts.created_at';
         $sortDirection = 'desc'; 
 
@@ -117,9 +124,11 @@ class AutopartController extends Controller
             ->leftjoin('autopart_list_status', function ($join) {
                 $join->on('autopart_list_status.id', '=', 'autoparts.status_id');
             })
-            ->whereNull('autoparts.deleted_at')
-            ->where('autoparts.store_id', $user->store_id);
+            ->whereNull('autoparts.deleted_at');
 
+        if (!$superamdin) {
+            $autopartsQuery->where('autoparts.store_id', $user->store_id);
+        }
         if ($inventory) {
             $autopartsQuery->where('autoparts.created_by', $user->id);
         }
