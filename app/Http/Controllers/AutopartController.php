@@ -88,6 +88,13 @@ class AutopartController extends Controller
             }
         }
 
+        $superamdin = false;
+        if (count($user->roles) > 0) {
+            if ($user->roles[0]->role_id == 1) {
+                $superamdin = true;
+            }
+        }
+
         $sortColumn = 'autoparts.created_at';
         $sortDirection = 'desc'; 
 
@@ -109,7 +116,7 @@ class AutopartController extends Controller
             $sortDirection = 'asc';
         }
 
-        $autoparts = DB::table('autoparts')
+        $autopartsQuery = DB::table('autoparts')
             ->select('autoparts.id', 'autoparts.name', 'autoparts.sale_price', 'autopart_images.basename', 'autoparts.status_id', 'autopart_list_status.name as status')
             ->leftjoin('autopart_images', function ($join) {
                 $join->on('autopart_images.id', '=', DB::raw('(SELECT autopart_images.id FROM autopart_images WHERE autopart_images.autopart_id = autoparts.id ORDER BY autopart_images.order ASC LIMIT 1)'));
@@ -117,70 +124,89 @@ class AutopartController extends Controller
             ->leftjoin('autopart_list_status', function ($join) {
                 $join->on('autopart_list_status.id', '=', 'autoparts.status_id');
             })
-            ->whereNull('autoparts.deleted_at')
-            ->where('autoparts.store_id', $user->store_id)
-            ->when($inventory, function ($query, $inventory) use ($user) {
-                return $query->where('autoparts.created_by', $user->id);
-            })
-            ->when($make, function ($query, $make) {
-                return $query->where('autoparts.make_id', $make['id']);
-            })
-            ->when($model, function ($query, $model) {
-                return $query->where('autoparts.model_id', $model['id']);
-            })
-            ->when($category, function ($query, $category) {
-                return $query->where('autoparts.category_id', $category['id']);
-            })
-            ->when($origin, function ($query, $origin) {
-                return $query->where('autoparts.origin_id', $origin['id']);
-            })
-            ->when($condition, function ($query, $condition) {
-                return $query->where('autoparts.condition_id', $condition['id']);
-            })
-            ->when($side, function ($query, $side) {
-                return $query->where('autoparts.side_id', $side['id']);
-            })
-            ->when($position, function ($query, $position) {
-                return $query->where('autoparts.position_id', $position['id']);
-            })
-            ->when($quality, function ($query, $quality) {
-                return $query->where('autoparts.quality', $quality);
-            })
-            ->when($location, function ($query, $location) {
-                return $query->where('autoparts.location_id', $location['id']);
-            })
-            ->when($store, function ($query, $store) {
-                return $query->where('autoparts.store_id', $store['id']);
-            })
-            ->when($store_ml, function ($query, $store_ml) {
-                return $query->where('autoparts.store_ml_id', $store_ml['id']);
-            })
-            ->when($status, function ($query, $status) {
-                return $query->whereIn('autoparts.status_id', $status);
-            })
-            ->when($years, function ($query, $years) {
-                return $query->where(function ($subQuery) use ($years) {
-                    foreach ($years as $year) {
-                        $subQuery->orWhereJsonContains('autoparts.years', $year);
-                    }
+            ->whereNull('autoparts.deleted_at');
+
+        if (!$superamdin) {
+            $autopartsQuery->where('autoparts.store_id', $user->store_id);
+        }
+        if ($inventory) {
+            $autopartsQuery->where('autoparts.created_by', $user->id);
+        }
+        
+        if ($make) {
+            $autopartsQuery->where('autoparts.make_id', $make['id']);
+        }
+
+        if ($model) {
+            $autopartsQuery->where('autoparts.model_id', $model['id']);
+        }
+        
+        if ($category) {
+            $autopartsQuery->where('autoparts.category_id', $category['id']);
+        }
+
+        if ($origin) {
+            $autopartsQuery->where('autoparts.origin_id', $origin['id']);
+        }
+
+        if ($condition) {
+            $autopartsQuery->where('autoparts.condition_id', $condition['id']);
+        }
+
+        if ($side) {
+            $autopartsQuery->where('autoparts.side_id', $side['id']);
+        }
+
+        if ($position) {
+            $autopartsQuery->where('autoparts.position_id', $position['id']);
+        }
+
+        if ($quality) {
+            $autopartsQuery->where('autoparts.quality_id', $quality['id']);
+        }
+
+        if ($location) {
+            $autopartsQuery->where('autoparts.location_id', $location['id']);
+        }
+
+        if ($store) {
+            $autopartsQuery->where('autoparts.store_id', $store['id']);
+        }
+
+        if ($store_ml) {
+            $autopartsQuery->where('autoparts.store_ml_id', $store_ml['id']);
+        }
+
+        if ($status) {
+            $autopartsQuery->where('autoparts.status_id', $status['id']);
+        }
+
+        if ($years) {
+            $autopartsQuery->where(function ($subQuery) use ($years) {
+                foreach ($years as $year) {
+                    $subQuery->orWhereJsonContains('autoparts.years', $year);
+                }
+            });
+        }
+
+        if ($number) {
+            foreach ($keywords as $keyword) {
+                $autopartsQuery->where(function ($subQuery) use ($keyword) {
+                    $subQuery->orWhere('autoparts.name', 'like', '%' . $keyword . '%')
+                        ->orWhere('autoparts.id', 'like', '%' . $keyword . '%')
+                        ->orWhere('autoparts.description', 'like', '%' . $keyword . '%')
+                        ->orWhere('autoparts.ml_id', 'like', '%' . $keyword . '%')
+                        ->orWhere('autoparts.autopart_number', 'like', '%' . $keyword . '%')
+                        ->orWhere(function ($subSubQuery) use ($keyword) {
+                            $subSubQuery->whereJsonContains('autoparts.years', $keyword);
+                        });
                 });
-            })            
-            ->when($number, function ($query, $number) use ($keywords) {
-                $query->where(function ($q) use ($keywords) {
-                    foreach ($keywords as $keyword) {
-                        $q->orWhere('autoparts.name', 'like', '%' . $keyword . '%')
-                          ->orWhere('autoparts.id', 'like', '%' . $keyword . '%')
-                          ->orWhere('autoparts.description', 'like', '%' . $keyword . '%')
-                          ->orWhere('autoparts.ml_id', 'like', '%' . $keyword . '%')
-                          ->orWhere('autoparts.autopart_number', 'like', '%' . $keyword . '%')
-                          ->orWhere(function ($subQuery) use ($keyword) {
-                              $subQuery->whereJsonContains('autoparts.years', $keyword);
-                          });
-                    }
-                });
-            })
-            ->orderBy($sortColumn, $sortDirection)
-            ->paginate(24);
+            }
+        }
+                
+        $autopartsQuery->orderBy($sortColumn, $sortDirection);
+
+        $autoparts = $autopartsQuery->paginate(24);
 
         foreach ($autoparts as $autopart) {
             $autopart->url_thumbnail = Storage::url('autoparts/'.$autopart->id.'/images/thumbnail_'.$autopart->basename);
@@ -203,14 +229,6 @@ class AutopartController extends Controller
             'store',
             'storeMl',
             'location',
-            'comments' => function ($query) {
-                $query->orderBy('id', 'desc');
-            },
-            'comments.user',
-            'activity' => function ($query) {
-                $query->orderBy('id', 'desc');
-            },
-            'activity.user',
             'images' => function ($query) {
                 $query->orderBy('order', 'asc');
             }
