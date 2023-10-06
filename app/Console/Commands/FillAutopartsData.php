@@ -525,7 +525,7 @@ class FillAutopartsData extends Command
 
         // Recorre las autoparts y realiza el proceso para cada una
         foreach ($autoparts as $autopart) {
-            logger('ID: '.$autopart->id);
+            //logger('ID: '.$autopart->id);
 
             // Copiar los valores de origin_id a condition_id
             DB::table('autoparts')
