@@ -514,8 +514,8 @@ class FillAutopartsData extends Command
         ->whereNull('deleted_at')
         ->where('status_id', '!=', 4)
         ->orderBy('id', 'desc')
-        ->skip($skip)
-        ->take($limit)
+        // ->skip($skip)
+        // ->take($limit)
         ->get();
 
         // Crea una instancia de ProgressBar
