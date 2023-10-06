@@ -199,6 +199,27 @@ class AutopartController extends Controller
                         ->orWhere('autoparts.autopart_number', 'like', '%' . $keyword . '%')
                         ->orWhere(function ($subSubQuery) use ($keyword) {
                             $subSubQuery->whereJsonContains('autoparts.years', $keyword);
+                        })
+                        ->orWhere(function ($subSubQuery) use ($keyword) {
+                            $subSubQuery->whereIn('autoparts.category_id', function ($query) use ($keyword) {
+                                $query->select('id')
+                                    ->from('autopart_list_categories')
+                                    ->whereJsonContains('variants', $keyword);
+                            });
+                        })
+                        ->orWhere(function ($subSubQuery) use ($keyword) {
+                            $subSubQuery->whereIn('autoparts.make_id', function ($query) use ($keyword) {
+                                $query->select('id')
+                                    ->from('autopart_list_makes')
+                                    ->whereJsonContains('variants', $keyword);
+                            });
+                        })
+                        ->orWhere(function ($subSubQuery) use ($keyword) {
+                            $subSubQuery->whereIn('autoparts.model_id', function ($query) use ($keyword) {
+                                $query->select('id')
+                                    ->from('autopart_list_models')
+                                    ->whereJsonContains('variants', $keyword);
+                            });
                         });
                 });
             }
