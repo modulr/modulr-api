@@ -478,6 +478,8 @@ class AutopartController extends Controller
             Storage::put('autoparts/'.$autopart->id.'/qr/'.$autopart->id.'.png', (string) $qr);
         }
 
+        logger(["Autopart"=>$autopart]);
+
         return view('qr', ['autopart' => $autopart]);
     }
 }
