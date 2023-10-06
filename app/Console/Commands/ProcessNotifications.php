@@ -63,7 +63,7 @@ class ProcessNotifications extends Command
 
                     if (($autopart->status_id == 1 || $autopart->status_id == 2 || $autopart->status_id == 5) && ($response->autopart['status'] == 'paused' || $response->autopart['status'] == 'closed')) {
                         $dateCreated = Carbon::parse($response->autopart['date_created']);
-                        $minutesAgo = Carbon::now()->subMinutes(5);
+                        $minutesAgo = Carbon::now()->subMinutes(15);
 
                         if ($dateCreated->greaterThanOrEqualTo($minutesAgo)) {
                             $newStatusId = 2; //No Disponible
