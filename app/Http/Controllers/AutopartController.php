@@ -460,7 +460,7 @@ class AutopartController extends Controller
 
     public function qr (Request $request)
     {
-        $autopart = Autopart::with(['make','model'])->find($request->id);;
+        $autopart = Autopart::with(['make','model','location'])->find($request->id);;
 
         $autopart->years = json_decode($autopart->years);
 
