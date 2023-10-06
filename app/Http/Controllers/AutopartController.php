@@ -460,8 +460,9 @@ class AutopartController extends Controller
 
     public function qr (Request $request)
     {
-        $autopart = Autopart::with(['make','model','location'])->find($request->id);;
-
+        $autopart = Autopart::with(['make','model'])->find($request->id);;
+        $location = AutopartListLocation::find($autopart->location_id);
+        $autopart->location = $location->name;
         $autopart->years = json_decode($autopart->years);
 
         if (count($autopart->years) > 0) {
@@ -477,8 +478,6 @@ class AutopartController extends Controller
             $qr = QrCode::format('png')->size(200)->margin(1)->generate($autopart->id);
             Storage::put('autoparts/'.$autopart->id.'/qr/'.$autopart->id.'.png', (string) $qr);
         }
-
-        logger(["Autopart"=>$autopart]);
 
         return view('qr', ['autopart' => $autopart]);
     }
