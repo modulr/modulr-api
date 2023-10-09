@@ -356,6 +356,27 @@ class AutopartController extends Controller
             'store',
             'storeMl',
             'location',
+            'images' => function ($query) {
+                $query->orderBy('order', 'asc');
+            }
+            ])
+            ->find($request->id);
+    }
+
+    public function showInventory(Request $request)
+    {
+        return Autopart::with([
+            'category',
+            'position',
+            'side',
+            'origin',
+            'condition',
+            'status',
+            'make',
+            'model',
+            'store',
+            'storeMl',
+            'location',
             'comments' => function ($query) {
                 $query->orderBy('id', 'desc');
             },
