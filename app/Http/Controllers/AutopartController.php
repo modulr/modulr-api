@@ -223,7 +223,15 @@ class AutopartController extends Controller
         }
 
         $autopartsQuery = DB::table('autoparts')
-            ->select('autoparts.id', 'autoparts.name', 'autoparts.sale_price', 'autopart_images.basename', 'autoparts.status_id', 'autopart_list_status.name as status')
+            ->select([
+                'autoparts.id',
+                'autoparts.name',
+                'autoparts.sale_price',
+                'autoparts.status_id', 
+                'autopart_list_status.name as status',
+                'autopart_images.basename',
+                DB::raw("CONCAT('" . Storage::url('autoparts/') . "', autoparts.id, '/images/thumbnail_', autopart_images.basename) as url_thumbnail")
+            ])
             ->leftjoin('autopart_images', function ($join) {
                 $join->on('autopart_images.id', '=', DB::raw('(SELECT autopart_images.id FROM autopart_images WHERE autopart_images.autopart_id = autoparts.id ORDER BY autopart_images.order ASC LIMIT 1)'));
             })
@@ -335,10 +343,6 @@ class AutopartController extends Controller
 
         $autoparts = $autopartsQuery->paginate(24);
 
-        foreach ($autoparts as $autopart) {
-            $autopart->url_thumbnail = Storage::url('autoparts/'.$autopart->id.'/images/thumbnail_'.$autopart->basename);
-        }
-
         return $autoparts;
     }
 
@@ -365,7 +369,22 @@ class AutopartController extends Controller
 
     public function showInventory(Request $request)
     {
-        return Autopart::with([
+        $user = $request->user();
+        $inventory = false;
+        if (count($user->roles) > 0) {
+            if ($user->roles[0]->role_id == 3) {
+                $inventory = true;
+            }
+        }
+
+        $superadmin = false;
+        if (count($user->roles) > 0) {
+            if ($user->roles[0]->role_id == 1) {
+                $superadmin = true;
+            }
+        }
+
+        $autopartQuery = Autopart::with([
             'category',
             'position',
             'side',
@@ -388,8 +407,18 @@ class AutopartController extends Controller
             'images' => function ($query) {
                 $query->orderBy('order', 'asc');
             }
-            ])
-            ->find($request->id);
+        ]);
+
+        if (!$superadmin) {
+            $autopartQuery->where('store_id', $user->store_id);
+        }
+        if ($inventory) {
+            $autopartQuery->where('created_by', $user->id);
+        }
+
+        $autopart = $autopartQuery->find($request->id);
+
+        return $autopart; 
     }
 
     public function store (Request $request)
