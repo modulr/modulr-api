@@ -76,7 +76,7 @@ class AutopartController extends Controller
         $location = $request->location;
         $store = $request->store;
         $store_ml = $request->store_ml;
-        $status = collect($request->status)->pluck('id')->toArray();;
+        $status = collect($request->status)->pluck('id')->toArray();
         $years = collect($request->years)->pluck('name')->toArray();
         $sort = $request->sort;
         $user = $request->user();
@@ -178,7 +178,7 @@ class AutopartController extends Controller
         }
 
         if ($status) {
-            $autopartsQuery->where('autoparts.status_id', $status['id']);
+            $autopartsQuery->whereIn('autoparts.status_id', $status);
         }
 
         if ($years) {
