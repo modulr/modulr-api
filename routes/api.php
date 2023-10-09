@@ -61,6 +61,7 @@ Route::get('/autoparts/qr/{id}', [AutopartController::class, 'qr']);
 
 Route::post('autoparts/search', [AutopartController::class, 'search']);
 Route::get('autoparts/{id}', [AutopartController::class, 'show']);
+Route::get('autoparts/showInventory/{id}', [AutopartController::class, 'showInventory']);
 
 Route::get('categories', [CategoryController::class, 'index']);
 Route::get('positions', [PositionController::class, 'index']);

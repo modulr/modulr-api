@@ -16,47 +16,153 @@ use App\Helpers\ApiMl;
 
 class AutopartController extends Controller
 {
+    // public function search(Request $request)
+    // {
+    //     $make = $request->make;
+    //     $model = $request->model;
+    //     $category = $request->category;
+    //     $number = $request->number;
+
+    //     $autoparts = DB::table('autoparts')
+    //         ->select('autoparts.id', 'autoparts.name', 'autoparts.sale_price', 'autopart_images.basename')
+    //         ->leftjoin('autopart_images', function ($join) {
+    //             $join->on('autopart_images.id', '=', DB::raw('(SELECT autopart_images.id FROM autopart_images WHERE autopart_images.autopart_id = autoparts.id ORDER BY autopart_images.order ASC LIMIT 1)'));
+    //         })
+    //         ->where('autoparts.status_id', '!=', 4)
+    //         ->whereNull('autoparts.deleted_at')
+    //         ->when($make, function ($query, $make) {
+    //             return $query->where('autoparts.make_id', $make['id']);
+    //         })
+    //         ->when($model, function ($query, $model) {
+    //             return $query->where('autoparts.model_id', $model['id']);
+    //         })
+    //         ->when($category, function ($query, $category) {
+    //             return $query->where('autoparts.category_id', $category['id']);
+    //         })
+    //         ->when($number, function ($query, $number) {
+    //             $query->where(function($q) use ($number) {
+    //                 return $q->where('autoparts.name', 'like', '%'.$number.'%')
+    //                 ->orWhere('autoparts.id', 'like', '%'.$number.'%')
+    //                 ->orWhere('autoparts.description', 'like', '%'.$number.'%')
+    //                 ->orWhere('autoparts.ml_id', 'like', '%'.$number.'%')
+    //                 ->orWhere('autoparts.autopart_number', 'like', '%'.$number.'%')
+    //                 ->orWhere(function ($subQuery) use ($number) {
+    //                     $subQuery->whereJsonContains('autoparts.years', $number);
+    //                 });
+    //             });
+    //         })
+    //         ->latest('autoparts.created_at')
+    //         ->paginate(52);
+
+    //     foreach ($autoparts as $autopart) {
+    //         $autopart->url_thumbnail = Storage::url('autoparts/'.$autopart->id.'/images/thumbnail_'.$autopart->basename);
+    //     }
+
+    //     return $autoparts;
+    // }
+
     public function search(Request $request)
     {
         $make = $request->make;
         $model = $request->model;
         $category = $request->category;
         $number = $request->number;
+        $keywords = preg_split('/\s+/', $number, -1, PREG_SPLIT_NO_EMPTY);
+        $years = collect($request->years)->pluck('name')->toArray();
+        $sort = $request->sort ? $request->sort : "latest";
+        $sortColumn = 'autoparts.created_at';
+        $sortDirection = 'desc'; 
 
-        $autoparts = DB::table('autoparts')
-            ->select('autoparts.id', 'autoparts.name', 'autoparts.sale_price', 'autopart_images.basename')
+        if ($sort === 'oldest') {
+            $sortColumn = 'autoparts.created_at';
+            $sortDirection = 'asc';
+        } elseif ($sort === 'atoz') {
+            $sortColumn = 'autoparts.name';
+            $sortDirection = 'asc';
+        } elseif ($sort === 'ztoa') {
+            $sortColumn = 'autoparts.name';
+            $sortDirection = 'desc';
+        } elseif ($sort === 'pricetohigh') {
+            $sortColumn = 'autoparts.sale_price';
+            $sortDirection = 'desc';
+        } elseif ($sort === 'pricetolow') {
+            $sortColumn = 'autoparts.sale_price';
+            $sortDirection = 'asc';
+        }
+
+        $autopartsQuery = DB::table('autoparts')
+            ->select([
+                'autoparts.id',
+                'autoparts.name',
+                'autoparts.sale_price',
+                'autopart_images.basename',
+                DB::raw("CONCAT('" . Storage::url('autoparts/') . "', autoparts.id, '/images/thumbnail_', autopart_images.basename) as url_thumbnail")
+            ])
             ->leftjoin('autopart_images', function ($join) {
                 $join->on('autopart_images.id', '=', DB::raw('(SELECT autopart_images.id FROM autopart_images WHERE autopart_images.autopart_id = autoparts.id ORDER BY autopart_images.order ASC LIMIT 1)'));
             })
             ->where('autoparts.status_id', '!=', 4)
-            ->whereNull('autoparts.deleted_at')
-            ->when($make, function ($query, $make) {
-                return $query->where('autoparts.make_id', $make['id']);
-            })
-            ->when($model, function ($query, $model) {
-                return $query->where('autoparts.model_id', $model['id']);
-            })
-            ->when($category, function ($query, $category) {
-                return $query->where('autoparts.category_id', $category['id']);
-            })
-            ->when($number, function ($query, $number) {
-                $query->where(function($q) use ($number) {
-                    return $q->where('autoparts.name', 'like', '%'.$number.'%')
-                    ->orWhere('autoparts.id', 'like', '%'.$number.'%')
-                    ->orWhere('autoparts.description', 'like', '%'.$number.'%')
-                    ->orWhere('autoparts.ml_id', 'like', '%'.$number.'%')
-                    ->orWhere('autoparts.autopart_number', 'like', '%'.$number.'%')
-                    ->orWhere(function ($subQuery) use ($number) {
-                        $subQuery->whereJsonContains('autoparts.years', $number);
-                    });
-                });
-            })
-            ->latest('autoparts.created_at')
-            ->paginate(52);
+            ->whereNull('autoparts.deleted_at');
 
-        foreach ($autoparts as $autopart) {
-            $autopart->url_thumbnail = Storage::url('autoparts/'.$autopart->id.'/images/thumbnail_'.$autopart->basename);
+        if ($make) {
+            $autopartsQuery->where('autoparts.make_id', $make['id']);
         }
+
+        if ($model) {
+            $autopartsQuery->where('autoparts.model_id', $model['id']);
+        }
+        
+        if ($category) {
+            $autopartsQuery->where('autoparts.category_id', $category['id']);
+        }
+
+        if ($years) {
+            $autopartsQuery->where(function ($subQuery) use ($years) {
+                foreach ($years as $year) {
+                    $subQuery->orWhereJsonContains('autoparts.years', $year);
+                }
+            });
+        }
+
+        if ($number) {
+            foreach ($keywords as $keyword) {
+                $autopartsQuery->where(function ($subQuery) use ($keyword) {
+                    $subQuery->orWhere('autoparts.name', 'like', '%' . $keyword . '%')
+                        ->orWhere('autoparts.id', 'like', '%' . $keyword . '%')
+                        ->orWhere('autoparts.description', 'like', '%' . $keyword . '%')
+                        ->orWhere('autoparts.ml_id', 'like', '%' . $keyword . '%')
+                        ->orWhere('autoparts.autopart_number', 'like', '%' . $keyword . '%')
+                        ->orWhere(function ($subSubQuery) use ($keyword) {
+                            $subSubQuery->whereJsonContains('autoparts.years', $keyword);
+                        })
+                        ->orWhere(function ($subSubQuery) use ($keyword) {
+                            $subSubQuery->whereIn('autoparts.category_id', function ($query) use ($keyword) {
+                                $query->select('id')
+                                    ->from('autopart_list_categories')
+                                    ->whereJsonContains('variants', $keyword);
+                            });
+                        })
+                        ->orWhere(function ($subSubQuery) use ($keyword) {
+                            $subSubQuery->whereIn('autoparts.make_id', function ($query) use ($keyword) {
+                                $query->select('id')
+                                    ->from('autopart_list_makes')
+                                    ->whereJsonContains('variants', $keyword);
+                            });
+                        })
+                        ->orWhere(function ($subSubQuery) use ($keyword) {
+                            $subSubQuery->whereIn('autoparts.model_id', function ($query) use ($keyword) {
+                                $query->select('id')
+                                    ->from('autopart_list_models')
+                                    ->whereJsonContains('variants', $keyword);
+                            });
+                        });
+                });
+            }
+        }
+                
+        $autopartsQuery->orderBy($sortColumn, $sortDirection);
+
+        $autoparts = $autopartsQuery->paginate(52);
 
         return $autoparts;
     }
@@ -117,7 +223,15 @@ class AutopartController extends Controller
         }
 
         $autopartsQuery = DB::table('autoparts')
-            ->select('autoparts.id', 'autoparts.name', 'autoparts.sale_price', 'autopart_images.basename', 'autoparts.status_id', 'autopart_list_status.name as status')
+            ->select([
+                'autoparts.id',
+                'autoparts.name',
+                'autoparts.sale_price',
+                'autoparts.status_id', 
+                'autopart_list_status.name as status',
+                'autopart_images.basename',
+                DB::raw("CONCAT('" . Storage::url('autoparts/') . "', autoparts.id, '/images/thumbnail_', autopart_images.basename) as url_thumbnail")
+            ])
             ->leftjoin('autopart_images', function ($join) {
                 $join->on('autopart_images.id', '=', DB::raw('(SELECT autopart_images.id FROM autopart_images WHERE autopart_images.autopart_id = autoparts.id ORDER BY autopart_images.order ASC LIMIT 1)'));
             })
@@ -229,16 +343,48 @@ class AutopartController extends Controller
 
         $autoparts = $autopartsQuery->paginate(24);
 
-        foreach ($autoparts as $autopart) {
-            $autopart->url_thumbnail = Storage::url('autoparts/'.$autopart->id.'/images/thumbnail_'.$autopart->basename);
-        }
-
         return $autoparts;
     }
 
     public function show(Request $request)
     {
         return Autopart::with([
+            'category',
+            'position',
+            'side',
+            'origin',
+            'condition',
+            'status',
+            'make',
+            'model',
+            'store',
+            'storeMl',
+            'location',
+            'images' => function ($query) {
+                $query->orderBy('order', 'asc');
+            }
+            ])
+            ->find($request->id);
+    }
+
+    public function showInventory(Request $request)
+    {
+        $user = $request->user();
+        $inventory = false;
+        if (count($user->roles) > 0) {
+            if ($user->roles[0]->role_id == 3) {
+                $inventory = true;
+            }
+        }
+
+        $superadmin = false;
+        if (count($user->roles) > 0) {
+            if ($user->roles[0]->role_id == 1) {
+                $superadmin = true;
+            }
+        }
+
+        $autopartQuery = Autopart::with([
             'category',
             'position',
             'side',
@@ -261,8 +407,18 @@ class AutopartController extends Controller
             'images' => function ($query) {
                 $query->orderBy('order', 'asc');
             }
-            ])
-            ->find($request->id);
+        ]);
+
+        if (!$superadmin) {
+            $autopartQuery->where('store_id', $user->store_id);
+        }
+        if ($inventory) {
+            $autopartQuery->where('created_by', $user->id);
+        }
+
+        $autopart = $autopartQuery->find($request->id);
+
+        return $autopart; 
     }
 
     public function store (Request $request)
