@@ -725,6 +725,10 @@ class ApiMl
                 [
                     "id" => "POSITION",
                     "value_name" => $autopart->position ? $autopart->position->name : null
+                ],
+                [
+                    "id" => "VEHICLE_TYPE",
+                    "value_name" => "Auto/Camioneta"
                 ]
                 
             ]
