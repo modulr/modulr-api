@@ -61,7 +61,7 @@ class AutopartController extends Controller
     //     return $autoparts;
     // }
 
-    public function search(Request $request)
+    public function search (Request $request)
     {
         $make = $request->make;
         $model = $request->model;
@@ -167,7 +167,7 @@ class AutopartController extends Controller
         return $autoparts;
     }
 
-    public function searchByUser(Request $request)
+    public function searchByUser (Request $request)
     {
         $make = $request->make;
         $model = $request->model;
@@ -346,7 +346,7 @@ class AutopartController extends Controller
         return $autoparts;
     }
 
-    public function show(Request $request)
+    public function show (Request $request)
     {
         return Autopart::with([
             'category',
@@ -367,7 +367,7 @@ class AutopartController extends Controller
             ->find($request->id);
     }
 
-    public function showInventory(Request $request)
+    public function showByUser (Request $request)
     {
         $user = $request->user();
         $inventory = false;
@@ -491,7 +491,7 @@ class AutopartController extends Controller
             ->find($autopart->id);
 
         if ($autopart->store_ml_id) {
-            $createML = ApiMl::createAutopartMl($newAutopart);
+            $createML = ApiMl::createAutopart($newAutopart);
         } else {
             $createML = false;
         }
@@ -605,11 +605,11 @@ class AutopartController extends Controller
             ->find($autopart->id);
             
         if ($changeStore) {
-            $sync = ApiMl::createAutopartMl($updatedAutopart);
+            $sync = ApiMl::createAutopart($updatedAutopart);
         } else if ($changeStatus) {
-            $response = ApiMl::getAutopartMl($updatedAutopart);
+            $response = ApiMl::getAutopart($updatedAutopart);
             if ($response->response) {
-                $sync = ApiMl::updateAutopartMl($updatedAutopart);
+                $sync = ApiMl::updateAutopart($updatedAutopart);
             } else {
                 $sync = false;
             }
@@ -643,9 +643,10 @@ class AutopartController extends Controller
             }
             ])
             ->find($request->id);
+
         if($autopart->ml_id){
             $autopart->status_id = 3;
-            ApiMl::updateAutopartMl($autopart);   
+            ApiMl::updateAutopart($autopart);   
         }
 
         AutopartActivity::create([
@@ -653,6 +654,7 @@ class AutopartController extends Controller
             'autopart_id' => $autopart->id,
             'user_id' => $request->user()->id
         ]);
+
         return Autopart::destroy($request->id);
     }
 
@@ -663,13 +665,10 @@ class AutopartController extends Controller
 
     public function qr (Request $request)
     {
-        $autopart = Autopart::with(['make','model'])->find($request->id);;
-        $location = AutopartListLocation::find($autopart->location_id);
-        $autopart->location = $location->name;
+        $autopart = Autopart::with(['make', 'model', 'location'])->find($request->id);
         $autopart->years = json_decode($autopart->years);
 
         if (count($autopart->years) > 0) {
-            
             if (count($autopart->years) > 1) {
                 $autopart->yearsRange .= " ".Arr::first($autopart->years).' - '.Arr::last($autopart->years);
             } else {

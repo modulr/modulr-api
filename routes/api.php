@@ -39,6 +39,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         return $user;
     });
     Route::post('autoparts/searchByUser', [AutopartController::class, 'searchByUser']);
+    Route::get('autoparts/showByUser/{id}', [AutopartController::class, 'showByUser']);
 
     Route::post('autoparts/store', [AutopartController::class, 'store']);
     Route::put('autoparts/update/{id}', [AutopartController::class, 'update']);
@@ -55,13 +56,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/autoparts/comments/store', [AutopartCommentController::class, 'store']);
     Route::delete('/autoparts/comments/destroy/{id}', [AutopartCommentController::class, 'destroy']);
 
+    Route::get('/autoparts/qr/{id}', [AutopartController::class, 'qr']);
 });
-
-Route::get('/autoparts/qr/{id}', [AutopartController::class, 'qr']);
 
 Route::post('autoparts/search', [AutopartController::class, 'search']);
 Route::get('autoparts/{id}', [AutopartController::class, 'show']);
-Route::get('autoparts/showInventory/{id}', [AutopartController::class, 'showInventory']);
 
 Route::get('categories', [CategoryController::class, 'index']);
 Route::get('positions', [PositionController::class, 'index']);

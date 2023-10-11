@@ -96,7 +96,7 @@
                         <tr>
                             <td class="location">
                                 <span class="title">Ubicación</span>
-                                {{ $autopart->location }}
+                                {{ $autopart->location->name }}
                             </td>
                         </tr>
                         @endif
