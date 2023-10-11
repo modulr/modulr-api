@@ -11,10 +11,24 @@ class LocationsController extends Controller
     {
         $user = $request->user();
 
-        return DB::table('autopart_list_locations')
-            ->select('id', 'name', 'stock', 'store_id')
-            ->whereNull('deleted_at')
-            ->where('store_id', $user->store_id)
-            ->get();
+        $superadmin = false;
+        if (count($user->roles) > 0) {
+            if ($user->roles[0]->role_id == 1) {
+                $superadmin = true;
+            }
+        }
+
+        if ($superadmin) {
+            return DB::table('autopart_list_locations')
+                ->select('id', 'name', 'stock', 'store_id')
+                ->whereNull('deleted_at')
+                ->get();
+        } else {
+            return DB::table('autopart_list_locations')
+                ->select('id', 'name', 'stock', 'store_id')
+                ->whereNull('deleted_at')
+                ->where('store_id', $user->store_id)
+                ->get();
+        }
     }
 }
