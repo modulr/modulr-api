@@ -473,30 +473,7 @@ class AutopartController extends Controller
             'user_id' => $request->user()->id
         ]);
 
-        $newAutopart = Autopart::with([
-            'category',
-            'position',
-            'side',
-            'condition',
-            'origin',
-            'make',
-            'model',
-            'status',
-            'store',
-            'location',
-            'images' => function ($query) {
-                $query->orderBy('order', 'asc');
-            }
-            ])
-            ->find($autopart->id);
-
-        if ($autopart->store_ml_id) {
-            $createML = ApiMl::createAutopart($newAutopart);
-        } else {
-            $createML = false;
-        }
-
-        return $newAutopart;
+        return $autopart;
     }
 
     public function update (Request $request)
@@ -554,12 +531,6 @@ class AutopartController extends Controller
         } else {
             $changeStore = false;
         }
-
-        if ($request->store_ml_id && (($autopart->status_id !== $request->status_id) || ($autopart->sale_price !== $request->sale_price) || ($autopart->name !== $request->name) || ($autopart->description !== $request->description))) {
-            $changeStatus = true;
-        } else {
-            $changeStatus = false;
-        }
         
         $autopart->name = $request->name;     
         $autopart->description = $request->description;
@@ -606,7 +577,7 @@ class AutopartController extends Controller
             
         if ($changeStore) {
             $sync = ApiMl::createAutopart($updatedAutopart);
-        } else if ($changeStatus) {
+        } else if ($request->ml_id) {
             $response = ApiMl::getAutopart($updatedAutopart);
             if ($response->response) {
                 $sync = ApiMl::updateAutopart($updatedAutopart);
@@ -616,33 +587,13 @@ class AutopartController extends Controller
         } else {
             $sync = false;
         }
-        if($sync){
-            $autopart = Autopart::find($updatedAutopart->id);
-            $updatedAutopart->ml_id = $autopart->ml_id;
-        }
 
         return ["autopart" => $updatedAutopart, "sync" => $sync];
     }
 
     public function destroy (Request $request)
     {
-        $autopart = Autopart::with([
-            'category',
-            'position',
-            'side',
-            'condition',
-            'origin',
-            'make',
-            'model',
-            'status',
-            'store',
-            'storeMl',
-            'location',
-            'images' => function ($query) {
-                $query->orderBy('order', 'asc');
-            }
-            ])
-            ->find($request->id);
+        $autopart = Autopart::find($request->id);
 
         if($autopart->ml_id){
             $autopart->status_id = 3;

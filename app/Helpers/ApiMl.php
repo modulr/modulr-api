@@ -177,24 +177,18 @@ class ApiMl
         return $response->object();
     }
 
-    private static function getCategoryMl ($autopart)
+    private static function getCategoryPredictor ($autopart)
     {
         self::checkAccessToken($autopart->store_ml_id);
 
         $storeMl = DB::table('stores_ml')->find($autopart->store_ml_id);
 
-        $client = new \GuzzleHttp\Client(['base_uri' => 'https://api.mercadolibre.com']);
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer '.self::$store->access_token,
+        ])->get('https://api.mercadolibre.com/sites/MLM/domain_discovery/search?q='.$autopart->name);
 
-        $name = $autopart->name;
-
-        try {
-            $response = $client->request('GET', 'sites/MLM/domain_discovery/search?q='.$name, [
-                'headers' => [
-                    'Authorization' => 'Bearer '.$storeMl->access_token,
-                ]
-            ]);
-
-            $category = json_decode($response->getBody());
+        if($response->successful()){
+            $category = $response->object();
 
             if (count($category) > 0) {
                 $categoryId = $category[0]->category_id;
@@ -223,9 +217,7 @@ class ApiMl
             }
 
             return $categoryId;
-        }
-        catch (\GuzzleHttp\Exception\ClientException $e) {
-
+        }else{
             $channel = env('TELEGRAM_CHAT_LOG');
             $content = "*Do not get category from Mercadolibre:* ".$autopart->ml_id;
             $user = User::find(38);
@@ -694,13 +686,9 @@ class ApiMl
         }
         
         if(is_null($autopart->category->ml_id)){
-            $categoryId = self::getCategoryMl($autopart);
+            $categoryId = self::getCategoryPredictor($autopart);
         }else{
             $categoryId = $autopart->category->ml_id;
-        }
-
-        if($autopart->description !== null){
-            $changeDescription = true;
         }
 
         $response = Http::withHeaders([
@@ -770,10 +758,9 @@ class ApiMl
             $autopart = Autopart::find($autopart->id);
             $autopart->store_ml_id = $autopart->store_ml_id;
             $autopart->ml_id = $autopartMl->id;
-
             $autopart->save();
 
-            if($autopart->ml_id && $changeDescription){
+            if($autopart->description !== null){
                 self::updateDescription($autopart,false);
             }
 
@@ -783,6 +770,7 @@ class ApiMl
             $autopart = Autopart::find($autopart->id);
             $autopart->store_ml_id = null;
             $autopart->save();
+            logger(["No se creó la autoparte"=>$response->object()]);
 
             $channel = env('TELEGRAM_CHAT_LOG');
             $content = "*Do not create autopart in Mercadolibre:* ".$autopart->id;
@@ -806,8 +794,6 @@ class ApiMl
             $status = 'active';
         }
 
-        $name = $autopart->name;
-
         $images = [];
         if (count($autopart->images) > 0) {
             $sortedImages = $autopart->images->sortBy('order')->take(10);
@@ -823,7 +809,7 @@ class ApiMl
         $response = Http::withHeaders([
             'Authorization' => 'Bearer '.$autopart->storeMl->access_token,
         ])->put('https://api.mercadolibre.com/items/'.$autopart->ml_id, [
-            "title" => substr($name, 0, 60),
+            "title" => substr($autopart->name, 0, 60),
             "status" => $status,
             "price" => $autopart->sale_price,
             "pictures" => $images,
@@ -887,11 +873,7 @@ class ApiMl
 
             return true;
         }else{
-
-            $autopart = Autopart::find($autopart->id);
-            $autopart->store_ml_id = null;
-            $autopart->save();
-
+            logger(["No se actualizó la autoparte"=>$response->object()]);
             $channel = env('TELEGRAM_CHAT_LOG');
             $content = "*Do not update autopart in Mercadolibre:* ".$autopart->id;
             $user = User::find(38);
