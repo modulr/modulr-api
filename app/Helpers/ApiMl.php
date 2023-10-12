@@ -168,7 +168,7 @@ class ApiMl
         
     }
 
-    private static function updatePrice($autopart,$put)
+    private static function updatePrice($autopart)
     {
 
         $response = Http::withHeaders([
@@ -896,7 +896,7 @@ class ApiMl
             }
 
             if($autopart->sale_price > 0){
-                self::updatePrice($autopart,);
+                self::updatePrice($autopart);
             }
 
             return true;
