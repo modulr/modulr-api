@@ -168,6 +168,31 @@ class ApiMl
         
     }
 
+    private static function updatePrice($autopart,$put)
+    {
+
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer '.$autopart->storeMl->access_token,
+        ])->post('https://api.mercadolibre.com/items/'.$autopart->ml_id.'/prices/standard', [
+            "prices"=> [
+                [
+                    "conditions" => [
+                        "context_restrictions"=> []
+                    ],
+                    "amount" => $autopart->sale_price,
+                    "currency_id" => "MXN"
+                ]
+            ]
+        ]);
+
+        if($response->successful()){
+            return true;  
+        }else{
+            return false;
+        }
+        
+    }
+
     private static function getCategory ($categoryMlId)
     {
         $response = Http::withHeaders([
@@ -811,7 +836,6 @@ class ApiMl
         ])->put('https://api.mercadolibre.com/items/'.$autopart->ml_id, [
             "title" => substr($autopart->name, 0, 60),
             "status" => $status,
-            "price" => $autopart->sale_price,
             "pictures" => $images,
             "attributes" => [
                 [
@@ -869,6 +893,10 @@ class ApiMl
 
             if($autopart->description !== null){
                 self::updateDescription($autopart,true);
+            }
+
+            if($autopart->sale_price > 0){
+                self::updatePrice($autopart,);
             }
 
             return true;
