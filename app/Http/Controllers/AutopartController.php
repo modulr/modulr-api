@@ -441,7 +441,7 @@ class AutopartController extends Controller
             'created_by' => $request->user()->id,
         ]);
 
-        if (count($request->images)) {
+        if ($request->images && count($request->images) > 0) {
             foreach ($request->images as $key => $value) {
                 if (isset($value['url'])) {
                     $img = pathinfo($value['url']);
