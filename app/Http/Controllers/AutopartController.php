@@ -522,8 +522,6 @@ class AutopartController extends Controller
 
         if (!$request->status_id == 5 && $request->sale_price > 0) {
             $request->status_id = 1;
-        } else {
-            $request->status_id = 5;
         }
 
         if ($autopart->store_ml_id !== $request->store_ml_id) {
