@@ -520,10 +520,10 @@ class AutopartController extends Controller
             sort($years);
         }
 
-        if ($request->sale_price > 0) {
-            $status = 1;
+        if (!$request->status_id == 5 && $request->sale_price > 0) {
+            $request->status_id = 1;
         } else {
-            $status = 5;
+            $request->status_id = 5;
         }
 
         if ($autopart->store_ml_id !== $request->store_ml_id) {
@@ -546,7 +546,7 @@ class AutopartController extends Controller
         $autopart->years = json_encode($years);
         $autopart->quality = $request->quality;
         $autopart->sale_price = $request->sale_price;
-        $autopart->status_id = $status;
+        $autopart->status_id = $request->status;
         $autopart->store_ml_id = $request->store_ml_id;
         $autopart->updated_by = $request->user()->id;
         $autopart->save();
