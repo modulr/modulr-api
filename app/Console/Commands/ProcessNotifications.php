@@ -123,7 +123,7 @@ class ProcessNotifications extends Command
                     }
     
                     if($autopart->name !== $response->autopart['name']){
-                        $change = $change . "🖋 Título actualizado\n".$autopart->name."\n🔽🔽🔽\n".str_replace(["*", "`"], "", $response->autopart['name'])."\n";
+                        $change = $change . "🖋 Título actualizado\n".str_replace(["*", "`"], "", $autopart->name)."\n🔽🔽🔽\n".str_replace(["*", "`"], "", $response->autopart['name'])."\n";
                         $autopart->name = str_replace(["*", "`"], "",$response->autopart['name']);
                     }
     
