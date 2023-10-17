@@ -644,5 +644,8 @@ class FillAutopartsData extends Command
         }
 
         $bar->finish();
+
+        $this->output->writeln('');
+        $this->info('Uptate Locations terminado.');
     }
 }
