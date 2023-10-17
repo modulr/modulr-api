@@ -39,7 +39,7 @@ class FillAutopartsData extends Command
         // $this->fillImagesIdMl($skip,$limit);
 
         // // Mostrar las opciones al usuario
-        $options = ['Descripcion', 'Lado', 'Posicion', 'Numero_Parte', 'Anios', 'Orden_Anios', 'Imagenes', 'Condicion', 'Ubicacion', 'Crear_Ubicaciones'];
+        $options = ['Descripcion', 'Lado', 'Posicion', 'Numero_Parte', 'Anios', 'Orden_Anios', 'Imagenes', 'Condicion', 'Ubicacion', 'Crear_Ubicaciones', 'update_locations'];
         $question = new ChoiceQuestion('Elige una opción para editar autopartes:', $options);
         $question->setErrorMessage('Opción inválida.');
 
@@ -76,8 +76,11 @@ class FillAutopartsData extends Command
                 $this->fillLocation($skip,$limit);
                 break;
             case 'Crear_Ubicaciones':
-                    $this->createLocations($skip,$limit);
-                    break;
+                $this->createLocations($skip,$limit);
+                break;
+            case 'update_locations':
+                $this->updateLocations($skip,$limit);
+                break;
             default:
                 $this->info('Opción no reconocida.');
                 break;
@@ -617,6 +620,25 @@ class FillAutopartsData extends Command
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now()
             ]);
+
+            $bar->advance();
+        }
+
+        $bar->finish();
+    }
+
+    private function updateLocations($skip, $limit)
+    {
+        $locations = DB::table('autopart_list_locations')->where('id', '>=', $limit)->where('id', '<=', $limit + 998)->get();
+
+        $bar = $this->output->createProgressBar(count($locations));
+ 
+        $bar->start();
+
+        foreach ($locations as $key => $val) {
+            $consecutivo = $skip . str_pad($key + 1, 3, '0', STR_PAD_LEFT);
+
+            DB::table('autopart_list_locations')->where('id', $val->id)->update(['name' => $consecutivo]);
 
             $bar->advance();
         }
