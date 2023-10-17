@@ -39,7 +39,7 @@ class ProcessNotifications extends Command
      */
     public function handle()
     {
-        $notifications = DB::table('notifications_ml')->where('done', false)->limit(30)->get();
+        $notifications = DB::table('notifications_ml')->where('done', false)->limit(10)->get();
 
         foreach ($notifications as $notification) {
             
@@ -285,7 +285,7 @@ class ProcessNotifications extends Command
                 }
             }
 
-            DB::table('notifications_ml')->where('id', $notification->id)->update(['done' => true]);
+            DB::table('notifications_ml')->where('id', $notification->id)->update(['done' => true, 'updated_at' => Carbon::now()]);
 
         }
 
