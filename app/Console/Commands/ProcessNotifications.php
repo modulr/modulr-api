@@ -32,7 +32,7 @@ class ProcessNotifications extends Command
      *
      * @var string
      */
-    protected $description = 'Command description';
+    protected $description = 'Comando para procesar las notificaciones de mercado libre';
 
     /**
      * Execute the console command.
@@ -41,7 +41,11 @@ class ProcessNotifications extends Command
     {
         $notifications = DB::table('notifications_ml')->where('done', false)->limit(10)->get();
 
-        foreach ($notifications as $notification) {
+        $uniqueNot = $notifications->unique('ml_id');
+ 
+        $uniqueNot->values()->all();
+
+        foreach ($uniqueNot as $notification) {
             
             $autopart = Autopart::withTrashed()->where('ml_id', $notification->ml_id)->first();
     
