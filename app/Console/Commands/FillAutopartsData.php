@@ -39,7 +39,7 @@ class FillAutopartsData extends Command
         // $this->fillImagesIdMl($skip,$limit);
 
         // // Mostrar las opciones al usuario
-        $options = ['Descripcion', 'Lado', 'Posicion', 'Numero_Parte', 'Anios', 'Orden_Anios', 'Imagenes', 'Condicion','Ubicacion'];
+        $options = ['Descripcion', 'Lado', 'Posicion', 'Numero_Parte', 'Anios', 'Orden_Anios', 'Imagenes', 'Condicion', 'Ubicacion', 'Crear_Ubicaciones'];
         $question = new ChoiceQuestion('Elige una opción para editar autopartes:', $options);
         $question->setErrorMessage('Opción inválida.');
 
@@ -75,6 +75,9 @@ class FillAutopartsData extends Command
             case 'Ubicacion':
                 $this->fillLocation($skip,$limit);
                 break;
+            case 'Crear_Ubicaciones':
+                    $this->createLocations($skip,$limit);
+                    break;
             default:
                 $this->info('Opción no reconocida.');
                 break;
@@ -596,5 +599,28 @@ class FillAutopartsData extends Command
         }
         $this->output->writeln('');
         $this->info('Completar ubicaciones terminado.');
+    }
+
+    private function createLocations($skip, $limit)
+    {
+        $bar = $this->output->createProgressBar($limit);
+ 
+        $bar->start();
+
+        for ($i = 1; $i <= $limit; $i++) {
+            $consecutivo = $skip . str_pad($i, 3, '0', STR_PAD_LEFT);
+
+            DB::table('autopart_list_locations')->insert([
+                'name' => $consecutivo,
+                'stock' => 0,
+                'store_id' => 5,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now()
+            ]);
+
+            $bar->advance();
+        }
+
+        $bar->finish();
     }
 }
