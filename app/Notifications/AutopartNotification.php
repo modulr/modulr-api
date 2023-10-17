@@ -63,7 +63,7 @@ class AutopartNotification extends Notification
     {
         $message = TelegramMessage::create()
             ->to($this->channel)
-            ->content($this->content);
+            ->content(str_replace(["*", "`"], "",$this->content));
 
         if ($this->button) {
             $message->button('Ver en AG', 'https://autoglobal.mx/autopart/'.$this->button);
