@@ -544,7 +544,7 @@ class AutopartController extends Controller
         $autopart->years = json_encode($years);
         $autopart->quality = $request->quality;
         $autopart->sale_price = $request->sale_price;
-        $autopart->status_id = $request->status;
+        $autopart->status_id = $request->status_id;
         $autopart->store_ml_id = $request->store_ml_id;
         $autopart->updated_by = $request->user()->id;
         $autopart->save();
