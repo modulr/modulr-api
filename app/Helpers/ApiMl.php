@@ -810,7 +810,7 @@ class ApiMl
     public static function updateAutopart ($autopart)
     {
         self::checkAccessToken($autopart->store_ml_id);
-        $response = self::getAutopart($updatedAutopart);
+        $response = self::getAutopart($autopart);
         $attributesArray = [];
 
         $attributesToCheck = [
