@@ -7,22 +7,28 @@ use Illuminate\Support\Facades\DB;
 
 class LocationsController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return DB::table('autopart_list_locations')
-            ->select('id', 'location', 'stock', 'store_id')
-            ->whereNull('deleted_at')
-            ->get();
-    }
+        $user = $request->user();
 
-    public function getByStore(Request $request)
-    {
-        $storeId = $request->query('store_id');
+        $superadmin = false;
+        if (count($user->roles) > 0) {
+            if ($user->roles[0]->role_id == 1) {
+                $superadmin = true;
+            }
+        }
 
-        return DB::table('autopart_list_locations')
-            ->select('id', 'name', 'stock', 'store_id')
-            ->where('store_id', $storeId)
-            ->whereNull('deleted_at')
-            ->get();
+        if ($superadmin) {
+            return DB::table('autopart_list_locations')
+                ->select('id', 'name', 'stock', 'store_id')
+                ->whereNull('deleted_at')
+                ->get();
+        } else {
+            return DB::table('autopart_list_locations')
+                ->select('id', 'name', 'stock', 'store_id')
+                ->whereNull('deleted_at')
+                ->where('store_id', $user->store_id)
+                ->get();
+        }
     }
 }

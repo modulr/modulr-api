@@ -39,7 +39,7 @@ class FillAutopartsData extends Command
         // $this->fillImagesIdMl($skip,$limit);
 
         // // Mostrar las opciones al usuario
-        $options = ['Descripcion', 'Lado', 'Posicion', 'Numero_Parte', 'Anios', 'Orden_Anios', 'Imagenes', 'Condicion','Ubicacion'];
+        $options = ['Descripcion', 'Lado', 'Posicion', 'Numero_Parte', 'Anios', 'Orden_Anios', 'Imagenes', 'Condicion', 'Ubicacion', 'Crear_Ubicaciones', 'update_locations'];
         $question = new ChoiceQuestion('Elige una opción para editar autopartes:', $options);
         $question->setErrorMessage('Opción inválida.');
 
@@ -74,6 +74,12 @@ class FillAutopartsData extends Command
                 break;
             case 'Ubicacion':
                 $this->fillLocation($skip,$limit);
+                break;
+            case 'Crear_Ubicaciones':
+                $this->createLocations($skip,$limit);
+                break;
+            case 'update_locations':
+                $this->updateLocations($skip,$limit);
                 break;
             default:
                 $this->info('Opción no reconocida.');
@@ -514,8 +520,8 @@ class FillAutopartsData extends Command
         ->whereNull('deleted_at')
         ->where('status_id', '!=', 4)
         ->orderBy('id', 'desc')
-        ->skip($skip)
-        ->take($limit)
+        // ->skip($skip)
+        // ->take($limit)
         ->get();
 
         // Crea una instancia de ProgressBar
@@ -525,7 +531,7 @@ class FillAutopartsData extends Command
 
         // Recorre las autoparts y realiza el proceso para cada una
         foreach ($autoparts as $autopart) {
-            logger('ID: '.$autopart->id);
+            //logger('ID: '.$autopart->id);
 
             // Copiar los valores de origin_id a condition_id
             DB::table('autoparts')
@@ -596,5 +602,50 @@ class FillAutopartsData extends Command
         }
         $this->output->writeln('');
         $this->info('Completar ubicaciones terminado.');
+    }
+
+    private function createLocations($skip, $limit)
+    {
+        $bar = $this->output->createProgressBar($limit);
+ 
+        $bar->start();
+
+        for ($i = 1; $i <= $limit; $i++) {
+            $consecutivo = $skip . str_pad($i, 3, '0', STR_PAD_LEFT);
+
+            DB::table('autopart_list_locations')->insert([
+                'name' => $consecutivo,
+                'stock' => 0,
+                'store_id' => 5,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now()
+            ]);
+
+            $bar->advance();
+        }
+
+        $bar->finish();
+    }
+
+    private function updateLocations($skip, $limit)
+    {
+        $locations = DB::table('autopart_list_locations')->where('id', '>=', $limit)->where('id', '<=', $limit + 998)->get();
+
+        $bar = $this->output->createProgressBar(count($locations));
+ 
+        $bar->start();
+
+        foreach ($locations as $key => $val) {
+            $consecutivo = $skip . str_pad($key + 1, 3, '0', STR_PAD_LEFT);
+
+            DB::table('autopart_list_locations')->where('id', $val->id)->update(['name' => $consecutivo]);
+
+            $bar->advance();
+        }
+
+        $bar->finish();
+
+        $this->output->writeln('');
+        $this->info('Uptate Locations terminado.');
     }
 }
