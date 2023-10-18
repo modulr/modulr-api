@@ -262,8 +262,7 @@ class ApiMl
 
         if ($response->code == 200) {
 
-            $name = str_replace(['*', '#'], '', $response->body->title);
-            $autopart['name'] = $name;
+            $autopart['name'] = str_replace(['*', '#', "`"], '', $response->body->title);
             $autopart['description'] = '';
             $autopart['autopart_number'] = null;
             $autopart['ml_id'] = $response->body->id;
