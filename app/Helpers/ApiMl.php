@@ -740,7 +740,7 @@ class ApiMl
                 ],
                 [
                     "id" => "PART_NUMBER",
-                    "value_name" => $autopart->autopart_number
+                    "value_name" => $autopart->autopart_number ? $autopart->autopart_number : 0000
                 ],
                 [
                     "id" => "ITEM_CONDITION",
