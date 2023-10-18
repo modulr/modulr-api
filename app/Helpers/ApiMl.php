@@ -278,6 +278,13 @@ class ApiMl
             $autopart['years'] = [];
             $autopart['images'] = [];
             $autopart['date_created'] = $response->body->date_created;
+            $autopart['moderation_active'] = false;
+
+            if (isset($response->body->tags) && is_array($response->body->tags)) {
+                if (in_array("moderation_penalty", $response->body->tags)) {
+                    $autopart['moderation_active'] = true;
+                }
+            }
 
             if ($response->body->condition == 'new') {
                 $autopart['origin_id'] = 1;
