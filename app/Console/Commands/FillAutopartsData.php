@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Http;
 use App\Helpers\ApiMl;
 
 class FillAutopartsData extends Command
@@ -18,7 +19,7 @@ class FillAutopartsData extends Command
      *
      * @var string
      */
-    protected $signature = 'app:fill-autoparts-data {--skip=0} {--limit=50}';
+    protected $signature = 'app:fill-autoparts-data {--skip=0} {--limit=50} {--store_ml=1}';
 
     /**
      * The console command description.
@@ -35,11 +36,12 @@ class FillAutopartsData extends Command
         // Obtener los argumentos y opciones pasados al comando
         $skip = $this->option('skip');
         $limit = $this->option('limit');
+        $store_ml = $this->option('store_ml');
 
         // $this->fillImagesIdMl($skip,$limit);
 
         // // Mostrar las opciones al usuario
-        $options = ['Descripcion', 'Lado', 'Posicion', 'Numero_Parte', 'Anios', 'Orden_Anios', 'Imagenes', 'Condicion', 'Ubicacion', 'Crear_Ubicaciones', 'update_locations'];
+        $options = ['Descripcion', 'Lado', 'Posicion', 'Numero_Parte', 'Anios', 'Orden_Anios', 'Imagenes', 'Condicion', 'Ubicacion', 'Crear_Ubicaciones', 'update_locations','Activar_Autopartes'];
         $question = new ChoiceQuestion('Elige una opción para editar autopartes:', $options);
         $question->setErrorMessage('Opción inválida.');
 
@@ -80,6 +82,9 @@ class FillAutopartsData extends Command
                 break;
             case 'update_locations':
                 $this->updateLocations($skip,$limit);
+                break;
+            case 'Activar_Autopartes':
+                $this->activeAutoparts($store_ml);
                 break;
             default:
                 $this->info('Opción no reconocida.');
@@ -647,5 +652,37 @@ class FillAutopartsData extends Command
 
         $this->output->writeln('');
         $this->info('Uptate Locations terminado.');
+    }
+
+    private function activeAutoparts($store_ml)
+    {
+        $store = DB::table('stores_ml')->where('id', '=', $store_ml)->first();
+
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer '.$store->access_token,
+        ])->get('https://api.mercadolibre.com/users/'.$store->user_id.'/items/search?tags=moderation_penalty&status=paused&limit=100');
+
+        if($response->successful()){
+            $bar = $this->output->createProgressBar(count($response->object()->results));
+ 
+            $bar->start();
+    
+    
+            foreach ($response->object()->results as $key => $ml_id) {
+                $autopart = Http::withHeaders([
+                    'Authorization' => 'Bearer '.$store->access_token,
+                ])->put('https://api.mercadolibre.com/items/'.$ml_id, [
+                    "status" => 'active'
+                ]);
+    
+                $bar->advance();
+            }
+
+            $bar->finish();
+        }
+        
+
+        $this->output->writeln('');
+        $this->info('Reactivar autopartes terminado.');
     }
 }
