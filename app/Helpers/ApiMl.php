@@ -835,12 +835,15 @@ class ApiMl
             foreach ($attributesToCheck as $attribute) {
                 $attributeExists = false;
                 foreach ($val->attribute_combinations as $value) {
+                    logger(["Variation"=>$value]);
                     if ($value->id == $attribute && isset($value->value_name)) {
+                        logger(["Existe"=>$attribute]);
                         $attributeExists = true;
                         break;
                     }
                 }
                 if (!$attributeExists) {
+                    logger(["No existe"=>$attribute]);
                     switch ($attribute) {
                         case "BRAND":
                             $attributesArray[] = [
