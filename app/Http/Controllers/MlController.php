@@ -69,10 +69,10 @@ class MlController extends Controller
 
         $mlId = trim($request->resource, '/items/');
 
-        $latest = DB::table('notifications_ml')->latest()->first();
+        //$latest = DB::table('notifications_ml')->latest()->first();
 
-        if ($mlId <> $latest->ml_id) {
-            DB::table('notifications_ml')->insert([
+        //if ($mlId <> $latest->ml_id) {
+            return DB::table('notifications_ml')->insert([
                 'ml_id' => $mlId,
                 'topic' => $request->topic,
                 'resource' => $request->resource,
@@ -84,8 +84,8 @@ class MlController extends Controller
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now()
             ]);
-        }
+        //}
 
-        return true;
+        //return true;
     }
 }
