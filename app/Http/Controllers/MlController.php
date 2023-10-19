@@ -84,10 +84,8 @@ class MlController extends Controller
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now()
             ]);
-            return 1;
-        } else {
-            return 0;
         }
-        
+
+        return true;
     }
 }
