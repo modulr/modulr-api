@@ -57,15 +57,15 @@ class MlController extends Controller
 
     public function notifications (Request $request)
     {
-        $request = (object) [
-            'topic' => 'items',
-            'resource' => '/items/MLM2279763982',
-            'user_id' => 1150852266,
-            'application_id' => 751467155218399,
-            'sent' => '2022-01-07T18:55:57.75Z',
-            'attempts' => 1,
-            'received' => '2022-01-07T18:55:57.649Z',
-        ];
+        // $request = (object) [
+        //     'topic' => 'items',
+        //     'resource' => '/items/MLM2279763982',
+        //     'user_id' => 1150852266,
+        //     'application_id' => 751467155218399,
+        //     'sent' => '2022-01-07T18:55:57.75Z',
+        //     'attempts' => 1,
+        //     'received' => '2022-01-07T18:55:57.649Z',
+        // ];
 
         $mlId = trim($request->resource, '/items/');
 
