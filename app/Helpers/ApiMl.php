@@ -836,13 +836,11 @@ class ApiMl
                 $attributeExists = false;
                 foreach ($val->attribute_combinations as $value) {
                     if ($value->id == $attribute && isset($value->value_name)) {
-                        logger(["Existe"=>$attribute]);
                         $attributeExists = true;
                         break;
                     }
                 }
                 if (!$attributeExists) {
-                    logger(["No existe"=>$attribute]);
                     switch ($attribute) {
                         case "BRAND":
                             $attributesArray[] = [
@@ -923,7 +921,6 @@ class ApiMl
                 }
             };
         }
-        logger(["Atributos"=>$attributesArray]);
 
         $response = Http::withHeaders([
             'Authorization' => 'Bearer '.$autopart->storeMl->access_token,
