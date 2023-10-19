@@ -71,6 +71,8 @@ class MlController extends Controller
 
         $latest = DB::table('notifications_ml')->latest()->first();
 
+        usleep(100000);
+
         if ($mlId <> $latest->ml_id) {
             DB::table('notifications_ml')->insert([
                 'ml_id' => $mlId,
@@ -84,8 +86,6 @@ class MlController extends Controller
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now()
             ]);
-
-            usleep(100000);
         }
 
         return true;
