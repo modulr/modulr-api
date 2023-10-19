@@ -85,6 +85,12 @@ class ProcessNotifications extends Command
                         if ($autopart->status_id == 3 && $response->autopart['status'] == 'closed') {
                             $newStatusId = 4; // Vendido
                         }
+
+                        if($autopart->moderation_active){
+                            $newStatusId = 1;
+                            $autopart->status_id = 1;
+                            ApiMl::updateAutopart($autopart);
+                        }
         
                         if($autopart->status_id !== $newStatusId){
         

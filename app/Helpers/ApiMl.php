@@ -277,6 +277,13 @@ class ApiMl
             $autopart['years'] = [];
             $autopart['images'] = [];
             $autopart['date_created'] = $response->body->date_created;
+            $autopart['moderation_active'] = false;
+
+            if (isset($response->body->tags) && is_array($response->body->tags)) {
+                if (in_array("moderation_penalty", $response->body->tags)) {
+                    $autopart['moderation_active'] = true;
+                }
+            }
 
             if ($response->body->condition == 'new') {
                 $autopart['origin_id'] = 1;
@@ -739,7 +746,7 @@ class ApiMl
                 ],
                 [
                     "id" => "PART_NUMBER",
-                    "value_name" => $autopart->autopart_number
+                    "value_name" => $autopart->autopart_number ? $autopart->autopart_number : 0000
                 ],
                 [
                     "id" => "ITEM_CONDITION",
@@ -809,6 +816,91 @@ class ApiMl
     public static function updateAutopart ($autopart)
     {
         self::checkAccessToken($autopart->store_ml_id);
+        $response = self::getAutopart($autopart);
+        $attributesArray = [];
+
+        $attributesToCheck = [
+            "BRAND",
+            "MODEL",
+            "PART_NUMBER",
+            "ITEM_CONDITION",
+            "ORIGIN",
+            "SELLER_SKU",
+            "SIDE",
+            "POSITION",
+            "VEHICLE_TYPE"
+        ];
+
+        foreach ($response->autopart->variations as $val) {
+            foreach ($attributesToCheck as $attribute) {
+                $attributeExists = false;
+                foreach ($val->attribute_combinations as $value) {
+                    if ($value->id == $attribute && isset($value->value_name)) {
+                        $attributeExists = true;
+                        break;
+                    }
+                }
+                if (!$attributeExists) {
+                    switch ($attribute) {
+                        case "BRAND":
+                            $attributesArray[] = [
+                                "id" => $attribute,
+                                "value_name" => $autopart->make ? $autopart->make->name : null
+                            ];
+                            break;
+                        case "MODEL":
+                            $attributesArray[] = [
+                                "id" => $attribute,
+                                "value_name" => $autopart->model ? $autopart->model->name : null
+                            ];
+                            break;
+                        case "PART_NUMBER":
+                            $attributesArray[] = [
+                                "id" => $attribute,
+                                "value_name" => $autopart->autopart_number ? $autopart->autopart_number : 0000
+                            ];
+                            break;
+                        case "ITEM_CONDITION":
+                            $attributesArray[] = [
+                                "id" => $attribute,
+                                "value_name" => $autopart->condition ? $autopart->condition->name : null
+                            ];
+                            break;
+                        case "ORIGIN":
+                            $attributesArray[] = [
+                                "id" => $attribute,
+                                "value_name" => $autopart->origin ? $autopart->origin->name : null
+                            ];
+                            break;
+                        case "SELLER_SKU":
+                            $attributesArray[] = [
+                                "id" => $attribute,
+                                "value_name" => $autopart->id
+                            ];
+                            break;
+                        case "SIDE":
+                            $attributesArray[] = [
+                                "id" => $attribute,
+                                "value_name" => $autopart->side ? $autopart->side->name : null
+                            ];
+                            break;
+                        case "POSITION":
+                            $attributesArray[] = [
+                                "id" => $attribute,
+                                "value_name" => $autopart->position ? $autopart->position->name : null
+                            ];
+                            break;
+                        case "VEHICLE_TYPE":
+                            $attributesArray[] = [
+                                "id" => $attribute,
+                                "value_name" => "Auto/Camioneta"
+                            ];
+                            break;
+                    }
+                }
+            }
+        }
+
 
         if ($autopart->status_id == 4) {
             $status = 'closed';
@@ -836,45 +928,7 @@ class ApiMl
             "title" => substr($autopart->name, 0, 60),
             "status" => $status,
             "pictures" => $images,
-            "attributes" => [
-                [
-                    "id" => "BRAND",
-                    "value_name" => $autopart->make ? $autopart->make->name : null
-                ],
-                [
-                    "id" => "MODEL",
-                    "value_name" => $autopart->model ? $autopart->model->name : null
-                ],
-                [
-                    "id" => "PART_NUMBER",
-                    "value_name" => $autopart->autopart_number
-                ],
-                [
-                    "id" => "ITEM_CONDITION",
-                    "value_name" => $autopart->condition ? $autopart->condition->name : null
-                ],
-                [
-                    "id" => "ORIGIN",
-                    "value_name" => $autopart->origin ? $autopart->origin->name : null
-                ],
-                [
-                    "id" => "SELLER_SKU",
-                    "value_name" => $autopart->id
-                ],
-                [
-                    "id" => "SIDE",
-                    "value_name" => $autopart->side ? $autopart->side->name : null
-                ],
-                [
-                    "id" => "POSITION",
-                    "value_name" => $autopart->position ? $autopart->position->name : null
-                ],
-                [
-                    "id" => "VEHICLE_TYPE",
-                    "value_name" => "Auto/Camioneta"
-                ]
-                
-            ]
+            "attributes" => $attributesArray
         ]);
 
         if($response->successful()){
