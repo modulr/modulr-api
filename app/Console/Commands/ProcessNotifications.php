@@ -39,7 +39,7 @@ class ProcessNotifications extends Command
      */
     public function handle()
     {
-        $notifications = DB::table('notifications_ml')->where('done', false)->limit(15)->get();
+        $notifications = DB::table('notifications_ml')->where('done', false)->limit(10)->get();
 
         $duplicates = $notifications->duplicates('ml_id');
 
