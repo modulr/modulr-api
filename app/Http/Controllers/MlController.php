@@ -57,29 +57,37 @@ class MlController extends Controller
 
     public function notifications (Request $request)
     {
-        // $request = (object) [
-        //     'topic' => 'items',
-        //     'resource' => '/items/MLM2279763980',
-        //     'user_id' => 1150852266,
-        //     'application_id' => 751467155218399,
-        //     'sent' => '2022-01-07T18:55:57.75Z',
-        //     'attempts' => 1,
-        //     'received' => '2022-01-07T18:55:57.649Z',
-        // ];
+        $request = (object) [
+            'topic' => 'items',
+            'resource' => '/items/MLM2279763982',
+            'user_id' => 1150852266,
+            'application_id' => 751467155218399,
+            'sent' => '2022-01-07T18:55:57.75Z',
+            'attempts' => 1,
+            'received' => '2022-01-07T18:55:57.649Z',
+        ];
 
         $mlId = trim($request->resource, '/items/');
 
-        return DB::table('notifications_ml')->insert([
-            'ml_id' => $mlId,
-            'topic' => $request->topic,
-            'resource' => $request->resource,
-            'attempts' => $request->attempts,
-            'user_id' => $request->user_id,
-            'application_id' => $request->application_id,
-            'sent' => $request->sent,
-            'received' => $request->received,
-            'created_at' => Carbon::now(),
-            'updated_at' => Carbon::now()
-        ]);
+        $latest = DB::table('notifications_ml')->latest()->first();
+
+        if ($mlId <> $latest->ml_id) {
+            DB::table('notifications_ml')->insert([
+                'ml_id' => $mlId,
+                'topic' => $request->topic,
+                'resource' => $request->resource,
+                'attempts' => $request->attempts,
+                'user_id' => $request->user_id,
+                'application_id' => $request->application_id,
+                'sent' => $request->sent,
+                'received' => $request->received,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now()
+            ]);
+            return 1;
+        } else {
+            return 0;
+        }
+        
     }
 }
