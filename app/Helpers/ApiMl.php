@@ -930,6 +930,10 @@ class ApiMl
             }
         }
 
+        foreach ($response->autopart->variations as &$variation) {
+            // Mantén solo la propiedad 'attribute_combinations' y elimina las demás
+            $variation = ["attribute_combinations" => $variation["attribute_combinations"]];
+        }
 
         if ($autopart->status_id == 4) {
             $status = 'closed';
@@ -957,7 +961,8 @@ class ApiMl
             "title" => substr($autopart->name, 0, 60),
             "status" => $status,
             "pictures" => $images,
-            "attributes" => $attributesArray
+            "attributes" => $attributesArray,
+            "variations" => $response->autopart->variations
         ]);
         
 
