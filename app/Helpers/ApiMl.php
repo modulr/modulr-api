@@ -952,14 +952,16 @@ class ApiMl
         }
 
         $response = Http::withHeaders([
-            'Authorization' => 'Bearer '.$autopart->storeMl->access_token,
-        ])->put('https://api.mercadolibre.com/items/'.$autopart->ml_id, [
+            'Authorization' => 'Bearer ' . $autopart->storeMl->access_token,
+        ])->put('https://api.mercadolibre.com/items/' . $autopart->ml_id, [
             "title" => substr($autopart->name, 0, 60),
             "status" => $status,
             "pictures" => $images,
             "attributes" => $attributesArray,
-            "variations" => $response->autopart->variations ? $response->autopart->variations['attribute_combinations'] : null
+            "variations" => isset($response->autopart->variations) && isset($response->autopart->variations[0]->attribute_combinations) ?
+                $response->autopart->variations[0]->attribute_combinations : null
         ]);
+        
 
         if($response->successful()){
             $autopartMl = $response->object();
