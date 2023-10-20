@@ -837,6 +837,35 @@ class ApiMl
                 foreach ($val->attribute_combinations as $value) {
                     if ($value->id == $attribute && isset($value->value_name)) {
                         $attributeExists = true;
+                        switch ($attribute) {
+                            case "BRAND":
+                                $value->value_name = $autopart->make ? $autopart->make->name : null;
+                                break;
+                            case "MODEL":
+                                $value->value_name = $autopart->model ? $autopart->model->name : null;
+                                break;
+                            case "PART_NUMBER":
+                                $value->value_name = $autopart->autopart_number ? $autopart->autopart_number : null;
+                                break;
+                            case "ITEM_CONDITION":
+                                $value->value_name = $autopart->condition ? $autopart->condition->name : null;
+                                break;
+                            case "ORIGIN":
+                                $value->value_name = $autopart->origin ? $autopart->origin->name : null;
+                                break;
+                            case "SELLER_SKU":
+                                $value->value_name = $autopart->id;
+                                break;
+                            case "SIDE":
+                                $value->value_name = $autopart->side ? $autopart->side->name : null;
+                                break;
+                            case "POSITION":
+                                $value->value_name = $autopart->position ? $autopart->position->name : null;
+                                break;
+                            case "VEHICLE_TYPE":
+                                $value->value_name = "Auto/Camioneta";
+                                break;
+                        }
                         break;
                     }
                 }
@@ -928,7 +957,8 @@ class ApiMl
             "title" => substr($autopart->name, 0, 60),
             "status" => $status,
             "pictures" => $images,
-            "attributes" => $attributesArray
+            "attributes" => $attributesArray,
+            "variations" => $response->autopart->variations
         ]);
 
         if($response->successful()){
