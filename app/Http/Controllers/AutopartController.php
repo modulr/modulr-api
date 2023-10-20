@@ -243,6 +243,7 @@ class AutopartController extends Controller
         if (!$superamdin) {
             $autopartsQuery->where('autoparts.store_id', $user->store_id);
         }
+        
         if ($inventory) {
             $autopartsQuery->where('autoparts.created_by', $user->id);
         }
@@ -556,6 +557,7 @@ class AutopartController extends Controller
         ]);
 
         $updatedAutopart = Autopart::with([
+            'location',
             'category',
             'position',
             'side',
@@ -566,7 +568,6 @@ class AutopartController extends Controller
             'status',
             'store',
             'storeMl',
-            'location',
             'images' => function ($query) {
                 $query->orderBy('order', 'asc');
             }
@@ -605,6 +606,88 @@ class AutopartController extends Controller
         ]);
 
         return Autopart::destroy($request->id);
+    }
+
+    public function clone (Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string',
+            //'location' => 'required|string',
+        ]);
+
+        $years = $request->years ? Arr::pluck($request->years, 'name'): [];
+        if (count($years) > 1) {
+            sort($years);
+            $firstYear = min($years);
+            $lastYear = max($years);
+            $missingYears = [];
+
+            for ($year = $firstYear; $year <= $lastYear; $year++) {
+                if (!in_array($year, $years)) {
+                    $missingYears[] = json_encode($year);
+                }
+            }
+    
+            if (!empty($missingYears)) {
+                // Agregar los años faltantes al array de años
+                $years = array_merge($years, $missingYears);
+            }
+            sort($years);
+        }
+
+        if($request->location_id){
+            $location = AutopartListLocation::find($request->location_id);
+            $location->stock = $location->stock + 1;
+            $location->save();
+        }
+
+        if (!$request->status_id == 5 && $request->sale_price > 0) {
+            $request->status_id = 1;
+        }
+
+        $autopart = Autopart::create([
+            'name' => $request->name,
+            'description' => $request->description,
+            'autopart_number' => $request->autopart_number,
+            'location_id' => $request->location_id,
+            'category_id' => $request->category_id,
+            'position_id' => $request->position_id,
+            'side_id' => $request->side_id,
+            'condition_id' => $request->condition_id,
+            'origin_id' => $request->origin_id,
+            'make_id' => $request->make_id,
+            'model_id' => $request->model_id,
+            'years' => json_encode($years),
+            'quality' => $request->quality,
+            'sale_price' => $request->sale_price,
+            'status_id' => $request->status_id,
+            'store_id' => $request->user()->store_id,
+            'created_by' => $request->user()->id,
+        ]);
+
+        $qr = QrCode::format('png')->size(200)->margin(1)->generate($autopart->id);
+        Storage::put('autoparts/'.$autopart->id.'/qr/'.$autopart->id.'.png', (string) $qr);
+
+        AutopartActivity::create([
+            'activity' => 'Autoparte creada',
+            'autopart_id' => $autopart->id,
+            'user_id' => $request->user()->id
+        ]);
+
+        return Autopart::with([
+            'location',
+            'category',
+            'position',
+            'side',
+            'condition',
+            'origin',
+            'make',
+            'model',
+            'status',
+            'store',
+            ])
+            ->find($autopart->id);
+
     }
 
     public function getDescription (Request $request)
