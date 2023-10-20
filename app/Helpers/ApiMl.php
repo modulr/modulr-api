@@ -958,7 +958,7 @@ class ApiMl
             "status" => $status,
             "pictures" => $images,
             "attributes" => $attributesArray,
-            "variations" => $response->autopart->variations['attribute_combinations'] ? $response->autopart->variations['attribute_combinations'] : null
+            "variations" => $response->autopart->variations
         ]);
 
         if($response->successful()){
