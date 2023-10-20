@@ -115,7 +115,8 @@ class ProcessNotifications extends Command
                                     'user_id' => 38
                                 ]);
                                 
-                                $channel = env('TELEGRAM_CHAT_SALES_ID');
+                                //$channel = env('TELEGRAM_CHAT_SALES_ID');
+                                $channel = $autopart->store->telegram;
                                 $content = "💰*¡Autoparte Vendida!*\n*".$autopart->storeMl->name."*\n".$autopart->ml_id."\nID: ".$autopart->id."\n".$response->autopart['name']."\nPrecio: $".number_format($response->autopart['sale_price']);
                                 $button = $autopart->id;
                                 $user = User::find(38);
@@ -220,7 +221,8 @@ class ProcessNotifications extends Command
                                 'user_id' => 38
                             ]);
                             
-                            $channel = env('TELEGRAM_CHAT_UPDATES_ID');
+                            //$channel = env('TELEGRAM_CHAT_UPDATES_ID');
+                            $channel = $autopart->store->telegram;
                             $content = "*¡Autoparte Actualizada!*\n*".$autopart->storeMl->name."*\n".$autopart->ml_id."\nID: ".$autopart->id."\n".$change;
                             $button = $autopart->id;
                             $user = User::find(38);
@@ -287,7 +289,8 @@ class ProcessNotifications extends Command
                             'user_id' => 38
                         ]);
         
-                        $channel = env('TELEGRAM_CHAT_NEWS_ID');
+                        //$channel = env('TELEGRAM_CHAT_NEWS_ID');
+                        $channel = $autopart->store->telegram;
                         $content = "✅ *¡Nueva autoparte!*\n*".$storeMl->name."*\n".$notification->ml_id."\nID: ".$autopartId."\n".$response->autopart['name']."\nPrecio: $".number_format($response->autopart['sale_price']);
                         $button = $autopartId;
                         $user = User::find(38);
