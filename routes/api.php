@@ -44,6 +44,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('autoparts/store', [AutopartController::class, 'store']);
     Route::put('autoparts/update/{id}', [AutopartController::class, 'update']);
     Route::delete('autoparts/destroy/{id}', [AutopartController::class, 'destroy']);
+    Route::post('autoparts/clone', [AutopartController::class, 'clone']);
     
     Route::get('autoparts/description', [AutopartController::class, 'getDescription']);
     
