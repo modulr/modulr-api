@@ -102,9 +102,11 @@ class ProcessNotifications extends Command
                                 5 => "Incompleto",
                                 6 => "Sin Mercado Libre"
                             ];
+
+                            if ($newStatusId != 4) {
+                                $change = "🚦 Estatus actualizado: ".$statuses[$autopart->status_id]." ⏩ ".$statuses[$newStatusId]."\n";
+                            }
         
-                            $change = "🚦 Estatus actualizado: ".$statuses[$autopart->status_id]." ⏩ ".$statuses[$newStatusId]."\n";
-    
                             $autopart->status_id = $newStatusId;
         
                             // AUTOPARTE VENDIDA

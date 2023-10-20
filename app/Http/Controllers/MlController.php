@@ -59,7 +59,7 @@ class MlController extends Controller
     {
         // $request = (object) [
         //     'topic' => 'items',
-        //     'resource' => '/items/MLM2279763982',
+        //     'resource' => '/items/MLM2279763984',
         //     'user_id' => 1150852266,
         //     'application_id' => 751467155218399,
         //     'sent' => '2022-01-07T18:55:57.75Z',
@@ -69,11 +69,13 @@ class MlController extends Controller
 
         $mlId = trim($request->resource, '/items/');
 
-        $latest = DB::table('notifications_ml')->latest()->first();
+        //$latest = DB::table('notifications_ml')->latest()->first();
+        $latest = DB::table('notifications_ml')->where('ml_id', $mlId)->where('done', 0)->first();
 
-        usleep(100000);
+        usleep(200000);
 
-        if ($mlId <> $latest->ml_id) {
+        //if ($mlId <> $latest->ml_id) {
+        if (!$latest) {
             DB::table('notifications_ml')->insert([
                 'ml_id' => $mlId,
                 'topic' => $request->topic,
