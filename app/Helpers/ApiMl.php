@@ -931,9 +931,10 @@ class ApiMl
         }
 
         foreach ($response->autopart->variations as &$variation) {
-            // Mantén solo la propiedad 'attribute_combinations' y elimina las demás
-            $variation = ["attribute_combinations" => $variation["attribute_combinations"]];
-        }
+            $newVariation = new stdClass(); // Crear un nuevo objeto
+            $newVariation->attribute_combinations = $variation->attribute_combinations;
+            $variation = $newVariation;
+        }        
 
         if ($autopart->status_id == 4) {
             $status = 'closed';
