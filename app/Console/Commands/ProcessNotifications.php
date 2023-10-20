@@ -237,7 +237,11 @@ class ProcessNotifications extends Command
                     }
         
                 } else {
-                    $storeMl = DB::table('stores_ml')->where('user_id', $notification->user_id)->first();
+                    $storeMl = DB::table('stores_ml')
+                        ->join('stores', 'stores.id', '=', 'stores_ml.store_id')
+                        ->select('stores_ml.*', 'stores.telegram as telegram')
+                        ->where('stores_ml.user_id', $notification->user_id)->first();
+
                     $response = ApiMl::getItemValues($storeMl->id, $notification->ml_id);
                     
                     if ($response->status == 200 && $response->autopart['status'] == 'active') {
@@ -290,7 +294,7 @@ class ProcessNotifications extends Command
                         ]);
         
                         //$channel = env('TELEGRAM_CHAT_NEWS_ID');
-                        $channel = $autopart->store->telegram;
+                        $channel = $storeMl->telegram;
                         $content = "✅ *¡Nueva autoparte!*\n*".$storeMl->name."*\n".$notification->ml_id."\nID: ".$autopartId."\n".$response->autopart['name']."\nPrecio: $".number_format($response->autopart['sale_price']);
                         $button = $autopartId;
                         $user = User::find(38);
