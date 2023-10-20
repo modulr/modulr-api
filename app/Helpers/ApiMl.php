@@ -957,9 +957,7 @@ class ApiMl
             "title" => substr($autopart->name, 0, 60),
             "status" => $status,
             "pictures" => $images,
-            "attributes" => $attributesArray,
-            "variations" => isset($response->autopart->variations) && isset($response->autopart->variations[0]->attribute_combinations) ?
-                $response->autopart->variations[0]->attribute_combinations : null
+            "attributes" => $attributesArray
         ]);
         
 
