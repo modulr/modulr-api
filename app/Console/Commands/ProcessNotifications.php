@@ -102,11 +102,9 @@ class ProcessNotifications extends Command
                                 5 => "Incompleto",
                                 6 => "Sin Mercado Libre"
                             ];
-
-                            if ($newStatusId != 4) {
-                                $change = "🚦 Estatus actualizado: ".$statuses[$autopart->status_id]." ⏩ ".$statuses[$newStatusId]."\n";
-                            }
-        
+                            
+                            
+                            $change = "🚦 Estatus actualizado: ".$statuses[$autopart->status_id]." ⏩ ".$statuses[$newStatusId]."\n";
                             $autopart->status_id = $newStatusId;
         
                             // AUTOPARTE VENDIDA
@@ -225,7 +223,7 @@ class ProcessNotifications extends Command
                             
                             //$channel = env('TELEGRAM_CHAT_UPDATES_ID');
                             $channel = $autopart->store->telegram;
-                            $content = "*¡Autoparte Actualizada!*\n*".$autopart->storeMl->name."*\n".$autopart->ml_id."\nID: ".$autopart->id."\n".$change;
+                            $content = $change."\n*".$autopart->storeMl->name."*\n".$autopart->ml_id."\nID: ".$autopart->id;
                             $button = $autopart->id;
                             $user = User::find(38);
                             $user->notify(new AutopartNotification($channel, $content, $button));
