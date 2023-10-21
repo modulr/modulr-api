@@ -104,7 +104,7 @@ class ProcessNotifications extends Command
                             ];
                             
                             
-                            $change = "🚦 Estatus actualizado: ".$statuses[$autopart->status_id]." ⏩ ".$statuses[$newStatusId]."\n";
+                            $change = "🚦 Estatus actualizado: ".$statuses[$autopart->status_id]." ⏩ ".$statuses[$newStatusId];
                             $autopart->status_id = $newStatusId;
         
                             // AUTOPARTE VENDIDA
@@ -127,9 +127,9 @@ class ProcessNotifications extends Command
                         if ($autopart->sale_price !== $response->autopart['sale_price']) {
         
                             if ($response->autopart['sale_price'] > $autopart->sale_price) {
-                                $change = $change . "💵 Aumento de Precio: $".number_format($autopart->sale_price)." ⏫ $".number_format($response->autopart['sale_price']) ;
+                                $change = $change . "💵 Aumento de Precio: $".number_format($autopart->sale_price)." ⏫ $".number_format($response->autopart['sale_price']);
                             } else if ($response->autopart['sale_price'] < $autopart->sale_price) {
-                                $change = $change . "💵 Reducción de Precio: $".number_format($autopart->sale_price)." ⏬ $".number_format($response->autopart['sale_price']) ;
+                                $change = $change . "💵 Reducción de Precio: $".number_format($autopart->sale_price)." ⏬ $".number_format($response->autopart['sale_price']);
                             }
         
                             $autopart->sale_price = $response->autopart['sale_price'];
@@ -137,7 +137,7 @@ class ProcessNotifications extends Command
         
                         if($autopart->name !== $response->autopart['name']){
                             $autopart->name = $response->autopart['name'];
-                            $change = $change . "🖋 Título actualizado\n".$autopart->name."\n🔽🔽🔽\n".$response->autopart['name']."\n";
+                            $change = $change . "🖋 Título actualizado\n".$autopart->name."\n🔽🔽🔽\n".$response->autopart['name'];
                         }
         
                         // if($autopart->description !== $response->autopart['description']){
