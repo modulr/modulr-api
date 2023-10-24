@@ -571,9 +571,11 @@ class AutopartController extends Controller
             'images' => function ($query) {
                 $query->orderBy('order', 'asc');
             }
-            ])
-            ->find($autopart->id);
+        ])
+        ->find($autopart->id);
             
+        $updatedAutopart->url_thumbnail = Storage::url('autoparts/'.$updatedAutopart->id.'/images/thumbnail_'.$updatedAutopart->images->first()->basename);
+
         if ($changeStore) {
             $sync = ApiMl::createAutopart($updatedAutopart);
         } else if ($request->ml_id) {
