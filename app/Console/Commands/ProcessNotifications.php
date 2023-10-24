@@ -39,7 +39,7 @@ class ProcessNotifications extends Command
      */
     public function handle()
     {
-        $notifications = DB::table('notifications_ml')->where('done', false)->limit(15)->get();
+        $notifications = DB::table('notifications_ml')->where('done', false)->limit(10)->get();
 
         $duplicates = $notifications->duplicates('ml_id');
 
@@ -85,6 +85,12 @@ class ProcessNotifications extends Command
                         if ($autopart->status_id == 3 && $response->autopart['status'] == 'closed') {
                             $newStatusId = 4; // Vendido
                         }
+
+                        if($autopart->moderation_active){
+                            $newStatusId = 1;
+                            $autopart->status_id = 1;
+                            ApiMl::updateAutopart($autopart);
+                        }
         
                         if($autopart->status_id !== $newStatusId){
         
@@ -96,9 +102,9 @@ class ProcessNotifications extends Command
                                 5 => "Incompleto",
                                 6 => "Sin Mercado Libre"
                             ];
-        
-                            $change = "🚦 Estatus actualizado: ".$statuses[$autopart->status_id]." ⏩ ".$statuses[$newStatusId]."\n";
-    
+                            
+                            
+                            $change = "🚦 Estatus: ".$statuses[$autopart->status_id]." ⏩ ".$statuses[$newStatusId];
                             $autopart->status_id = $newStatusId;
         
                             // AUTOPARTE VENDIDA
@@ -109,7 +115,8 @@ class ProcessNotifications extends Command
                                     'user_id' => 38
                                 ]);
                                 
-                                $channel = env('TELEGRAM_CHAT_SALES_ID');
+                                //$channel = env('TELEGRAM_CHAT_SALES_ID');
+                                $channel = $autopart->store->telegram;
                                 $content = "💰*¡Autoparte Vendida!*\n*".$autopart->storeMl->name."*\n".$autopart->ml_id."\nID: ".$autopart->id."\n".$response->autopart['name']."\nPrecio: $".number_format($response->autopart['sale_price']);
                                 $button = $autopart->id;
                                 $user = User::find(38);
@@ -120,17 +127,17 @@ class ProcessNotifications extends Command
                         if ($autopart->sale_price !== $response->autopart['sale_price']) {
         
                             if ($response->autopart['sale_price'] > $autopart->sale_price) {
-                                $change = $change . "💵 Aumento de Precio: $".number_format($autopart->sale_price)." ⏫ $".number_format($response->autopart['sale_price']) ;
+                                $change = $change . "💵 ⏫ Precio: $".number_format($autopart->sale_price)." ⏫ $".number_format($response->autopart['sale_price']);
                             } else if ($response->autopart['sale_price'] < $autopart->sale_price) {
-                                $change = $change . "💵 Reducción de Precio: $".number_format($autopart->sale_price)." ⏬ $".number_format($response->autopart['sale_price']) ;
+                                $change = $change . "💵 ⏬ Precio: $".number_format($autopart->sale_price)." ⏬ $".number_format($response->autopart['sale_price']);
                             }
         
                             $autopart->sale_price = $response->autopart['sale_price'];
                         }
         
                         if($autopart->name !== $response->autopart['name']){
-                            $change = $change . "🖋 Título actualizado\n".$autopart->name."\n🔽🔽🔽\n".$response->autopart['name']."\n";
                             $autopart->name = $response->autopart['name'];
+                            $change = $change . "🖋 Título actualizado\n".$autopart->name."\n🔽🔽🔽\n".$response->autopart['name'];
                         }
         
                         // if($autopart->description !== $response->autopart['description']){
@@ -214,8 +221,9 @@ class ProcessNotifications extends Command
                                 'user_id' => 38
                             ]);
                             
-                            $channel = env('TELEGRAM_CHAT_UPDATES_ID');
-                            $content = "*¡Autoparte Actualizada!*\n*".$autopart->storeMl->name."*\n".$autopart->ml_id."\nID: ".$autopart->id."\n".$change;
+                            //$channel = env('TELEGRAM_CHAT_UPDATES_ID');
+                            $channel = $autopart->store->telegram;
+                            $content = $change."\n*".$autopart->storeMl->name."*\n".$autopart->ml_id."\nID: ".$autopart->id;
                             $button = $autopart->id;
                             $user = User::find(38);
                             $user->notify(new AutopartNotification($channel, $content, $button));
@@ -229,7 +237,11 @@ class ProcessNotifications extends Command
                     }
         
                 } else {
-                    $storeMl = DB::table('stores_ml')->where('user_id', $notification->user_id)->first();
+                    $storeMl = DB::table('stores_ml')
+                        ->join('stores', 'stores.id', '=', 'stores_ml.store_id')
+                        ->select('stores_ml.*', 'stores.telegram as telegram')
+                        ->where('stores_ml.user_id', $notification->user_id)->first();
+
                     $response = ApiMl::getItemValues($storeMl->id, $notification->ml_id);
                     
                     if ($response->status == 200 && $response->autopart['status'] == 'active') {
@@ -281,7 +293,8 @@ class ProcessNotifications extends Command
                             'user_id' => 38
                         ]);
         
-                        $channel = env('TELEGRAM_CHAT_NEWS_ID');
+                        //$channel = env('TELEGRAM_CHAT_NEWS_ID');
+                        $channel = $storeMl->telegram;
                         $content = "✅ *¡Nueva autoparte!*\n*".$storeMl->name."*\n".$notification->ml_id."\nID: ".$autopartId."\n".$response->autopart['name']."\nPrecio: $".number_format($response->autopart['sale_price']);
                         $button = $autopartId;
                         $user = User::find(38);
