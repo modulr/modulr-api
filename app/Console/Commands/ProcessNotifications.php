@@ -140,7 +140,7 @@ class ProcessNotifications extends Command
                             $change = $change . "🖋 Título actualizado\n".$autopart->name."\n🔽🔽🔽\n".$response->autopart['name'];
                         }
         
-                        if(isset($response->autopart['description'])){
+                        if($autopart->description !== $response->autopart['description']){
                             $change = $change."🖋 Descripción actualizada\n".$autopart->description."\n🔽🔽🔽\n".$response->autopart['description'];
                             $autopart->description = $response->autopart['description'];
                         }

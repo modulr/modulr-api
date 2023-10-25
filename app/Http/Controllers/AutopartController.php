@@ -426,13 +426,16 @@ class AutopartController extends Controller
     {
         $request->validate([
             'name' => 'required|string',
+            'category_id' => 'required|integer',
+            'make_id' => 'required|integer',
             //'location' => 'required|string',
         ]);
 
         $autopart = Autopart::create([
             'name' => $request->name,
-            'autopart_number' => $request->autopart_number,
+            'make_id' => $request->make_id,
             'category_id' => $request->category_id,
+            'autopart_number' => $request->autopart_number,
             'location_id' => $request->location_id,
             'years' => '[]',
             'quality' => 0,
@@ -473,6 +476,10 @@ class AutopartController extends Controller
             'autopart_id' => $autopart->id,
             'user_id' => $request->user()->id
         ]);
+
+        $autopart->status = $autopart->status;
+        $autopart->category = $autopart->category;
+        $autopart->make = $autopart->make;
 
         return $autopart;
     }
@@ -573,8 +580,10 @@ class AutopartController extends Controller
             }
         ])
         ->find($autopart->id);
-            
-        $updatedAutopart->url_thumbnail = Storage::url('autoparts/'.$updatedAutopart->id.'/images/thumbnail_'.$updatedAutopart->images->first()->basename);
+
+        if (count($updatedAutopart->images) > 0) {
+            $updatedAutopart->url_thumbnail = Storage::url('autoparts/'.$updatedAutopart->id.'/images/thumbnail_'.$updatedAutopart->images->first()->basename);
+        }
 
         if ($changeStore) {
             $sync = ApiMl::createAutopart($updatedAutopart);
