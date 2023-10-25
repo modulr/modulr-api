@@ -104,7 +104,7 @@ class ProcessNotifications extends Command
                             ];
                             
                             
-                            $change = "🚦 Estatus: ".$statuses[$autopart->status_id]." ⏩ ".$statuses[$newStatusId];
+                            $change = "🚦 Estatus: ".$statuses[$autopart->status_id]." ⏩ ".$statuses[$newStatusId]."\n";
                             $autopart->status_id = $newStatusId;
         
                             // AUTOPARTE VENDIDA
@@ -127,21 +127,21 @@ class ProcessNotifications extends Command
                         if ($autopart->sale_price !== $response->autopart['sale_price']) {
         
                             if ($response->autopart['sale_price'] > $autopart->sale_price) {
-                                $change = $change . "💵 Precio: $".number_format($autopart->sale_price)." ⏫ $".number_format($response->autopart['sale_price']);
+                                $change = $change . "💵 Precio: $".number_format($autopart->sale_price)." ⏫ $".number_format($response->autopart['sale_price'])."\n";
                             } else if ($response->autopart['sale_price'] < $autopart->sale_price) {
-                                $change = $change . "💵 Precio: $".number_format($autopart->sale_price)." ⏬ $".number_format($response->autopart['sale_price']);
+                                $change = $change . "💵 Precio: $".number_format($autopart->sale_price)." ⏬ $".number_format($response->autopart['sale_price'])."\n";
                             }
         
                             $autopart->sale_price = $response->autopart['sale_price'];
                         }
         
-                        if($autopart->name !== $response->autopart['name']){
+                        if(strcmp($autopart->name, $response->autopart['name']) !== 0){
                             $autopart->name = $response->autopart['name'];
-                            $change = $change . "🖋 Título actualizado\n".$autopart->name."\n🔽🔽🔽\n".$response->autopart['name'];
+                            $change = $change . "🖋 Título actualizado\n".$autopart->name."\n🔽🔽🔽\n".$response->autopart['name']."\n";
                         }
         
-                        if($autopart->description !== $response->autopart['description']){
-                            $change = $change."🖋 Descripción actualizada\n".$autopart->description."\n🔽🔽🔽\n".$response->autopart['description'];
+                        if(strcmp($autopart->description, $response->autopart['description']) !== 0){
+                            $change = $change . "🖋 Descripción actualizada\n".$autopart->description."\n🔽🔽🔽\n".$response->autopart['description']."\n";
                             $autopart->description = $response->autopart['description'];
                         }
     
@@ -223,7 +223,7 @@ class ProcessNotifications extends Command
                             
                             //$channel = env('TELEGRAM_CHAT_UPDATES_ID');
                             $channel = $autopart->store->telegram;
-                            $content = $change."\n*".$autopart->storeMl->name."*\n".$autopart->ml_id."\nID: ".$autopart->id;
+                            $content = $change."*".$autopart->storeMl->name."*\n".$autopart->ml_id."\nID: ".$autopart->id;
                             $button = $autopart->id;
                             $user = User::find(38);
                             $user->notify(new AutopartNotification($channel, $content, $button));
