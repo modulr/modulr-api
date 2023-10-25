@@ -141,8 +141,8 @@ class ProcessNotifications extends Command
                         }
         
                         if(strcmp($autopart->name, $response->autopart['name']) !== 0){
-                            $autopart->name = $response->autopart['name'];
                             $change = $change . "🖋 Título actualizado\n".$autopart->name."\n🔽🔽🔽\n".$response->autopart['name']."\n";
+                            $autopart->name = $response->autopart['name'];
                         }
         
                         if(strcmp($autopart->description, $response->autopart['description']) !== 0){
