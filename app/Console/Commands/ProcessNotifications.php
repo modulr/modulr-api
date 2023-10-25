@@ -140,10 +140,10 @@ class ProcessNotifications extends Command
                             $change = $change . "🖋 Título actualizado\n".$autopart->name."\n🔽🔽🔽\n".$response->autopart['name'];
                         }
         
-                        // if($autopart->description !== $response->autopart['description']){
+                        if(isset($response->autopart['description'])){
                         //     $change = $change."🖋 Descripción actualizada\n".$autopart->description."\n🔽🔽🔽\n".$response->autopart['description']."\n";
-                        //     $autopart->description = $response->autopart['description'];
-                        // }
+                            $autopart->description = $response->autopart['description'];
+                        }
     
                         $autopartImagesArray = $autopart->images->toArray();
                         $autopartImageIds = array_column($autopartImagesArray, 'img_ml_id');
