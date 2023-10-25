@@ -103,12 +103,17 @@ class ProcessNotifications extends Command
                                 6 => "Sin Mercado Libre"
                             ];
                             
+                            if ($newStatusId !== 4) {
+                                $change = "🚦 Estatus: ".$statuses[$autopart->status_id]." ⏩ ".$statuses[$newStatusId]."\n";
+                            }
                             
-                            $change = "🚦 Estatus: ".$statuses[$autopart->status_id]." ⏩ ".$statuses[$newStatusId]."\n";
                             $autopart->status_id = $newStatusId;
         
                             // AUTOPARTE VENDIDA
                             if($autopart->status_id == 4){
+
+                                $autopart->save();
+                                
                                 AutopartActivity::create([
                                     'activity' => 'Autoparte vendida en Mercadolibre',
                                     'autopart_id' => $autopart->id,
@@ -209,7 +214,7 @@ class ProcessNotifications extends Command
                             }
                         }
     
-                        $imagesFinal = DB::table('autopart_images')->where('autopart_id', $autopart->id)->orderBy('order','asc')->get();
+                        //$imagesFinal = DB::table('autopart_images')->where('autopart_id', $autopart->id)->orderBy('order','asc')->get();
     
     
                         if ($change) {
