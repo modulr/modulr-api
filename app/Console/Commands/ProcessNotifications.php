@@ -127,9 +127,9 @@ class ProcessNotifications extends Command
                         if ($autopart->sale_price !== $response->autopart['sale_price']) {
         
                             if ($response->autopart['sale_price'] > $autopart->sale_price) {
-                                $change = $change . "💵 ⏫ Precio: $".number_format($autopart->sale_price)." ⏫ $".number_format($response->autopart['sale_price']);
+                                $change = $change . "💵 Precio: $".number_format($autopart->sale_price)." ⏫ $".number_format($response->autopart['sale_price']);
                             } else if ($response->autopart['sale_price'] < $autopart->sale_price) {
-                                $change = $change . "💵 ⏬ Precio: $".number_format($autopart->sale_price)." ⏬ $".number_format($response->autopart['sale_price']);
+                                $change = $change . "💵 Precio: $".number_format($autopart->sale_price)." ⏬ $".number_format($response->autopart['sale_price']);
                             }
         
                             $autopart->sale_price = $response->autopart['sale_price'];
@@ -140,10 +140,10 @@ class ProcessNotifications extends Command
                             $change = $change . "🖋 Título actualizado\n".$autopart->name."\n🔽🔽🔽\n".$response->autopart['name'];
                         }
         
-                        // if($autopart->description !== $response->autopart['description']){
-                        //     $change = $change."🖋 Descripción actualizada\n".$autopart->description."\n🔽🔽🔽\n".$response->autopart['description']."\n";
-                        //     $autopart->description = $response->autopart['description'];
-                        // }
+                        if(isset($response->autopart['description'])){
+                            $change = $change."🖋 Descripción actualizada\n".$autopart->description."\n🔽🔽🔽\n".$response->autopart['description'];
+                            $autopart->description = $response->autopart['description'];
+                        }
     
                         $autopartImagesArray = $autopart->images->toArray();
                         $autopartImageIds = array_column($autopartImagesArray, 'img_ml_id');
