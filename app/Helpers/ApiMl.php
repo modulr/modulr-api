@@ -326,7 +326,7 @@ class ApiMl
             }
 
             $description = self::getDescription($response->body->id);
-            $autopart['description'] = isset($description->plain_text) ? $description->plain_text : null;
+            $autopart['description'] = isset($description->plain_text) ? str_replace(['*', '#', "`"], '', $description->plain_text) : null;
 
             $nameArray = self::getInfoName($autopart['name']);
 
@@ -706,9 +706,8 @@ class ApiMl
     public static function createAutopart ($autopart)
     {
         self::checkAccessToken($autopart->store_ml_id);
-        $changeDescription = false;
-        $images = [];
 
+        $images = [];
         if (count($autopart->images) > 0) {
             $sortedImages = $autopart->images->sortBy('order')->take(10);
             foreach ($sortedImages as $value) {
@@ -716,9 +715,9 @@ class ApiMl
             };
         }
         
-        if(is_null($autopart->category->ml_id)){
+        if (is_null($autopart->category->ml_id)) {
             $categoryId = self::getCategoryPredictor($autopart);
-        }else{
+        } else {
             $categoryId = $autopart->category->ml_id;
         }
 
@@ -756,10 +755,10 @@ class ApiMl
                     "id" => "ORIGIN",
                     "value_name" => $autopart->origin ? $autopart->origin->name : null
                 ],
-                [
-                    "id" => "SELLER_SKU",
-                    "value_name" => $autopart->id
-                ],
+                // [
+                //     "id" => "SELLER_SKU",
+                //     "value_name" => $autopart->id
+                // ],
                 [
                     "id" => "SIDE",
                     "value_name" => $autopart->side ? $autopart->side->name : null
@@ -791,17 +790,18 @@ class ApiMl
             $autopart->ml_id = $autopartMl->id;
             $autopart->save();
 
-            if($autopart->description !== null){
-                self::updateDescription($autopart,false);
-            }
+            // if($autopart->description !== null){
+            //     self::updateDescription($autopart,false);
+            // }
 
             return true;
 
-        }else{
+        } else {
             $autopart = Autopart::find($autopart->id);
             $autopart->store_ml_id = null;
             $autopart->save();
-            logger(["No se creó la autoparte"=>$response->object()]);
+
+            logger(["Do not create autopart in Mercadolibre" => $response->object(), "autopart" => $autopart]);
 
             $channel = env('TELEGRAM_CHAT_LOG');
             $content = "*Do not create autopart in Mercadolibre:* ".$autopart->id;
@@ -816,7 +816,9 @@ class ApiMl
     public static function updateAutopart ($autopart)
     {
         self::checkAccessToken($autopart->store_ml_id);
+
         $response = self::getAutopart($autopart);
+
         $attributesArray = [];
 
         $attributesToCheck = [
@@ -853,9 +855,9 @@ class ApiMl
                             case "ORIGIN":
                                 $value->value_name = $autopart->origin ? $autopart->origin->name : null;
                                 break;
-                            case "SELLER_SKU":
-                                $value->value_name = $autopart->id;
-                                break;
+                            // case "SELLER_SKU":
+                            //     $value->value_name = $autopart->id;
+                            //     break;
                             case "SIDE":
                                 $value->value_name = $autopart->side ? $autopart->side->name : null;
                                 break;
@@ -901,12 +903,12 @@ class ApiMl
                                 "value_name" => $autopart->origin ? $autopart->origin->name : null
                             ];
                             break;
-                        case "SELLER_SKU":
-                            $attributesArray[] = [
-                                "id" => $attribute,
-                                "value_name" => $autopart->id
-                            ];
-                            break;
+                        // case "SELLER_SKU":
+                        //     $attributesArray[] = [
+                        //         "id" => $attribute,
+                        //         "value_name" => $autopart->id
+                        //     ];
+                        //     break;
                         case "SIDE":
                             $attributesArray[] = [
                                 "id" => $attribute,
@@ -929,7 +931,6 @@ class ApiMl
                 }
             }
         }
-
 
         if ($autopart->status_id == 4) {
             $status = 'closed';
@@ -983,8 +984,10 @@ class ApiMl
             }
 
             return true;
-        }else{
-            logger(["No se actualizó la autoparte"=>$response->object()]);
+        } else {
+
+            logger(["Do not update autopart in Mercadolibre" => $response->object(), "autopart" => $autopart]);
+
             $channel = env('TELEGRAM_CHAT_LOG');
             $content = "*Do not update autopart in Mercadolibre:* ".$autopart->id;
             $user = User::find(38);
