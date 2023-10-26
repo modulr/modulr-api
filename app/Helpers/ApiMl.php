@@ -820,6 +820,7 @@ class ApiMl
         $response = self::getAutopart($autopart);
 
         $attributesArray = [];
+        $variationsArray = [];
 
         $attributesToCheck = [
             "BRAND",
@@ -850,14 +851,11 @@ class ApiMl
                                 $value->value_name = $autopart->autopart_number ? $autopart->autopart_number : null;
                                 break;
                             case "ITEM_CONDITION":
-                                $value->value_name = $autopart->condition ? $autopart->condition->name : null;
+                                $value->value_name = $autopart->condition ? $autopart->condition->name : "used";
                                 break;
                             case "ORIGIN":
                                 $value->value_name = $autopart->origin ? $autopart->origin->name : null;
                                 break;
-                            // case "SELLER_SKU":
-                            //     $value->value_name = $autopart->id;
-                            //     break;
                             case "SIDE":
                                 $value->value_name = $autopart->side ? $autopart->side->name : null;
                                 break;
@@ -871,6 +869,11 @@ class ApiMl
                         break;
                     }
                 }
+                $variationsArray[] = [
+                    "id" => $val->id,
+                    "attribute_combinations" => $val->attribute_combinations
+                ];
+
                 if (!$attributeExists) {
                     switch ($attribute) {
                         case "BRAND":
@@ -951,7 +954,7 @@ class ApiMl
                 }
             };
         }
-
+logger(["Variaciones"=>$variationsArray]);
         $response = Http::withHeaders([
             'Authorization' => 'Bearer ' . $autopart->storeMl->access_token,
         ])->put('https://api.mercadolibre.com/items/' . $autopart->ml_id, [
@@ -959,7 +962,7 @@ class ApiMl
             "status" => $status,
             "pictures" => $images,
             "attributes" => $attributesArray,
-            "variations" => $response->autopart->variations
+            "variations" => $variationsArray
         ]);
         
 
@@ -987,7 +990,7 @@ class ApiMl
             return true;
         } else {
 
-            logger(["Do not update autopart in Mercadolibre" => $response->object(), "autopart" => $autopart]);
+            // logger(["Do not update autopart in Mercadolibre" => $response->object(), "autopart" => $autopart]);
 
             $channel = env('TELEGRAM_CHAT_LOG');
             $content = "*Do not update autopart in Mercadolibre:* ".$autopart->id;
