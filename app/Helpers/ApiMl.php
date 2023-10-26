@@ -990,7 +990,7 @@ logger(["Variaciones"=>$variationsArray]);
             return true;
         } else {
 
-            // logger(["Do not update autopart in Mercadolibre" => $response->object(), "autopart" => $autopart]);
+            logger(["Do not update autopart in Mercadolibre" => $response->object(), "autopart" => $autopart]);
 
             $channel = env('TELEGRAM_CHAT_LOG');
             $content = "*Do not update autopart in Mercadolibre:* ".$autopart->id;
