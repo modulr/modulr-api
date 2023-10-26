@@ -869,10 +869,6 @@ class ApiMl
                         break;
                     }
                 }
-                $variationsArray[] = [
-                    "id" => $val->id,
-                    "attribute_combinations" => $val->attribute_combinations
-                ];
 
                 if (!$attributeExists) {
                     switch ($attribute) {
@@ -933,6 +929,11 @@ class ApiMl
                     }
                 }
             }
+
+            $variationsArray[] = [
+                "id" => $val->id,
+                "attribute_combinations" => $val->attribute_combinations
+            ];
         }
 
         if ($autopart->status_id == 4) {
