@@ -955,7 +955,7 @@ class ApiMl
                 }
             };
         }
-logger(["Variaciones"=>$variationsArray]);
+logger(["Variaciones"=>$variationsArray, "autopart" => $autopart->id]);
         $response = Http::withHeaders([
             'Authorization' => 'Bearer ' . $autopart->storeMl->access_token,
         ])->put('https://api.mercadolibre.com/items/' . $autopart->ml_id, [
