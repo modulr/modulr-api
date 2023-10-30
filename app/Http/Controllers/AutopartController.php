@@ -780,6 +780,51 @@ class AutopartController extends Controller
         return ["autopart" => $updatedAutopart, "sync" => $sync];
     }
 
+    public function updateStatus (Request $request)
+    {
+        $this->validate($request, [
+            'status_id' => 'required|integer'
+        ]);
+
+        $autopart = Autopart::with([
+            'location',
+            'category',
+            'position',
+            'side',
+            'condition',
+            'origin',
+            'make',
+            'model',
+            'status',
+            'store',
+            'storeMl',
+            'images' => function ($query) {
+                $query->orderBy('order', 'asc');
+            }
+        ])
+        ->find($request->id);
+
+        $autopart->status_id = $request->status_id;
+        $autopart->save();
+
+        $autopart->load('status');
+        AutopartActivity::create([
+            'activity' => 'Cambio el estatus a ' . $autopart->status->name,
+            'autopart_id' => $autopart->id,
+            'user_id' => $request->user()->id
+        ]);
+
+        $response = ApiMl::getAutopart($autopart);
+        $update = true;
+        if ($response->response) {
+            $update = ApiMl::updateAutopartMl($autopart);
+        } else {
+            $update = false;
+        }
+
+        return response()->json(['update' => $update, 'autopart' =>$autopart], 200);
+    }
+
     public function destroy (Request $request)
     {
         $autopart = Autopart::find($request->id);

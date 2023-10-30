@@ -42,6 +42,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('autoparts/showByUser/{id}', [AutopartController::class, 'showByUser']);
 
     Route::post('autoparts/searchSales', [AutopartController::class, 'searchSales']);
+    Route::put('autoparts/updateStatus/{id}', [AutopartController::class, 'updateStatus']);
 
     Route::post('autoparts/store', [AutopartController::class, 'store']);
     Route::put('autoparts/update/{id}', [AutopartController::class, 'update']);
