@@ -803,25 +803,44 @@ class AutopartController extends Controller
             }
         ])
         ->find($request->id);
-
+        $oldStatus = $autopart->status_id;
+        
         $autopart->status_id = $request->status_id;
         $autopart->save();
 
         $autopart->load('status');
+
         AutopartActivity::create([
-            'activity' => 'Cambio el estatus a ' . $autopart->status->name,
+            'activity' => 'Cambió el estatus a ' . $autopart->status->name,
             'autopart_id' => $autopart->id,
             'user_id' => $request->user()->id
         ]);
 
-        $response = ApiMl::getAutopart($autopart);
         $update = true;
-        if ($response->response) {
-            $update = ApiMl::updateAutopartMl($autopart);
-        } else {
-            $update = false;
-        }
 
+        //Reactivar en una nueva publicación ML
+        if($oldStatus == 4 && $autopart->ml_id){
+            $response = ApiMl::getAutopart($autopart);
+            if ($response->response) {
+                $update = ApiMl::createAutopart($autopart);
+            } else {
+                $update = false;
+            }
+
+            AutopartComment::create([
+                'comment' => 'Se reactivó la autoparte, a partir de la publicación: '.$autopart->ml_id,
+                'autopart_id' => $autopart->id,
+                'created_by' => 38,
+            ]);
+        }else{
+            $response = ApiMl::getAutopart($autopart);
+            $update = true;
+            if ($response->response) {
+                $update = ApiMl::updateAutopart($autopart);
+            } else {
+                $update = false;
+            }
+        }
         return response()->json(['update' => $update, 'autopart' =>$autopart], 200);
     }
 
