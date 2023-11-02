@@ -336,8 +336,13 @@ class ApiMl
                 if (!isset($autopart['make_id'])) {
                     $make = DB::table('autopart_list_makes')
                         ->select('id', 'name')
-                        ->where('name', 'like', $value)
-                        ->whereNull('deleted_at')
+                        ->where(function ($query) use ($value) {
+                            $query->where('name', 'like', $value)
+                                ->orWhere(function ($query) use ($value) {
+                                    $query->whereNull('deleted_at')
+                                        ->whereJsonContains('variants', strtolower($value));
+                                });
+                        })
                         ->first();
                     
                     if ($make) {
@@ -352,8 +357,13 @@ class ApiMl
                         $model = DB::table('autopart_list_models')
                             ->select('autopart_list_models.id', 'autopart_list_models.name', 'autopart_list_models.make_id', 'autopart_list_makes.name as make')
                             ->join('autopart_list_makes', 'autopart_list_makes.id', '=', 'autopart_list_models.make_id')
-                            ->where('autopart_list_models.name', 'like', $value)
-                            ->whereNull('autopart_list_models.deleted_at')
+                            ->where(function ($query) use ($value) {
+                                $query->where('autopart_list_models.name', 'like', $value)
+                                    ->orWhere(function ($query) use ($value) {
+                                        $query->whereNull('autopart_list_models.deleted_at')
+                                                ->whereJsonContains('autopart_list_models.variants', $value);
+                                    });
+                            })
                             ->first();
 
                         if ($model) {
@@ -366,8 +376,13 @@ class ApiMl
                         $model = DB::table('autopart_list_models')
                             ->select('id', 'name')
                             ->where('make_id', $autopart['make_id'])
-                            ->where('name', 'like', $value)
-                            ->whereNull('deleted_at')
+                            ->where(function ($query) use ($value) {
+                                $query->where('name', 'like', $value)
+                                    ->orWhere(function ($query) use ($value) {
+                                        $query->whereNull('deleted_at')
+                                            ->whereJsonContains('variants', strtolower($value));
+                                    });
+                            })
                             ->first();
 
                         if ($model) {
@@ -401,9 +416,14 @@ class ApiMl
 
                 if (!isset($autopart['side_id'])) {
                     $side = DB::table('autopart_list_sides')
-                        ->where('name', 'like', $value)
-                        ->orWhere('variants', 'LIKE', "%".strtolower($value)."%")
-                        ->whereNull('deleted_at')->first();
+                        ->where(function ($query) use ($value) {
+                            $query->where('name', 'like', $value)
+                                ->orWhere(function ($query) use ($value) {
+                                    $query->whereNull('deleted_at')
+                                            ->where('variants', 'LIKE', "%".strtolower($value)."%");
+                                });
+                        })
+                        ->first();
                     
                     if ($side) {
                         $autopart['side_id'] = $side->id;
@@ -413,9 +433,14 @@ class ApiMl
 
                 if (!isset($autopart['position_id'])) {
                     $position = DB::table('autopart_list_positions')
-                        ->where('name', 'like', $value)
-                        ->orWhere('variants', 'LIKE', "%".strtolower($value)."%")
-                        ->whereNull('deleted_at')->first();
+                        ->where(function ($query) use ($value) {
+                            $query->where('name', 'like', $value)
+                                ->orWhere(function ($query) use ($value) {
+                                    $query->where('variants', 'LIKE', "%".strtolower($value)."%");
+                                });
+                        })
+                        ->whereNull('deleted_at')
+                        ->first();
                     
                     if ($position) {
                         $autopart['position_id'] = $position->id;
