@@ -944,6 +944,10 @@ class ApiMl
             $status = 'active';
         }
 
+        if($response->autopart->available_quantity = 0){
+            $stock = 1;
+        }
+
         $images = [];
         if (count($autopart->images) > 0) {
             $sortedImages = $autopart->images->sortBy('order')->take(10);
@@ -962,6 +966,7 @@ class ApiMl
             "title" => substr($autopart->name, 0, 60),
             "status" => $status,
             "pictures" => $images,
+            "available_quantity" => $response->autopart->available_quantity == 0 ? 1 : $response->autopart->available_quantity,
             "attributes" => $attributesArray,
             "variations" => $variationsArray
         ]);
@@ -991,7 +996,7 @@ class ApiMl
             return true;
         } else {
 
-            logger(["Do not update autopart in Mercadolibre" => $response->object(), "autopart" => $autopart]);
+            logger(["Do not update autopart in Mercadolibre" => $response->object(), "autopart" => $autopart->id]);
 
             $channel = env('TELEGRAM_CHAT_LOG');
             $content = "*Do not update autopart in Mercadolibre:* ".$autopart->id;
