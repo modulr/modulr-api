@@ -966,7 +966,7 @@ class ApiMl
             "title" => substr($autopart->name, 0, 60),
             "status" => $status,
             "pictures" => $images,
-            "available_quantity" => $response->autopart->available_quantity == 0 ? 1 : $response->autopart->available_quantity,
+            // "available_quantity" => $response->autopart->available_quantity == 0 ? 1 : $response->autopart->available_quantity,
             "attributes" => $attributesArray,
             "variations" => $variationsArray
         ]);
