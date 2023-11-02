@@ -943,7 +943,7 @@ class ApiMl
         }else {
             $status = 'active';
         }
-
+        logger(["Stock Available"=>$response->autopart->available_quantity]);
         if($response->autopart->available_quantity = 0){
             $stock = 1;
         }
