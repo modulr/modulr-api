@@ -943,7 +943,7 @@ class ApiMl
         }else {
             $status = 'active';
         }
-        logger(["Autopart"=>$response->autopart]);
+
         if($response->autopart->available_quantity = 0){
             $stock = 1;
         }
@@ -959,17 +959,21 @@ class ApiMl
                 }
             };
         }
-        
-        $response = Http::withHeaders([
-            'Authorization' => 'Bearer ' . $autopart->storeMl->access_token,
-        ])->put('https://api.mercadolibre.com/items/' . $autopart->ml_id, [
-            "title" => substr($autopart->name, 0, 60),
+
+        $requestData = [
             "status" => $status,
             "pictures" => $images,
-            // "available_quantity" => $response->autopart->available_quantity == 0 ? 1 : $response->autopart->available_quantity,
             "attributes" => $attributesArray,
             "variations" => $variationsArray
-        ]);
+        ];
+
+        if ($response->autopart->sold_quantity < 1) {
+            $requestData["title"] = substr($autopart->name, 0, 60);
+        }
+
+        $response = Http::withHeaders([
+        'Authorization' => 'Bearer ' . $autopart->storeMl->access_token,
+        ])->put('https://api.mercadolibre.com/items/' . $autopart->ml_id, $requestData);
         
 
         if($response->successful()){
