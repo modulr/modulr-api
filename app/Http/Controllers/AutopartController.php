@@ -167,7 +167,7 @@ class AutopartController extends Controller
         return $autoparts;
     }
 
-    public function searchByUser (Request $request)
+    public function searchInventory (Request $request)
     {
         $make = $request->make;
         $model = $request->model;
@@ -381,10 +381,10 @@ class AutopartController extends Controller
             }
         }
 
-        if ($sort === 'latest') {
-            $sortColumn = 'autoparts.updated_at';
-            $sortDirection = 'desc'; 
-        } elseif ($sort === 'oldest') {
+        $sortColumn = 'autoparts.updated_at';
+        $sortDirection = 'desc'; 
+
+        if ($sort === 'oldest') {
             $sortColumn = 'autoparts.updated_at';
             $sortDirection = 'asc';
         } elseif ($sort === 'atoz') {
@@ -707,7 +707,7 @@ class AutopartController extends Controller
             sort($years);
         }
 
-        if (!$request->status_id == 5 && $request->sale_price > 0) {
+        if ($request->status_id == 5 && $request->sale_price > 0) {
             $request->status_id = 1;
         }
 
@@ -754,6 +754,14 @@ class AutopartController extends Controller
             'status',
             'store',
             'storeMl',
+            'comments' => function ($query) {
+                $query->orderBy('id', 'desc');
+            },
+            'comments.user',
+            'activity' => function ($query) {
+                $query->orderBy('id', 'desc');
+            },
+            'activity.user',
             'images' => function ($query) {
                 $query->orderBy('order', 'asc');
             }
@@ -798,6 +806,14 @@ class AutopartController extends Controller
             'status',
             'store',
             'storeMl',
+            'comments' => function ($query) {
+                $query->orderBy('id', 'desc');
+            },
+            'comments.user',
+            'activity' => function ($query) {
+                $query->orderBy('id', 'desc');
+            },
+            'activity.user',
             'images' => function ($query) {
                 $query->orderBy('order', 'asc');
             }
@@ -819,29 +835,31 @@ class AutopartController extends Controller
         $update = true;
 
         //Reactivar en una nueva publicación ML
-        if($oldStatus == 4 && $autopart->ml_id){
-            $response = ApiMl::getAutopart($autopart);
-            if ($response->response) {
-                $update = ApiMl::createAutopart($autopart);
+        if ($autopart->ml_id) {
+            if ($oldStatus == 4) {
+                $response = ApiMl::getAutopart($autopart);
+                if ($response->response) {
+                    $update = ApiMl::createAutopart($autopart);
+                } else {
+                    $update = false;
+                }
+    
+                AutopartComment::create([
+                    'comment' => 'Se reactivó la autoparte, a partir de la publicación: '.$autopart->ml_id,
+                    'autopart_id' => $autopart->id,
+                    'created_by' => 38,
+                ]);
             } else {
-                $update = false;
-            }
-
-            AutopartComment::create([
-                'comment' => 'Se reactivó la autoparte, a partir de la publicación: '.$autopart->ml_id,
-                'autopart_id' => $autopart->id,
-                'created_by' => 38,
-            ]);
-        }else{
-            $response = ApiMl::getAutopart($autopart);
-            $update = true;
-            if ($response->response) {
-                $update = ApiMl::updateAutopart($autopart);
-            } else {
-                $update = false;
+                $response = ApiMl::getAutopart($autopart);
+                $update = true;
+                if ($response->response) {
+                    $update = ApiMl::updateAutopart($autopart);
+                } else {
+                    $update = false;
+                }
             }
         }
-        return response()->json(['update' => $update, 'autopart' =>$autopart], 200);
+        return ['autopart' => $autopart, 'update' => $update];
     }
 
     public function destroy (Request $request)
@@ -895,7 +913,7 @@ class AutopartController extends Controller
             $location->save();
         }
 
-        if (!$request->status_id == 5 && $request->sale_price > 0) {
+        if ($request->status_id == 5 && $request->sale_price > 0) {
             $request->status_id = 1;
         }
 
@@ -923,7 +941,7 @@ class AutopartController extends Controller
         Storage::put('autoparts/'.$autopart->id.'/qr/'.$autopart->id.'.png', (string) $qr);
 
         AutopartActivity::create([
-            'activity' => 'Autoparte creada',
+            'activity' => 'Autoparte clonada',
             'autopart_id' => $autopart->id,
             'user_id' => $request->user()->id
         ]);
@@ -939,6 +957,10 @@ class AutopartController extends Controller
             'model',
             'status',
             'store',
+            'activity' => function ($query) {
+                $query->orderBy('id', 'desc');
+            },
+            'activity.user',
             ])
             ->find($autopart->id);
 

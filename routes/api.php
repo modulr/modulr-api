@@ -38,16 +38,15 @@ Route::middleware(['auth:sanctum'])->group(function () {
         $request->user()->roles;
         return $user;
     });
-    Route::post('autoparts/searchByUser', [AutopartController::class, 'searchByUser']);
-    Route::get('autoparts/showByUser/{id}', [AutopartController::class, 'showByUser']);
-
+    Route::post('autoparts/searchInventory', [AutopartController::class, 'searchInventory']);
     Route::post('autoparts/searchSales', [AutopartController::class, 'searchSales']);
-    Route::put('autoparts/updateStatus/{id}', [AutopartController::class, 'updateStatus']);
-
+    Route::get('autoparts/showByUser/{id}', [AutopartController::class, 'showByUser']);
+    
     Route::post('autoparts/store', [AutopartController::class, 'store']);
     Route::put('autoparts/update/{id}', [AutopartController::class, 'update']);
     Route::delete('autoparts/destroy/{id}', [AutopartController::class, 'destroy']);
     Route::post('autoparts/clone', [AutopartController::class, 'clone']);
+    Route::put('autoparts/updateStatus/{id}', [AutopartController::class, 'updateStatus']);
     
     Route::get('autoparts/description', [AutopartController::class, 'getDescription']);
     
