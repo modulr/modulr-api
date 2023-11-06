@@ -963,22 +963,18 @@ class ApiMl
                 }
             };
         }
-        
-        // foreach ($variationsArray as $variation) {
-        //     if (is_array($variation['attribute_combinations'])) {
-        //         foreach ($variation['attribute_combinations'] as $combination) {
-        //             if ($combination['id'] === 'SIDE_POSITION') {
-        //                 // Busca el índice del atributo 'SIDE' en el array de atributos
-        //                 $index = array_search('SIDE', array_column($attributesArray, 'id'));
-        
-        //                 // Si se encuentra el atributo 'SIDE', elimínalo
-        //                 if ($index !== false) {
-        //                     unset($attributesArray[$index]);
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
+
+        foreach ($variationsArray->attribute_combinations as $variation) {
+            if ($variation['id'] === 'SIDE_POSITION') {
+                // Busca el índice del atributo 'SIDE' en el array de atributos
+                $index = array_search('SIDE', array_column($attributesArray, 'id'));
+
+                // Si se encuentra el atributo 'SIDE', elimínalo
+                if ($index !== false) {
+                    unset($attributesArray[$index]);
+                }
+            }
+        }
 
         $requestData = [
             "status" => $status,
