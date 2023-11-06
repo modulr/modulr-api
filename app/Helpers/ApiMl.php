@@ -936,6 +936,7 @@ class ApiMl
 
             $variationsArray[] = [
                 "id" => $val->id,
+                "price"=>$autopart->sale_price,
                 "attribute_combinations" => $val->attribute_combinations
             ];
         }
@@ -987,7 +988,8 @@ class ApiMl
             "status" => $status,
             "pictures" => $images,
             "attributes" => $attributesList,
-            "variations" => $variationsArray
+            "variations" => $variationsArray,
+            "price"=>$autopart->sale_price
         ];
 
         if ($response->autopart->sold_quantity < 1) {
