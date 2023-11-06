@@ -11,6 +11,7 @@ use QrCode;
 use App\Models\Autopart;
 use App\Models\AutopartImage;
 use App\Models\AutopartActivity;
+use App\Models\AutopartComment;
 use App\Models\AutopartListLocation;
 use App\Helpers\ApiMl;
 
