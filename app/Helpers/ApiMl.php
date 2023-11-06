@@ -185,8 +185,6 @@ class ApiMl
             ]
         ]);
 
-        logger(["Response updatePrice"=>$response]);
-
         if($response->successful()){
             return true;  
         }else{
@@ -832,6 +830,7 @@ class ApiMl
             "ORIGIN",
             "SELLER_SKU",
             "SIDE",
+            "SIDE_POSITION",
             "POSITION",
             "VEHICLE_TYPE"
         ];
@@ -859,6 +858,9 @@ class ApiMl
                                 $value->value_name = $autopart->origin ? $autopart->origin->name : null;
                                 break;
                             case "SIDE":
+                                $value->value_name = $autopart->side ? $autopart->side->name : null;
+                                break;
+                            case "SIDE_POSITION":
                                 $value->value_name = $autopart->side ? $autopart->side->name : null;
                                 break;
                             case "POSITION":
