@@ -936,6 +936,7 @@ class ApiMl
 
             $variationsArray[] = [
                 "id" => $val->id,
+                "price"=>$autopart->sale_price,
                 "attribute_combinations" => $val->attribute_combinations
             ];
         }
@@ -990,6 +991,9 @@ class ApiMl
             "variations" => $variationsArray
         ];
 
+        if (empty($response->autopart->variations)) {
+            $requestData["price"] = $autopart->sale_price;
+        }
         if ($response->autopart->sold_quantity < 1) {
             $requestData["title"] = substr($autopart->name, 0, 60);
         }
