@@ -983,10 +983,15 @@ class ApiMl
             }
         }
 
+        $attributesList = [];
+        foreach ($attributesArray as $key => $value) {
+            $attributesList[] = ['id' => $key, 'value_name' => $value];
+        }
+
         $requestData = [
             "status" => $status,
             "pictures" => $images,
-            "attributes" => $attributesArray,
+            "attributes" => $attributesList,
             "variations" => $variationsArray
         ];
 
