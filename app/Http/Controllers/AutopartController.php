@@ -865,7 +865,33 @@ class AutopartController extends Controller
             }
         }
 
-        $autopart->load('ml_id');
+        //Refresh autopart
+        $autopart = Autopart::with([
+            'location',
+            'category',
+            'position',
+            'side',
+            'condition',
+            'origin',
+            'make',
+            'model',
+            'status',
+            'store',
+            'storeMl',
+            'comments' => function ($query) {
+                $query->orderBy('id', 'desc');
+            },
+            'comments.user',
+            'activity' => function ($query) {
+                $query->orderBy('id', 'desc');
+            },
+            'activity.user',
+            'images' => function ($query) {
+                $query->orderBy('order', 'asc');
+            }
+        ])
+        ->find($request->id);
+        
         return ['autopart' => $autopart, 'update' => $update];
     }
 
