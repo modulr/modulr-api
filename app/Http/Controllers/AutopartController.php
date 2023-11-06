@@ -819,8 +819,13 @@ class AutopartController extends Controller
             }
         ])
         ->find($request->id);
+
+        if (count($autopart->images) > 0) {
+            $autopart->url_thumbnail = Storage::url('autoparts/'.$autopart->id.'/images/thumbnail_'.$autopart->images->first()->basename);
+        }
+
         $oldStatus = $autopart->status_id;
-        
+
         $autopart->status_id = $request->status_id;
         $autopart->save();
 
@@ -851,7 +856,6 @@ class AutopartController extends Controller
                 ]);
             } else {
                 $response = ApiMl::getAutopart($autopart);
-                $update = true;
                 if ($response->response) {
                     $update = ApiMl::updateAutopart($autopart);
                 } else {
