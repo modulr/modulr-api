@@ -864,6 +864,8 @@ class AutopartController extends Controller
                 }
             }
         }
+
+        $autopart->load('ml_id');
         return ['autopart' => $autopart, 'update' => $update];
     }
 
