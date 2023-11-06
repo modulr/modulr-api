@@ -820,14 +820,14 @@ class AutopartController extends Controller
         ])
         ->find($request->id);
 
-        if (count($autopart->images) > 0) {
-            $autopart->url_thumbnail = Storage::url('autoparts/'.$autopart->id.'/images/thumbnail_'.$autopart->images->first()->basename);
-        }
-
         $oldStatus = $autopart->status_id;
 
         $autopart->status_id = $request->status_id;
         $autopart->save();
+
+        if (count($autopart->images) > 0) {
+            $autopart->url_thumbnail = Storage::url('autoparts/'.$autopart->id.'/images/thumbnail_'.$autopart->images->first()->basename);
+        }
 
         $autopart->load('status');
 
