@@ -968,8 +968,7 @@ class ApiMl
             "status" => $status,
             "pictures" => $images,
             "attributes" => $attributesArray,
-            "variations" => $variationsArray,
-            "price" => $autopart->sale_price
+            "variations" => $variationsArray
         ];
 
         if ($response->autopart->sold_quantity < 1) {
