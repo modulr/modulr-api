@@ -964,17 +964,20 @@ class ApiMl
             };
         }
 
-        foreach ($variationsArray->attribute_combinations as $variation) {
-            if ($variation['id'] === 'SIDE_POSITION') {
-                // Busca el índice del atributo 'SIDE' en el array de atributos
-                $index = array_search('SIDE', array_column($attributesArray, 'id'));
+        logger(["Attributes"=>$attributesArray]);
+        logger(["Variations"=>$variationsArray]);
 
-                // Si se encuentra el atributo 'SIDE', elimínalo
-                if ($index !== false) {
-                    unset($attributesArray[$index]);
-                }
-            }
-        }
+        // foreach ($variationsArray->attribute_combinations as $variation) {
+        //     if ($variation['id'] === 'SIDE_POSITION') {
+        //         // Busca el índice del atributo 'SIDE' en el array de atributos
+        //         $index = array_search('SIDE', array_column($attributesArray, 'id'));
+
+        //         // Si se encuentra el atributo 'SIDE', elimínalo
+        //         if ($index !== false) {
+        //             unset($attributesArray[$index]);
+        //         }
+        //     }
+        // }
 
         $requestData = [
             "status" => $status,
