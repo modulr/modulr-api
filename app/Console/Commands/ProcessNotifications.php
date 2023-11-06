@@ -62,6 +62,7 @@ class ProcessNotifications extends Command
                         $change = null;
     
                         $newStatusId = $autopart->status_id;
+                        $autopart->ml_status = $response->autopart['status'];
     
                         if ($response->autopart['status'] == 'active') {
                             $newStatusId = 1; // Disponible
