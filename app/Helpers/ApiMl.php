@@ -964,6 +964,9 @@ class ApiMl
             };
         }
 
+        logger(["Attributes"=>$attributesArray]);
+        logger(["Variations"=>$variationsArray]);
+
         $requestData = [
             "status" => $status,
             "pictures" => $images,
