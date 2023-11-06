@@ -966,7 +966,8 @@ class ApiMl
             "status" => $status,
             "pictures" => $images,
             "attributes" => $attributesArray,
-            "variations" => $variationsArray
+            "variations" => $variationsArray,
+            "price" => $autopart->sale_price
         ];
 
         if ($response->autopart->sold_quantity < 1) {
@@ -995,9 +996,9 @@ class ApiMl
                 self::updateDescription($autopart,true);
             }
 
-            if($autopart->sale_price > 0){
-                self::updatePrice($autopart);
-            }
+            // if($autopart->sale_price > 0){
+            //     self::updatePrice($autopart);
+            // }
 
             return true;
         } else {
