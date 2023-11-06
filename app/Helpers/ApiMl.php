@@ -980,7 +980,7 @@ class ApiMl
 
         $attributesList = [];
         foreach ($attributesArray as $key => $value) {
-            $attributesList[] = ['id' => $value->id, 'value_name' => $value->value_name];
+            $attributesList[] = ['id' => $value['id'], 'value_name' => $value['value_name']];
         }
 
         $requestData = [
