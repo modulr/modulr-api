@@ -987,8 +987,7 @@ class ApiMl
         $requestData = [
             "status" => $status,
             "pictures" => $images,
-            "attributes" => $attributesList,
-            "variations" => $variationsArray
+            "attributes" => $attributesList
         ];
 
         if (empty($response->autopart->variations)) {
@@ -996,6 +995,7 @@ class ApiMl
         }
         if ($response->autopart->sold_quantity < 1) {
             $requestData["title"] = substr($autopart->name, 0, 60);
+            $requestData["variations"] = $variationsArray;
         }
 
         $response = Http::withHeaders([
