@@ -185,6 +185,8 @@ class ApiMl
             ]
         ]);
 
+        logger(["Response updatePrice"=>$response]);
+
         if($response->successful()){
             return true;  
         }else{
