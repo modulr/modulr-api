@@ -11,6 +11,7 @@ use QrCode;
 use App\Models\Autopart;
 use App\Models\AutopartImage;
 use App\Models\AutopartActivity;
+use App\Models\AutopartComment;
 use App\Models\AutopartListLocation;
 use App\Helpers\ApiMl;
 
@@ -167,7 +168,7 @@ class AutopartController extends Controller
         return $autoparts;
     }
 
-    public function searchByUser (Request $request)
+    public function searchInventory (Request $request)
     {
         $make = $request->make;
         $model = $request->model;
@@ -278,6 +279,185 @@ class AutopartController extends Controller
 
         if ($quality) {
             $autopartsQuery->where('autoparts.quality_id', $quality['id']);
+        }
+
+        if ($location) {
+            $autopartsQuery->where('autoparts.location_id', $location['id']);
+        }
+
+        if ($store) {
+            $autopartsQuery->where('autoparts.store_id', $store['id']);
+        }
+
+        if ($store_ml) {
+            $autopartsQuery->where('autoparts.store_ml_id', $store_ml['id']);
+        }
+
+        if ($status) {
+            $autopartsQuery->whereIn('autoparts.status_id', $status);
+        }
+
+        if ($years) {
+            $autopartsQuery->where(function ($subQuery) use ($years) {
+                foreach ($years as $year) {
+                    $subQuery->orWhereJsonContains('autoparts.years', $year);
+                }
+            });
+        }
+
+        if ($number) {
+            foreach ($keywords as $keyword) {
+                $autopartsQuery->where(function ($subQuery) use ($keyword) {
+                    $subQuery->orWhere('autoparts.name', 'like', '%' . $keyword . '%')
+                        ->orWhere('autoparts.id', 'like', '%' . $keyword . '%')
+                        ->orWhere('autoparts.description', 'like', '%' . $keyword . '%')
+                        ->orWhere('autoparts.ml_id', 'like', '%' . $keyword . '%')
+                        ->orWhere('autoparts.autopart_number', 'like', '%' . $keyword . '%')
+                        ->orWhere(function ($subSubQuery) use ($keyword) {
+                            $subSubQuery->whereJsonContains('autoparts.years', $keyword);
+                        })
+                        ->orWhere(function ($subSubQuery) use ($keyword) {
+                            $subSubQuery->whereIn('autoparts.category_id', function ($query) use ($keyword) {
+                                $query->select('id')
+                                    ->from('autopart_list_categories')
+                                    ->whereJsonContains('variants', $keyword);
+                            });
+                        })
+                        ->orWhere(function ($subSubQuery) use ($keyword) {
+                            $subSubQuery->whereIn('autoparts.make_id', function ($query) use ($keyword) {
+                                $query->select('id')
+                                    ->from('autopart_list_makes')
+                                    ->whereJsonContains('variants', $keyword);
+                            });
+                        })
+                        ->orWhere(function ($subSubQuery) use ($keyword) {
+                            $subSubQuery->whereIn('autoparts.model_id', function ($query) use ($keyword) {
+                                $query->select('id')
+                                    ->from('autopart_list_models')
+                                    ->whereJsonContains('variants', $keyword);
+                            });
+                        });
+                });
+            }
+        }
+                
+        $autopartsQuery->orderBy($sortColumn, $sortDirection);
+
+        $autoparts = $autopartsQuery->paginate(24);
+
+        return $autoparts;
+    }
+
+    public function searchSales (Request $request)
+    {
+        $make = $request->make;
+        $model = $request->model;
+        $category = $request->category;
+        $number = $request->number;
+        $keywords = preg_split('/\s+/', $number, -1, PREG_SPLIT_NO_EMPTY);
+        $origin = $request->origin;
+        $condition = $request->condition;
+        $side = $request->side;
+        $position = $request->position;
+        $quality = $request->quality;
+        $location = $request->location;
+        $store = $request->store;
+        $store_ml = $request->store_ml;
+        $status = collect($request->status)->pluck('id')->toArray();
+        $years = collect($request->years)->pluck('name')->toArray();
+        $sort = $request->sort;
+        $user = $request->user();
+
+        $inventory = false;
+        if (count($user->roles) > 0) {
+            if ($user->roles[0]->role_id == 3) {
+                $inventory = true;
+            }
+        }
+
+        $superamdin = false;
+        if (count($user->roles) > 0) {
+            if ($user->roles[0]->role_id == 1) {
+                $superamdin = true;
+            }
+        }
+
+        $sortColumn = 'autoparts.updated_at';
+        $sortDirection = 'desc'; 
+
+        if ($sort === 'oldest') {
+            $sortColumn = 'autoparts.updated_at';
+            $sortDirection = 'asc';
+        } elseif ($sort === 'atoz') {
+            $sortColumn = 'autoparts.name';
+            $sortDirection = 'asc';
+        } elseif ($sort === 'ztoa') {
+            $sortColumn = 'autoparts.name';
+            $sortDirection = 'desc';
+        } elseif ($sort === 'pricetohigh') {
+            $sortColumn = 'autoparts.sale_price';
+            $sortDirection = 'desc';
+        } elseif ($sort === 'pricetolow') {
+            $sortColumn = 'autoparts.sale_price';
+            $sortDirection = 'asc';
+        }
+
+        $autopartsQuery = DB::table('autoparts')
+            ->select([
+                'autoparts.id',
+                'autoparts.name',
+                'autoparts.sale_price',
+                'autoparts.status_id', 
+                'autopart_list_status.name as status',
+                'autopart_images.basename',
+                DB::raw("CONCAT('" . Storage::url('autoparts/') . "', autoparts.id, '/images/thumbnail_', autopart_images.basename) as url_thumbnail")
+            ])
+            ->leftjoin('autopart_images', function ($join) {
+                $join->on('autopart_images.id', '=', DB::raw('(SELECT autopart_images.id FROM autopart_images WHERE autopart_images.autopart_id = autoparts.id ORDER BY autopart_images.order ASC LIMIT 1)'));
+            })
+            ->leftjoin('autopart_list_status', function ($join) {
+                $join->on('autopart_list_status.id', '=', 'autoparts.status_id');
+            })
+            ->whereNull('autoparts.deleted_at');
+
+        if (!$superamdin) {
+            $autopartsQuery->where('autoparts.store_id', $user->store_id);
+        }
+        
+        if ($inventory) {
+            $autopartsQuery->where('autoparts.created_by', $user->id);
+        }
+        
+        if ($make) {
+            $autopartsQuery->where('autoparts.make_id', $make['id']);
+        }
+
+        if ($model) {
+            $autopartsQuery->where('autoparts.model_id', $model['id']);
+        }
+        
+        if ($category) {
+            $autopartsQuery->where('autoparts.category_id', $category['id']);
+        }
+
+        if ($origin) {
+            $autopartsQuery->where('autoparts.origin_id', $origin['id']);
+        }
+
+        if ($condition) {
+            $autopartsQuery->where('autoparts.condition_id', $condition['id']);
+        }
+
+        if ($side) {
+            $autopartsQuery->where('autoparts.side_id', $side['id']);
+        }
+
+        if ($position) {
+            $autopartsQuery->where('autoparts.position_id', $position['id']);
+        }
+
+        if ($quality) {
+            $autopartsQuery->where('autoparts.quality', $quality);
         }
 
         if ($location) {
@@ -528,7 +708,7 @@ class AutopartController extends Controller
             sort($years);
         }
 
-        if (!$request->status_id == 5 && $request->sale_price > 0) {
+        if ($request->status_id == 5 && $request->sale_price > 0) {
             $request->status_id = 1;
         }
 
@@ -575,6 +755,14 @@ class AutopartController extends Controller
             'status',
             'store',
             'storeMl',
+            'comments' => function ($query) {
+                $query->orderBy('id', 'desc');
+            },
+            'comments.user',
+            'activity' => function ($query) {
+                $query->orderBy('id', 'desc');
+            },
+            'activity.user',
             'images' => function ($query) {
                 $query->orderBy('order', 'asc');
             }
@@ -599,6 +787,84 @@ class AutopartController extends Controller
         }
 
         return ["autopart" => $updatedAutopart, "sync" => $sync];
+    }
+
+    public function updateStatus (Request $request)
+    {
+        $this->validate($request, [
+            'status_id' => 'required|integer'
+        ]);
+
+        $autopart = Autopart::with([
+            'location',
+            'category',
+            'position',
+            'side',
+            'condition',
+            'origin',
+            'make',
+            'model',
+            'status',
+            'store',
+            'storeMl',
+            'comments' => function ($query) {
+                $query->orderBy('id', 'desc');
+            },
+            'comments.user',
+            'activity' => function ($query) {
+                $query->orderBy('id', 'desc');
+            },
+            'activity.user',
+            'images' => function ($query) {
+                $query->orderBy('order', 'asc');
+            }
+        ])
+        ->find($request->id);
+
+        $oldStatus = $autopart->status_id;
+
+        $autopart->status_id = $request->status_id;
+        $autopart->save();
+
+        if (count($autopart->images) > 0) {
+            $autopart->url_thumbnail = Storage::url('autoparts/'.$autopart->id.'/images/thumbnail_'.$autopart->images->first()->basename);
+        }
+
+        $autopart->load('status');
+
+        AutopartActivity::create([
+            'activity' => 'Cambió el estatus a ' . $autopart->status->name,
+            'autopart_id' => $autopart->id,
+            'user_id' => $request->user()->id
+        ]);
+
+        $update = true;
+
+        //Reactivar en una nueva publicación ML
+        if ($autopart->ml_id) {
+            if ($oldStatus == 4) {
+                $response = ApiMl::getAutopart($autopart);
+                if ($response->response) {
+                    $update = ApiMl::createAutopart($autopart);
+                } else {
+                    $update = false;
+                }
+    
+                AutopartComment::create([
+                    'comment' => 'Se reactivó la autoparte, a partir de la publicación: '.$autopart->ml_id,
+                    'autopart_id' => $autopart->id,
+                    'created_by' => 38,
+                ]);
+            } else {
+                $response = ApiMl::getAutopart($autopart);
+                if ($response->response) {
+                    $update = ApiMl::updateAutopart($autopart);
+                } else {
+                    $update = false;
+                }
+            }
+        }
+        return ['autopart' => $autopart, 'update' => $update];
     }
 
     public function destroy (Request $request)
@@ -652,7 +918,7 @@ class AutopartController extends Controller
             $location->save();
         }
 
-        if (!$request->status_id == 5 && $request->sale_price > 0) {
+        if ($request->status_id == 5 && $request->sale_price > 0) {
             $request->status_id = 1;
         }
 
@@ -680,7 +946,7 @@ class AutopartController extends Controller
         Storage::put('autoparts/'.$autopart->id.'/qr/'.$autopart->id.'.png', (string) $qr);
 
         AutopartActivity::create([
-            'activity' => 'Autoparte creada',
+            'activity' => 'Autoparte clonada',
             'autopart_id' => $autopart->id,
             'user_id' => $request->user()->id
         ]);
@@ -696,6 +962,10 @@ class AutopartController extends Controller
             'model',
             'status',
             'store',
+            'activity' => function ($query) {
+                $query->orderBy('id', 'desc');
+            },
+            'activity.user',
             ])
             ->find($autopart->id);
 
