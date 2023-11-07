@@ -57,7 +57,11 @@ class ProcessNotifications extends Command
         
                 if ($autopart) {
                     $response = ApiMl::getItemValues($autopart->store_ml_id, $notification->ml_id);
-                    logger(["Autopart ApiMl"=>$response->autopart]);
+                    logger(["Autopart ProcessNotification"=>$response->autopart]);
+                    $autopart->make_id = $response->autopart['make_id'];
+                    $autopart->model_id = $response->autopart['model_id'];
+                    $autopart->position_id = $response->autopart['position_id'];
+                    $autopart->side_id = $response->autopart['side_id'];
                     
                     if ($response->status == 200) {
                         $change = null;
@@ -250,7 +254,7 @@ class ProcessNotifications extends Command
                         ->where('stores_ml.user_id', $notification->user_id)->first();
 
                     $response = ApiMl::getItemValues($storeMl->id, $notification->ml_id);
-                    
+                    logger(["Model"=>$response->autopart['model_id']]);
                     if ($response->status == 200 && $response->autopart['status'] == 'active') {
         
                         $autopartId = DB::table('autoparts')->insertGetId([

@@ -384,7 +384,6 @@ class ApiMl
                                     });
                             })
                             ->first();
-                        logger(["MODEL"=>$model]);
 
                         if ($model) {
                             $autopart['model_id'] = $model->id;
@@ -606,7 +605,6 @@ class ApiMl
             $user = User::find(38);
             $user->notify(new AutopartNotification($channel, $content));
         }
-        logger(["Autopart ApiMl"=>$autopart]);
         
         return (object) ['status' => $response->code, 'autopart' => $autopart, 'store' => self::$store];
     }
