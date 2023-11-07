@@ -361,7 +361,7 @@ class ApiMl
                                 $query->where('autopart_list_models.name', 'like', $value)
                                     ->orWhere(function ($query) use ($value) {
                                         $query->whereNull('autopart_list_models.deleted_at')
-                                                ->whereJsonContains('autopart_list_models.variants', $value);
+                                                ->whereJsonContains('autopart_list_models.variants', strtolower($value));
                                     });
                             })
                             ->first();
