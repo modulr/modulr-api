@@ -373,7 +373,6 @@ class ApiMl
                             $autopart['make'] = $model->make;
                         }
                     } else {
-                        logger(["VALUE"=>$value]);
                         $model = DB::table('autopart_list_models')
                             ->select('id', 'name')
                             ->where('make_id', $autopart['make_id'])
@@ -607,6 +606,7 @@ class ApiMl
             $user = User::find(38);
             $user->notify(new AutopartNotification($channel, $content));
         }
+        logger(["Autopart ApiMl"=>$autopart]);
         
         return (object) ['status' => $response->code, 'autopart' => $autopart, 'store' => self::$store];
     }

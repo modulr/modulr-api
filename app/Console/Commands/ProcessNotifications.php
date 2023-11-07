@@ -57,6 +57,7 @@ class ProcessNotifications extends Command
         
                 if ($autopart) {
                     $response = ApiMl::getItemValues($autopart->store_ml_id, $notification->ml_id);
+                    logger(["Autopart ApiMl"=>$response->autopart]);
                     
                     if ($response->status == 200) {
                         $change = null;
