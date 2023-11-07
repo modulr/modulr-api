@@ -373,6 +373,7 @@ class ApiMl
                             $autopart['make'] = $model->make;
                         }
                     } else {
+                        logger(["VALUE"=>$value]);
                         $model = DB::table('autopart_list_models')
                             ->select('id', 'name')
                             ->where('make_id', $autopart['make_id'])
@@ -384,6 +385,7 @@ class ApiMl
                                     });
                             })
                             ->first();
+                        logger(["MODEL"=>$model]);
 
                         if ($model) {
                             $autopart['model_id'] = $model->id;
