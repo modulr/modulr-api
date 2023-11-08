@@ -103,6 +103,7 @@ class AutopartController extends Controller
                 $join->on('autopart_images.id', '=', DB::raw('(SELECT autopart_images.id FROM autopart_images WHERE autopart_images.autopart_id = autoparts.id ORDER BY autopart_images.order ASC LIMIT 1)'));
             })
             ->where('autoparts.status_id', '!=', 4)
+            ->where('autoparts.status_id', '!=', 3)
             ->whereNull('autoparts.deleted_at');
 
         if ($make) {
