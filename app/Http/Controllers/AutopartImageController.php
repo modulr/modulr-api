@@ -28,7 +28,7 @@ class AutopartImageController extends Controller
         $thumb->resizeCanvas(400, 400);
         $thumb->encode('jpg');
     
-        $url_thumbnail = Storage::put($img['dirname'].'/thumbnail_'.$img['basename'], (string) $thumb);
+        Storage::put($img['dirname'].'/thumbnail_'.$img['basename'], (string) $thumb);
 
         return ['url' => Storage::url($url), 'url_thumbnail' => Storage::url($img['dirname'].'/thumbnail_'.$img['basename'])];
     }

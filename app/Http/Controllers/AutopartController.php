@@ -14,6 +14,7 @@ use App\Models\AutopartActivity;
 use App\Models\AutopartComment;
 use App\Models\AutopartListLocation;
 use App\Helpers\ApiMl;
+use App\Notifications\AutopartNotification;
 
 class AutopartController extends Controller
 {
@@ -658,9 +659,32 @@ class AutopartController extends Controller
             'user_id' => $request->user()->id
         ]);
 
-        $autopart->status = $autopart->status;
-        $autopart->category = $autopart->category;
-        $autopart->make = $autopart->make;
+        $autopart = Autopart::with([
+            'category',
+            'status',
+            'make',
+            'model',
+            'store',
+            'location',
+            'activity' => function ($query) {
+                $query->orderBy('id', 'desc');
+            },
+            'activity.user',
+            'images' => function ($query) {
+                $query->orderBy('order', 'asc');
+            }
+        ])
+        ->find($autopart->id);
+
+        if (count($autopart->images) > 0) {
+            $autopart->url_thumbnail = Storage::url('autoparts/'.$autopart->id.'/images/thumbnail_'.$autopart->images->first()->basename);
+        }
+
+        $channel = $autopart->store->telegram;
+        $content = "✅ *¡Nueva autoparte en AG!*\n*".$autopart->store->name."*\nID: ".$autopart->id."\n".$autopart->name;
+        $button = $autopart->id;
+        $user = $request->user();
+        $user->notify(new AutopartNotification($channel, $content, $button));
 
         return $autopart;
     }
@@ -774,6 +798,12 @@ class AutopartController extends Controller
             $updatedAutopart->url_thumbnail = Storage::url('autoparts/'.$updatedAutopart->id.'/images/thumbnail_'.$updatedAutopart->images->first()->basename);
         }
 
+        $channel = $autopart->store->telegram;
+        $content = "🖋 *¡Autoparte actualizada en AG!*\n*".$autopart->store->name."*\nID: ".$autopart->id."\n".$autopart->name;
+        $button = $autopart->id;
+        $user = $request->user();
+        $user->notify(new AutopartNotification($channel, $content, $button));
+
         if ($changeStore) {
             $sync = ApiMl::createAutopart($updatedAutopart);
         } else if ($request->ml_id) {
@@ -796,61 +826,24 @@ class AutopartController extends Controller
             'status_id' => 'required|integer'
         ]);
 
-        $autopart = Autopart::with([
-            'location',
-            'category',
-            'position',
-            'side',
-            'condition',
-            'origin',
-            'make',
-            'model',
-            'status',
-            'store',
-            'storeMl',
-            'comments' => function ($query) {
-                $query->orderBy('id', 'desc');
-            },
-            'comments.user',
-            'activity' => function ($query) {
-                $query->orderBy('id', 'desc');
-            },
-            'activity.user',
-            'images' => function ($query) {
-                $query->orderBy('order', 'asc');
-            }
-        ])
-        ->find($request->id);
+        $autopart = Autopart::find($request->id);
 
         $oldStatus = $autopart->status_id;
 
         $autopart->status_id = $request->status_id;
         $autopart->save();
 
-        if (count($autopart->images) > 0) {
-            $autopart->url_thumbnail = Storage::url('autoparts/'.$autopart->id.'/images/thumbnail_'.$autopart->images->first()->basename);
-        }
-
-        $autopart->load('status');
-
-        AutopartActivity::create([
-            'activity' => 'Cambió el estatus a ' . $autopart->status->name,
-            'autopart_id' => $autopart->id,
-            'user_id' => $request->user()->id
-        ]);
-
-        $update = true;
+        $sync = true;
 
         //Reactivar en una nueva publicación ML
         if ($autopart->ml_id) {
             if ($oldStatus == 4) {
                 $response = ApiMl::getAutopart($autopart);
                 if ($response->response) {
-                    $update = ApiMl::createAutopart($autopart);
+                    $sync = ApiMl::createAutopart($autopart);
                 } else {
-                    $update = false;
+                    $sync = false;
                 }
-    
                 AutopartComment::create([
                     'comment' => 'Se reactivó la autoparte, a partir de la publicación: '.$autopart->ml_id,
                     'autopart_id' => $autopart->id,
@@ -859,14 +852,19 @@ class AutopartController extends Controller
             } else {
                 $response = ApiMl::getAutopart($autopart);
                 if ($response->response) {
-                    $update = ApiMl::updateAutopart($autopart);
+                    $sync = ApiMl::updateAutopart($autopart);
                 } else {
-                    $update = false;
+                    $sync = false;
                 }
             }
         }
 
-        //Refresh autopart
+        AutopartActivity::create([
+            'activity' => 'Cambió el estatus a ' . $autopart->status->name,
+            'autopart_id' => $autopart->id,
+            'user_id' => $request->user()->id
+        ]);
+
         $autopart = Autopart::with([
             'location',
             'category',
@@ -892,8 +890,12 @@ class AutopartController extends Controller
             }
         ])
         ->find($request->id);
+
+        if (count($autopart->images) > 0) {
+            $autopart->url_thumbnail = Storage::url('autoparts/'.$autopart->id.'/images/thumbnail_'.$autopart->images->first()->basename);
+        }
         
-        return ['autopart' => $autopart, 'update' => $update];
+        return ['autopart' => $autopart, 'sync' => $sync];
     }
 
     public function destroy (Request $request)
