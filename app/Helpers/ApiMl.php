@@ -1061,7 +1061,7 @@ class ApiMl
             }
 
             $channel = env('TELEGRAM_CHAT_LOG');
-            $content = "*Do not update autopart in Mercadolibre:* ".$autopart->id."\n".$messages;
+            $content = "*Do not update autopart in Mercadolibre:* ".$autopart->id."\n".implode("\n", $messages);
             $user = User::find(38);
             $user->notify(new AutopartNotification($channel, $content));
 
