@@ -815,9 +815,9 @@ class ApiMl
             $autopart->ml_id = $autopartMl->id;
             $autopart->save();
 
-            // if($autopart->description !== null){
-            //     self::updateDescription($autopart,false);
-            // }
+            if($autopart->description !== null){
+                self::updateDescription($autopart,false);
+            }
 
             return true;
 
@@ -1053,9 +1053,15 @@ class ApiMl
         } else {
 
             logger(["Do not update autopart in Mercadolibre" => $response->object(), "autopart" => $autopart->id]);
+            $response = $response->object();
+            $messages = [];
+
+            foreach ($response->cause as $cause) {
+                $messages[] = $cause->message;
+            }
 
             $channel = env('TELEGRAM_CHAT_LOG');
-            $content = "*Do not update autopart in Mercadolibre:* ".$autopart->id;
+            $content = "*Do not update autopart in Mercadolibre:* ".$autopart->id."\n".$messages;
             $user = User::find(38);
             $user->notify(new AutopartNotification($channel, $content));
 
