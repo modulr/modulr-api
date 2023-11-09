@@ -84,11 +84,11 @@ class ProcessNotifications extends Command
                             $newStatusId = 4; // Vendido
                         }
 
-                        if ($autopart->moderation_active) {
-                            $newStatusId = 1;
-                            $autopart->status_id = 1;
-                            ApiMl::updateAutopart($autopart);
-                        }
+                        // if ($autopart->moderation_active) {
+                        //     $newStatusId = 1;
+                        //     $autopart->status_id = 1;
+                        //     ApiMl::updateAutopart($autopart);
+                        // }
         
                         if ($autopart->status_id !== $newStatusId) {
         

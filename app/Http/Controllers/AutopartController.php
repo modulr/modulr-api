@@ -653,6 +653,12 @@ class AutopartController extends Controller
         $qr = QrCode::format('png')->size(200)->margin(1)->generate($autopart->id);
         Storage::put('autoparts/'.$autopart->id.'/qr/'.$autopart->id.'.png', (string) $qr);
 
+        AutopartActivity::create([
+            'activity' => 'Autoparte creada',
+            'autopart_id' => $autopart->id,
+            'user_id' => $request->user()->id
+        ]);
+
         $autopart = Autopart::with([
             'category',
             'status',
@@ -673,12 +679,6 @@ class AutopartController extends Controller
         if (count($autopart->images) > 0) {
             $autopart->url_thumbnail = Storage::url('autoparts/'.$autopart->id.'/images/thumbnail_'.$autopart->images->first()->basename);
         }
-
-        AutopartActivity::create([
-            'activity' => 'Autoparte creada',
-            'autopart_id' => $autopart->id,
-            'user_id' => $request->user()->id
-        ]);
 
         $channel = $autopart->store->telegram;
         $content = "✅ *¡Nueva autoparte en AG!*\n*".$autopart->store->name."*\nID: ".$autopart->id."\n".$autopart->name;
@@ -775,6 +775,12 @@ class AutopartController extends Controller
             $sync = false;
         }
 
+        AutopartActivity::create([
+            'activity' => 'Autoparte actualizada',
+            'autopart_id' => $request->id,
+            'user_id' => $request->user()->id
+        ]);
+
         $autopart = Autopart::with([
             'location',
             'category',
@@ -804,12 +810,6 @@ class AutopartController extends Controller
         if (count($autopart->images) > 0) {
             $autopart->url_thumbnail = Storage::url('autoparts/'.$autopart->id.'/images/thumbnail_'.$autopart->images->first()->basename);
         }
-
-        AutopartActivity::create([
-            'activity' => 'Autoparte actualizada',
-            'autopart_id' => $request->id,
-            'user_id' => $request->user()->id
-        ]);
 
         $channel = $autopart->store->telegram;
         $content = "🖋 *¡Autoparte actualizada en AG!*\n*".$autopart->store->name."*\nID: ".$autopart->id."\n".$autopart->name;
@@ -867,6 +867,12 @@ class AutopartController extends Controller
             }
         }
 
+        AutopartActivity::create([
+            'activity' => 'Estatus actualizado ' . $statuses[$oldStatus]." ⏩ ".$autopart->status->name,
+            'autopart_id' => $autopart->id,
+            'user_id' => $request->user()->id
+        ]);
+
         $autopart = Autopart::with([
             'location',
             'category',
@@ -896,12 +902,6 @@ class AutopartController extends Controller
         if (count($autopart->images) > 0) {
             $autopart->url_thumbnail = Storage::url('autoparts/'.$autopart->id.'/images/thumbnail_'.$autopart->images->first()->basename);
         }
-
-        AutopartActivity::create([
-            'activity' => 'Estatus actualizado' . $statuses[$oldStatus]." ⏩ ".$autopart->status->name,
-            'autopart_id' => $autopart->id,
-            'user_id' => $request->user()->id
-        ]);
 
         $channel = $autopart->store->telegram;
         $content = "🚦 *Estatus actualizado en AG!*\n".$statuses[$oldStatus]." ⏩ ".$autopart->status->name."\n*".$autopart->store->name."*\nID: ".$autopart->id."\n".$autopart->name;
