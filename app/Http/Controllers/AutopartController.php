@@ -898,7 +898,7 @@ class AutopartController extends Controller
         }
 
         AutopartActivity::create([
-            'activity' => 'Cambió el estatus a ' . $autopart->status->name,
+            'activity' => 'Estatus actualizado' . $statuses[$oldStatus]." ⏩ ".$autopart->status->name,
             'autopart_id' => $autopart->id,
             'user_id' => $request->user()->id
         ]);
