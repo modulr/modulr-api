@@ -76,8 +76,10 @@ class ProcessNotifications extends Command
                             $newStatusId = 5; // Incompleto
                         }
     
-                        if ($response->autopart['status'] == 'paused') {
+                        if ($response->autopart['status'] == 'paused' && $autopart->status_id !== 3) {
                             $newStatusId = 2; // No Disponible
+                        }else{
+                            $newStatusId = 3;
                         }
     
                         if ($response->autopart['status'] == 'closed') {
