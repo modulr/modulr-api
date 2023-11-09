@@ -653,12 +653,6 @@ class AutopartController extends Controller
         $qr = QrCode::format('png')->size(200)->margin(1)->generate($autopart->id);
         Storage::put('autoparts/'.$autopart->id.'/qr/'.$autopart->id.'.png', (string) $qr);
 
-        AutopartActivity::create([
-            'activity' => 'Autoparte creada',
-            'autopart_id' => $autopart->id,
-            'user_id' => $request->user()->id
-        ]);
-
         $autopart = Autopart::with([
             'category',
             'status',
@@ -679,6 +673,12 @@ class AutopartController extends Controller
         if (count($autopart->images) > 0) {
             $autopart->url_thumbnail = Storage::url('autoparts/'.$autopart->id.'/images/thumbnail_'.$autopart->images->first()->basename);
         }
+
+        AutopartActivity::create([
+            'activity' => 'Autoparte creada',
+            'autopart_id' => $autopart->id,
+            'user_id' => $request->user()->id
+        ]);
 
         $channel = $autopart->store->telegram;
         $content = "✅ *¡Nueva autoparte en AG!*\n*".$autopart->store->name."*\nID: ".$autopart->id."\n".$autopart->name;
@@ -762,13 +762,20 @@ class AutopartController extends Controller
         $autopart->updated_by = $request->user()->id;
         $autopart->save();
 
-        AutopartActivity::create([
-            'activity' => 'Autoparte actualizada',
-            'autopart_id' => $request->id,
-            'user_id' => $request->user()->id
-        ]);
+        if ($changeStore) {
+            $sync = ApiMl::createAutopart($autopart);
+        } else if ($request->ml_id) {
+            $response = ApiMl::getAutopart($autopart);
+            if ($response->response) {
+                $sync = ApiMl::updateAutopart($autopart);
+            } else {
+                $sync = false;
+            }
+        } else {
+            $sync = false;
+        }
 
-        $updatedAutopart = Autopart::with([
+        $autopart = Autopart::with([
             'location',
             'category',
             'position',
@@ -794,9 +801,15 @@ class AutopartController extends Controller
         ])
         ->find($autopart->id);
 
-        if (count($updatedAutopart->images) > 0) {
-            $updatedAutopart->url_thumbnail = Storage::url('autoparts/'.$updatedAutopart->id.'/images/thumbnail_'.$updatedAutopart->images->first()->basename);
+        if (count($autopart->images) > 0) {
+            $autopart->url_thumbnail = Storage::url('autoparts/'.$autopart->id.'/images/thumbnail_'.$autopart->images->first()->basename);
         }
+
+        AutopartActivity::create([
+            'activity' => 'Autoparte actualizada',
+            'autopart_id' => $request->id,
+            'user_id' => $request->user()->id
+        ]);
 
         $channel = $autopart->store->telegram;
         $content = "🖋 *¡Autoparte actualizada en AG!*\n*".$autopart->store->name."*\nID: ".$autopart->id."\n".$autopart->name;
@@ -804,20 +817,7 @@ class AutopartController extends Controller
         $user = $request->user();
         $user->notify(new AutopartNotification($channel, $content, $button));
 
-        if ($changeStore) {
-            $sync = ApiMl::createAutopart($updatedAutopart);
-        } else if ($request->ml_id) {
-            $response = ApiMl::getAutopart($updatedAutopart);
-            if ($response->response) {
-                $sync = ApiMl::updateAutopart($updatedAutopart);
-            } else {
-                $sync = false;
-            }
-        } else {
-            $sync = false;
-        }
-
-        return ["autopart" => $updatedAutopart, "sync" => $sync];
+        return ["autopart" => $autopart, "sync" => $sync];
     }
 
     public function updateStatus (Request $request)
