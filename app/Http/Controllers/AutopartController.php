@@ -829,15 +829,17 @@ class AutopartController extends Controller
         $autopart = Autopart::find($request->id);
 
         $oldStatus = $autopart->status_id;
+        $statuses = [
+            1 => "Disponible",
+            2 => "No Disponible",
+            3 => "Separado",
+            4 => "Vendido",
+            5 => "Incompleto",
+            6 => "Sin Mercado Libre"
+        ];
 
         $autopart->status_id = $request->status_id;
         $autopart->save();
-
-        AutopartActivity::create([
-            'activity' => 'Cambió el estatus a ' . $autopart->status->name,
-            'autopart_id' => $autopart->id,
-            'user_id' => $request->user()->id
-        ]);
 
         $sync = true;
 
@@ -894,6 +896,18 @@ class AutopartController extends Controller
         if (count($autopart->images) > 0) {
             $autopart->url_thumbnail = Storage::url('autoparts/'.$autopart->id.'/images/thumbnail_'.$autopart->images->first()->basename);
         }
+
+        AutopartActivity::create([
+            'activity' => 'Cambió el estatus a ' . $autopart->status->name,
+            'autopart_id' => $autopart->id,
+            'user_id' => $request->user()->id
+        ]);
+
+        $channel = $autopart->store->telegram;
+        $content = "🚦 *Estatus actualizado en AG!*\n".$statuses[$oldStatus]." ⏩ ".$autopart->status->name."\n*".$autopart->store->name."*\nID: ".$autopart->id."\n".$autopart->name;
+        $button = $autopart->id;
+        $user = $request->user();
+        $user->notify(new AutopartNotification($channel, $content, $button));
         
         return ['autopart' => $autopart, 'sync' => $sync];
     }
