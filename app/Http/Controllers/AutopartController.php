@@ -833,6 +833,12 @@ class AutopartController extends Controller
         $autopart->status_id = $request->status_id;
         $autopart->save();
 
+        AutopartActivity::create([
+            'activity' => 'Cambió el estatus a ' . $autopart->status->name,
+            'autopart_id' => $autopart->id,
+            'user_id' => $request->user()->id
+        ]);
+
         $sync = true;
 
         //Reactivar en una nueva publicación ML
@@ -858,12 +864,6 @@ class AutopartController extends Controller
                 }
             }
         }
-
-        AutopartActivity::create([
-            'activity' => 'Cambió el estatus a ' . $autopart->status->name,
-            'autopart_id' => $autopart->id,
-            'user_id' => $request->user()->id
-        ]);
 
         $autopart = Autopart::with([
             'location',
@@ -993,6 +993,7 @@ class AutopartController extends Controller
             'model',
             'status',
             'store',
+            'images',
             'activity' => function ($query) {
                 $query->orderBy('id', 'desc');
             },
