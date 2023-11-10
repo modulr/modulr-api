@@ -78,7 +78,7 @@ class ProcessNotifications extends Command
     
                         if ($response->autopart['status'] == 'paused' && $autopart->status_id !== 3) {
                             $newStatusId = 2; // No Disponible
-                        }else{
+                        }else if ($response->autopart['status'] == 'paused' && $autopart->status_id === 3){
                             $newStatusId = 3;
                         }
     
