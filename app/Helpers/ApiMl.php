@@ -777,7 +777,7 @@ class ApiMl
                 ],
                 [
                     "id" => "ITEM_CONDITION",
-                    "value_name" => $autopart->condition ? $autopart->condition->name : null
+                    "value_name" => $autopart->condition ? $autopart->condition->name : "used"
                 ],
                 [
                     "id" => "ORIGIN",
