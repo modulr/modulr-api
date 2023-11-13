@@ -336,7 +336,13 @@ class ApiMl
                 if (!isset($autopart['make_id'])) {
                     $make = DB::table('autopart_list_makes')
                         ->select('id', 'name')
-                        ->where('name', 'like', $value)
+                        ->where(function ($query) use ($value) {
+                            $query->where('name', 'like', $value)
+                                ->orWhere(function ($query) use ($value) {
+                                    $query->whereNull('deleted_at')
+                                        ->whereJsonContains('variants', strtolower($value));
+                                });
+                        })
                         ->whereNull('deleted_at')
                         ->first();
                     
@@ -352,7 +358,13 @@ class ApiMl
                         $model = DB::table('autopart_list_models')
                             ->select('autopart_list_models.id', 'autopart_list_models.name', 'autopart_list_models.make_id', 'autopart_list_makes.name as make')
                             ->join('autopart_list_makes', 'autopart_list_makes.id', '=', 'autopart_list_models.make_id')
-                            ->where('autopart_list_models.name', 'like', $value)
+                            ->where(function ($query) use ($value) {
+                                $query->where('autopart_list_models.name', 'like', $value)
+                                    ->orWhere(function ($query) use ($value) {
+                                        $query->whereNull('autopart_list_models.deleted_at')
+                                                ->whereJsonContains('autopart_list_models.variants', strtolower($value));
+                                    });
+                            })
                             ->whereNull('autopart_list_models.deleted_at')
                             ->first();
 
@@ -366,7 +378,13 @@ class ApiMl
                         $model = DB::table('autopart_list_models')
                             ->select('id', 'name')
                             ->where('make_id', $autopart['make_id'])
-                            ->where('name', 'like', $value)
+                            ->where(function ($query) use ($value) {
+                                $query->where('name', 'like', $value)
+                                    ->orWhere(function ($query) use ($value) {
+                                        $query->whereNull('deleted_at')
+                                            ->whereJsonContains('variants', strtolower($value));
+                                    });
+                            })
                             ->whereNull('deleted_at')
                             ->first();
 
@@ -401,9 +419,14 @@ class ApiMl
 
                 if (!isset($autopart['side_id'])) {
                     $side = DB::table('autopart_list_sides')
-                        ->where('name', 'like', $value)
-                        ->orWhere('variants', 'LIKE', "%".strtolower($value)."%")
-                        ->whereNull('deleted_at')->first();
+                        ->where(function ($query) use ($value) {
+                            $query->where('name', 'like', $value)
+                                ->orWhere(function ($query) use ($value) {
+                                    $query->whereNull('deleted_at')
+                                            ->where('variants', 'LIKE', "%".strtolower($value)."%");
+                                });
+                        })
+                        ->first();
                     
                     if ($side) {
                         $autopart['side_id'] = $side->id;
@@ -413,9 +436,14 @@ class ApiMl
 
                 if (!isset($autopart['position_id'])) {
                     $position = DB::table('autopart_list_positions')
-                        ->where('name', 'like', $value)
-                        ->orWhere('variants', 'LIKE', "%".strtolower($value)."%")
-                        ->whereNull('deleted_at')->first();
+                        ->where(function ($query) use ($value) {
+                            $query->where('name', 'like', $value)
+                                ->orWhere(function ($query) use ($value) {
+                                    $query->where('variants', 'LIKE', "%".strtolower($value)."%");
+                                });
+                        })
+                        ->whereNull('deleted_at')
+                        ->first();
                     
                     if ($position) {
                         $autopart['position_id'] = $position->id;
@@ -749,7 +777,7 @@ class ApiMl
                 ],
                 [
                     "id" => "ITEM_CONDITION",
-                    "value_name" => $autopart->condition ? $autopart->condition->name : null
+                    "value_name" => $autopart->condition ? $autopart->condition->name : "used"
                 ],
                 [
                     "id" => "ORIGIN",
@@ -790,9 +818,9 @@ class ApiMl
             $autopart->ml_id = $autopartMl->id;
             $autopart->save();
 
-            // if($autopart->description !== null){
-            //     self::updateDescription($autopart,false);
-            // }
+            if($autopart->description !== null){
+                self::updateDescription($autopart,false);
+            }
 
             return true;
 
@@ -820,6 +848,7 @@ class ApiMl
         $response = self::getAutopart($autopart);
 
         $attributesArray = [];
+        $variationsArray = [];
 
         $attributesToCheck = [
             "BRAND",
@@ -829,6 +858,7 @@ class ApiMl
             "ORIGIN",
             "SELLER_SKU",
             "SIDE",
+            "SIDE_POSITION",
             "POSITION",
             "VEHICLE_TYPE"
         ];
@@ -850,15 +880,15 @@ class ApiMl
                                 $value->value_name = $autopart->autopart_number ? $autopart->autopart_number : null;
                                 break;
                             case "ITEM_CONDITION":
-                                $value->value_name = $autopart->condition ? $autopart->condition->name : null;
+                                $value->value_name = $autopart->condition ? $autopart->condition->name : "used";
                                 break;
                             case "ORIGIN":
                                 $value->value_name = $autopart->origin ? $autopart->origin->name : null;
                                 break;
-                            // case "SELLER_SKU":
-                            //     $value->value_name = $autopart->id;
-                            //     break;
                             case "SIDE":
+                                $value->value_name = $autopart->side ? $autopart->side->name : null;
+                                break;
+                            case "SIDE_POSITION":
                                 $value->value_name = $autopart->side ? $autopart->side->name : null;
                                 break;
                             case "POSITION":
@@ -871,6 +901,7 @@ class ApiMl
                         break;
                     }
                 }
+
                 if (!$attributeExists) {
                     switch ($attribute) {
                         case "BRAND":
@@ -930,6 +961,12 @@ class ApiMl
                     }
                 }
             }
+
+            $variationsArray[] = [
+                "id" => $val->id,
+                "price"=>$autopart->sale_price,
+                "attribute_combinations" => $val->attribute_combinations
+            ];
         }
 
         if ($autopart->status_id == 4) {
@@ -938,6 +975,10 @@ class ApiMl
             $status = 'paused';
         }else {
             $status = 'active';
+        }
+
+        if($response->autopart->available_quantity = 0){
+            $stock = 1;
         }
 
         $images = [];
@@ -952,14 +993,42 @@ class ApiMl
             };
         }
 
-        $response = Http::withHeaders([
-            'Authorization' => 'Bearer ' . $autopart->storeMl->access_token,
-        ])->put('https://api.mercadolibre.com/items/' . $autopart->ml_id, [
-            "title" => substr($autopart->name, 0, 60),
+        foreach ($variationsArray as $variation) {
+            if (is_array($variation['attribute_combinations'])) { 
+                foreach ($variation['attribute_combinations'] as $combination) {
+                    if ($combination->id === 'SIDE_POSITION') {
+                        $index = array_search('SIDE', array_column($attributesArray, 'id'));
+        
+                        if ($index !== false) {
+                            unset($attributesArray[$index]);
+                        }
+                    }
+                }
+            }
+        }
+
+        $attributesList = [];
+        foreach ($attributesArray as $key => $value) {
+            $attributesList[] = ['id' => $value['id'], 'value_name' => $value['value_name']];
+        }
+
+        $requestData = [
             "status" => $status,
             "pictures" => $images,
-            "attributes" => $attributesArray
-        ]);
+            "attributes" => $attributesList
+        ];
+
+        if (empty($response->autopart->variations)) {
+            $requestData["price"] = $autopart->sale_price;
+        }
+        if ($response->autopart->sold_quantity < 1) {
+            $requestData["title"] = substr($autopart->name, 0, 60);
+            $requestData["variations"] = $variationsArray;
+        }
+
+        $response = Http::withHeaders([
+        'Authorization' => 'Bearer ' . $autopart->storeMl->access_token,
+        ])->put('https://api.mercadolibre.com/items/' . $autopart->ml_id, $requestData);
         
 
         if($response->successful()){
@@ -979,17 +1048,23 @@ class ApiMl
                 self::updateDescription($autopart,true);
             }
 
-            if($autopart->sale_price > 0){
-                self::updatePrice($autopart);
-            }
+            // if($autopart->sale_price > 0){
+            //     self::updatePrice($autopart);
+            // }
 
             return true;
         } else {
 
-            logger(["Do not update autopart in Mercadolibre" => $response->object(), "autopart" => $autopart]);
+            logger(["Do not update autopart in Mercadolibre" => $response->object(), "autopart" => $autopart->id]);
+            $response = $response->object();
+            $messages = [];
+
+            foreach ($response->cause as $cause) {
+                $messages[] = $cause->message;
+            }
 
             $channel = env('TELEGRAM_CHAT_LOG');
-            $content = "*Do not update autopart in Mercadolibre:* ".$autopart->id;
+            $content = "*Do not update autopart in Mercadolibre:* ".$autopart->id."\n".implode("\n", $messages);
             $user = User::find(38);
             $user->notify(new AutopartNotification($channel, $content));
 

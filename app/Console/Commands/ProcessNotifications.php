@@ -57,11 +57,16 @@ class ProcessNotifications extends Command
         
                 if ($autopart) {
                     $response = ApiMl::getItemValues($autopart->store_ml_id, $notification->ml_id);
+                    $autopart->make_id = $response->autopart['make_id'];
+                    $autopart->model_id = $response->autopart['model_id'];
+                    $autopart->position_id = $response->autopart['position_id'];
+                    $autopart->side_id = $response->autopart['side_id'];
                     
                     if ($response->status == 200) {
                         $change = null;
     
                         $newStatusId = $autopart->status_id;
+                        $autopart->ml_status = $response->autopart['status'];
     
                         if ($response->autopart['status'] == 'active') {
                             $newStatusId = 1; // Disponible
@@ -71,28 +76,23 @@ class ProcessNotifications extends Command
                             $newStatusId = 5; // Incompleto
                         }
     
-                        if (($autopart->status_id == 1 || $autopart->status_id == 2 || $autopart->status_id == 5) && ($response->autopart['status'] == 'paused' || $response->autopart['status'] == 'closed')) {
-                            $dateCreated = Carbon::parse($response->autopart['date_created']);
-                            $minutesAgo = Carbon::now()->subMinutes(15);
-    
-                            if ($dateCreated->greaterThanOrEqualTo($minutesAgo)) {
-                                $newStatusId = 2; //No Disponible
-                            } else {
-                                $newStatusId = 4; //Vendido
-                            }
+                        if ($response->autopart['status'] == 'paused' && $autopart->status_id !== 3) {
+                            $newStatusId = 2; // No Disponible
+                        }else if ($response->autopart['status'] == 'paused' && $autopart->status_id === 3){
+                            $newStatusId = 3;
                         }
     
-                        if ($autopart->status_id == 3 && $response->autopart['status'] == 'closed') {
+                        if ($response->autopart['status'] == 'closed') {
                             $newStatusId = 4; // Vendido
                         }
 
-                        if($autopart->moderation_active){
-                            $newStatusId = 1;
-                            $autopart->status_id = 1;
-                            ApiMl::updateAutopart($autopart);
-                        }
+                        // if ($autopart->moderation_active) {
+                        //     $newStatusId = 1;
+                        //     $autopart->status_id = 1;
+                        //     ApiMl::updateAutopart($autopart);
+                        // }
         
-                        if($autopart->status_id !== $newStatusId){
+                        if ($autopart->status_id !== $newStatusId) {
         
                             $statuses = [
                                 1 => "Disponible",
@@ -110,7 +110,7 @@ class ProcessNotifications extends Command
                             $autopart->status_id = $newStatusId;
         
                             // AUTOPARTE VENDIDA
-                            if($autopart->status_id == 4){
+                            if ($autopart->status_id == 4) {
 
                                 $autopart->save();
                                 
@@ -248,7 +248,6 @@ class ProcessNotifications extends Command
                         ->where('stores_ml.user_id', $notification->user_id)->first();
 
                     $response = ApiMl::getItemValues($storeMl->id, $notification->ml_id);
-                    
                     if ($response->status == 200 && $response->autopart['status'] == 'active') {
         
                         $autopartId = DB::table('autoparts')->insertGetId([
