@@ -343,6 +343,7 @@ class ApiMl
                                         ->whereJsonContains('variants', strtolower($value));
                                 });
                         })
+                        ->whereNull('deleted_at')
                         ->first();
                     
                     if ($make) {
@@ -364,6 +365,7 @@ class ApiMl
                                                 ->whereJsonContains('autopart_list_models.variants', strtolower($value));
                                     });
                             })
+                            ->whereNull('autopart_list_models.deleted_at')
                             ->first();
 
                         if ($model) {
@@ -383,6 +385,7 @@ class ApiMl
                                             ->whereJsonContains('variants', strtolower($value));
                                     });
                             })
+                            ->whereNull('deleted_at')
                             ->first();
 
                         if ($model) {
