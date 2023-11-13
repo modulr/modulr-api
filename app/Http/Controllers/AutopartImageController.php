@@ -42,6 +42,30 @@ class AutopartImageController extends Controller
         $url = Storage::putFile('autoparts/'.$request->id.'/images', $request->file('file'));
         $img = pathinfo($url);
 
+        $autopart = Autopart::where('id', $request->id)->find();
+
+        if($autopart->ml_id){
+            $images = AutopartImage::where('autopart_id', $request->id)->find();
+
+            $imgs = [];
+            if (count($images) > 0) {
+                $sortedImages = $images->sortBy('order')->take(10);
+                foreach ($sortedImages as $value) {
+                    if (isset($value['img_ml_id'])) {
+                        array_push($imgs, ['id' => $value['img_ml_id']]);
+                    }else{
+                        array_push($imgs, ['source' => $value['url']]);
+                    }
+                };
+            }
+    
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer '.$autopart->storeMl->access_token,
+            ])->put('https://api.mercadolibre.com/items/'. $autopart->ml_id, [
+                "pictures" => $imgs
+            ]);
+        }
+
         $thumb = Image::make($request->file('file'));
         $thumb->resize(400, 400, function ($constraint) {
             $constraint->aspectRatio();
@@ -110,6 +134,30 @@ class AutopartImageController extends Controller
             AutopartImage::where('id', $value['id'])
                         ->where('autopart_id', $value['autopart_id'])
                         ->update(['order' => $key]);
+        }
+
+        $autopart = Autopart::where('id', $request->autopart_id)->find();
+
+        if($autopart->ml_id){
+            $images = AutopartImage::where('autopart_id', $request->autopart_id)->find();
+
+            $imgs = [];
+            if (count($images) > 0) {
+                $sortedImages = $images->sortBy('order')->take(10);
+                foreach ($sortedImages as $value) {
+                    if (isset($value['img_ml_id'])) {
+                        array_push($imgs, ['id' => $value['img_ml_id']]);
+                    }else{
+                        array_push($imgs, ['source' => $value['url']]);
+                    }
+                };
+            }
+    
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer '.$autopart->storeMl->access_token,
+            ])->put('https://api.mercadolibre.com/items/'. $autopart->ml_id, [
+                "pictures" => $imgs
+            ]);
         }
 
         return true;
