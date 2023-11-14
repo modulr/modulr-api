@@ -139,6 +139,39 @@ class AutopartImageController extends Controller
                         ->update(['order' => $key]);
         }
 
+        if($autopart->ml_id){
+            $images = AutopartImage::where('autopart_id', $autopart->id)->get();
+
+            $imgs = [];
+            if (count($images) > 0) {
+                $sortedImages = $images->sortBy('order')->take(10);
+                foreach ($sortedImages as $value) {
+                    if (isset($value['img_ml_id'])) {
+                        array_push($imgs, ['id' => $value['img_ml_id']]);
+                    }else{
+                        array_push($imgs, ['source' => $value['url']]);
+                    }
+                };
+            }
+    
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer '.$autopart->storeMl->access_token,
+            ])->put('https://api.mercadolibre.com/items/'. $autopart->ml_id, [
+                "pictures" => $imgs
+            ]);
+
+            $autopartMl = $response->object();
+            if(count($autopartMl->pictures) > 0){
+                foreach ($autopartMl->pictures as $key => $imageMl) {
+                    $img = AutopartImage::where('autopart_id', $autopart->id)->where('order',$key)->first();
+                    if(isset($img) && !isset($img->img_ml_id)){
+                        $img->img_ml_id = $imageMl->id;
+                        $img->save();
+                    } 
+                }
+            }
+        }
+
         return true;
     }
 
@@ -166,14 +199,12 @@ class AutopartImageController extends Controller
                     }
                 };
             }
-            logger(["Images"=>$imgs]);
     
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer '.$autopart->storeMl->access_token,
             ])->put('https://api.mercadolibre.com/items/'. $autopart->ml_id, [
                 "pictures" => $imgs
             ]);
-            logger(["Response"=>$response->object()]);
 
             $autopartMl = $response->object();
             if(count($autopartMl->pictures) > 0){
