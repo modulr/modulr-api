@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Http;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Image;
@@ -43,7 +44,7 @@ class AutopartImageController extends Controller
         $img = pathinfo($url);
 
         $autopart = Autopart::where('id',$request->id)->first();
-        
+
         if($autopart->ml_id){
             $images = AutopartImage::where('autopart_id', $request->id)->get();
 
