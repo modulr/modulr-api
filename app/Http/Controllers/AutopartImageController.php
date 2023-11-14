@@ -45,6 +45,30 @@ class AutopartImageController extends Controller
 
         $autopart = Autopart::where('id',$request->id)->first();
 
+        $thumb = Image::make($request->file('file'));
+        $thumb->resize(400, 400, function ($constraint) {
+            $constraint->aspectRatio();
+            $constraint->upsize();
+        });
+        $thumb->resizeCanvas(400, 400);
+        $thumb->encode('jpg');
+    
+        Storage::put($img['dirname'].'/thumbnail_'.$img['basename'], (string) $thumb);
+
+        $lastImg = AutopartImage::where('autopart_id', $request->id)->orderBy('order', 'desc')->first();
+
+        if (isset($lastImg)) {
+            $order = $lastImg->order + 1;
+        } else {
+            $order = 0;
+        }
+
+        $newImage = AutopartImage::create([
+            'basename' => $img['basename'],
+            'order' => $order,
+            'autopart_id' => $request->id
+        ]);
+
         if($autopart->ml_id){
             $images = AutopartImage::where('autopart_id', $request->id)->get();
 
@@ -69,29 +93,7 @@ class AutopartImageController extends Controller
 logger(["Object"=>$response->object()]);
         }
 
-        $thumb = Image::make($request->file('file'));
-        $thumb->resize(400, 400, function ($constraint) {
-            $constraint->aspectRatio();
-            $constraint->upsize();
-        });
-        $thumb->resizeCanvas(400, 400);
-        $thumb->encode('jpg');
-    
-        Storage::put($img['dirname'].'/thumbnail_'.$img['basename'], (string) $thumb);
-
-        $lastImg = AutopartImage::where('autopart_id', $request->id)->orderBy('order', 'desc')->first();
-
-        if (isset($lastImg)) {
-            $order = $lastImg->order + 1;
-        } else {
-            $order = 0;
-        }
-
-        return AutopartImage::create([
-            'basename' => $img['basename'],
-            'order' => $order,
-            'autopart_id' => $request->id
-        ]);
+        return $newImage;
     }
 
     public function destroyTemp (Request $request)
