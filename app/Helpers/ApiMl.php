@@ -1057,14 +1057,15 @@ class ApiMl
 
             logger(["Do not update autopart in Mercadolibre" => $response->object(), "autopart" => $autopart->id]);
             $response = $response->object();
-            $messages = [];
+            // $messages = [];
 
-            foreach ($response->cause as $cause) {
-                $messages[] = $cause->message;
-            }
+            // foreach ($response->cause as $cause) {
+            //     $messages[] = $cause->message;
+            // }
 
             $channel = env('TELEGRAM_CHAT_LOG');
-            $content = "*Do not update autopart in Mercadolibre:* ".$autopart->id."\n".implode("\n", $messages);
+            //$content = "*Do not update autopart in Mercadolibre:* ".$autopart->id."\n".implode("\n", $messages);
+            $content = "*Do not update autopart in Mercadolibre:* ".$autopart->id;
             $user = User::find(38);
             $user->notify(new AutopartNotification($channel, $content));
 
