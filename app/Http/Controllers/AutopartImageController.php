@@ -42,10 +42,10 @@ class AutopartImageController extends Controller
         $url = Storage::putFile('autoparts/'.$request->id.'/images', $request->file('file'));
         $img = pathinfo($url);
 
-        $autopart = Autopart::where('id', $request->id)->find();
+        $autopart = Autopart::where('id',$request->id)->get();
 
         if($autopart->ml_id){
-            $images = AutopartImage::where('autopart_id', $request->id)->find();
+            $images = AutopartImage::where('autopart_id', $request->id)->get();
 
             $imgs = [];
             if (count($images) > 0) {
