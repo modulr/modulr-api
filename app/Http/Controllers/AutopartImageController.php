@@ -65,6 +65,7 @@ class AutopartImageController extends Controller
             ])->put('https://api.mercadolibre.com/items/'. $autopart->ml_id, [
                 "pictures" => $imgs
             ]);
+logger(["Object"=>$response->object()]);
         }
 
         $thumb = Image::make($request->file('file'));
