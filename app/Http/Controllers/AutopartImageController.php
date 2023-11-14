@@ -83,14 +83,12 @@ class AutopartImageController extends Controller
                     }
                 };
             }
-            logger(["Images"=>$imgs]);
     
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer '.$autopart->storeMl->access_token,
             ])->put('https://api.mercadolibre.com/items/'. $autopart->ml_id, [
                 "pictures" => $imgs
             ]);
-logger(["Object"=>$response->object()]);
         }
 
         return $newImage;
@@ -157,12 +155,14 @@ logger(["Object"=>$response->object()]);
                     }
                 };
             }
+            logger(["Images"=>$imgs]);
     
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer '.$autopart->storeMl->access_token,
             ])->put('https://api.mercadolibre.com/items/'. $autopart->ml_id, [
                 "pictures" => $imgs
             ]);
+            logger(["Response"=>$response->object()]);
         }
 
         return true;
