@@ -89,6 +89,17 @@ class AutopartImageController extends Controller
             ])->put('https://api.mercadolibre.com/items/'. $autopart->ml_id, [
                 "pictures" => $imgs
             ]);
+
+            $autopartMl = $response->object();
+            if(count($autopartMl->pictures) > 0){
+                foreach ($autopartMl->pictures as $key => $imageMl) {
+                    $img = AutopartImage::where('autopart_id', $autopart->id)->where('order',$key)->first();
+                    if(isset($img) && !isset($img->img_ml_id)){
+                        $img->img_ml_id = $imageMl->id;
+                        $img->save();
+                    } 
+                }
+            }
         }
 
         return $newImage;
@@ -163,6 +174,17 @@ class AutopartImageController extends Controller
                 "pictures" => $imgs
             ]);
             logger(["Response"=>$response->object()]);
+
+            $autopartMl = $response->object();
+            if(count($autopartMl->pictures) > 0){
+                foreach ($autopartMl->pictures as $key => $imageMl) {
+                    $img = AutopartImage::where('autopart_id', $autopart->id)->where('order',$key)->first();
+                    if(isset($img) && !isset($img->img_ml_id)){
+                        $img->img_ml_id = $imageMl->id;
+                        $img->save();
+                    } 
+                }
+            }
         }
 
         return true;
