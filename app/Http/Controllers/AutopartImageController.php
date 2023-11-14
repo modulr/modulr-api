@@ -43,7 +43,7 @@ class AutopartImageController extends Controller
         $img = pathinfo($url);
 
         $autopart = Autopart::where('id',$request->id)->get();
-
+logger(["Autopart"=>$autopart]);
         if($autopart->ml_id){
             $images = AutopartImage::where('autopart_id', $request->id)->get();
 
