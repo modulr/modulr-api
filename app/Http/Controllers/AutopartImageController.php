@@ -141,7 +141,7 @@ logger(["Object"=>$response->object()]);
                         ->update(['order' => $key]);
         }
 
-        $autopart = Autopart::where('id',$request->id)->first();
+        $autopart = Autopart::where('id',$request->autopart_id)->first();
 
         if($autopart->ml_id){
             $images = AutopartImage::where('autopart_id', $request->autopart_id)->get();
