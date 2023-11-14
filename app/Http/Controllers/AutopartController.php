@@ -98,6 +98,8 @@ class AutopartController extends Controller
                 'autoparts.name',
                 'autoparts.sale_price',
                 'autopart_images.basename',
+                'autoparts.store_id',
+                'autoparts.store_ml_id',
                 DB::raw("CONCAT('" . Storage::url('autoparts/') . "', autoparts.id, '/images/thumbnail_', autopart_images.basename) as url_thumbnail")
             ])
             ->leftjoin('autopart_images', function ($join) {
@@ -231,6 +233,8 @@ class AutopartController extends Controller
                 'autoparts.name',
                 'autoparts.sale_price',
                 'autoparts.status_id', 
+                'autoparts.store_id', 
+                'autoparts.store_ml_id', 
                 'autopart_list_status.name as status',
                 'autopart_images.basename',
                 DB::raw("CONCAT('" . Storage::url('autoparts/') . "', autoparts.id, '/images/thumbnail_', autopart_images.basename) as url_thumbnail")
@@ -410,6 +414,8 @@ class AutopartController extends Controller
                 'autoparts.name',
                 'autoparts.sale_price',
                 'autoparts.status_id', 
+                'autoparts.store_id', 
+                'autoparts.store_ml_id', 
                 'autopart_list_status.name as status',
                 'autopart_images.basename',
                 DB::raw("CONCAT('" . Storage::url('autoparts/') . "', autoparts.id, '/images/thumbnail_', autopart_images.basename) as url_thumbnail")
