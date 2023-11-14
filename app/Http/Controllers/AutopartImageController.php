@@ -59,6 +59,7 @@ class AutopartImageController extends Controller
                     }
                 };
             }
+            logger(["Images"=>$imgs]);
     
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer '.$autopart->storeMl->access_token,
@@ -138,10 +139,10 @@ logger(["Object"=>$response->object()]);
                         ->update(['order' => $key]);
         }
 
-        $autopart = Autopart::where('id', $request->autopart_id)->find();
+        $autopart = Autopart::where('id',$request->id)->first();
 
         if($autopart->ml_id){
-            $images = AutopartImage::where('autopart_id', $request->autopart_id)->find();
+            $images = AutopartImage::where('autopart_id', $request->autopart_id)->get();
 
             $imgs = [];
             if (count($images) > 0) {
