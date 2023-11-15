@@ -710,15 +710,20 @@ class FillAutopartsData extends Command
             $bar->start();
     
             foreach ($autoparts as $key => $aut) {
-                DB::table('autoparts')
-                ->where('id', $aut->id)
-                ->update(['status_id' => 3]);
 
                 $autopart = Http::withHeaders([
                     'Authorization' => 'Bearer '.$store->access_token,
                 ])->put('https://api.mercadolibre.com/items/'.$aut->ml_id, [
                     "status" => 'paused'
                 ]);
+
+                logger(["Response"=>$autopart]);
+
+                if($autopart->successful()){
+                    DB::table('autoparts')
+                    ->where('id', $aut->id)
+                    ->update(['status_id' => 3]);
+                }
     
                 $bar->advance();
             }
