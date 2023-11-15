@@ -41,7 +41,7 @@ class FillAutopartsData extends Command
         // $this->fillImagesIdMl($skip,$limit);
 
         // // Mostrar las opciones al usuario
-        $options = ['Descripcion', 'Lado', 'Posicion', 'Numero_Parte', 'Anios', 'Orden_Anios', 'Imagenes', 'Condicion', 'Ubicacion', 'Crear_Ubicaciones', 'update_locations','Activar_Autopartes'];
+        $options = ['Descripcion', 'Lado', 'Posicion', 'Numero_Parte', 'Anios', 'Orden_Anios', 'Imagenes', 'Condicion', 'Ubicacion', 'Crear_Ubicaciones', 'update_locations','Activar_Autopartes','Pausar_Autopartes'];
         $question = new ChoiceQuestion('Elige una opción para editar autopartes:', $options);
         $question->setErrorMessage('Opción inválida.');
 
@@ -86,6 +86,9 @@ class FillAutopartsData extends Command
             case 'Activar_Autopartes':
                 $this->activeAutoparts($store_ml);
                 break;
+                case 'Pausar_Autopartes':
+                    $this->pauseAutoparts($store_ml,$limit);
+                    break;
             default:
                 $this->info('Opción no reconocida.');
                 break;
@@ -684,5 +687,47 @@ class FillAutopartsData extends Command
 
         $this->output->writeln('');
         $this->info('Reactivar autopartes terminado.');
+    }
+
+    private function pauseAutoparts($store_ml,$limit)
+    {
+        $store = DB::table('stores_ml')->where('id', '=', $store_ml)->first();
+
+        $autoparts = DB::table('autoparts')
+            ->select('id', 'ml_id', 'name', 'make_id', 'location_id','status_id')
+            ->selectRaw("CASE WHEN category_id = 71 THEN 'Faro' ELSE NULL END AS Categoría")
+            ->where('category_id', 71)
+            ->where('store_id', 1)
+            ->where('status_id', 1)
+            ->whereNull('location_id')
+            ->orderBy('make_id')
+            ->limit($limit)
+            ->get();
+        
+        if($autoparts->count() > 0){
+            $bar = $this->output->createProgressBar(count($autoparts));
+
+            $bar->start();
+    
+            foreach ($autoparts as $key => $aut) {
+                DB::table('autoparts')
+                ->where('id', $aut->id)
+                ->update(['status_id' => 3]);
+
+                $autopart = Http::withHeaders([
+                    'Authorization' => 'Bearer '.$store->access_token,
+                ])->put('https://api.mercadolibre.com/items/'.$aut->ml_id, [
+                    "status" => 'paused'
+                ]);
+    
+                $bar->advance();
+            }
+
+            $bar->finish();
+        }
+        
+
+        $this->output->writeln('');
+        $this->info('Pausar autopartes terminado.');
     }
 }
