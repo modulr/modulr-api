@@ -695,8 +695,8 @@ class FillAutopartsData extends Command
 
         $autoparts = DB::table('autoparts')
             ->select('id', 'ml_id', 'name', 'make_id', 'location_id','status_id')
-            ->selectRaw("CASE WHEN category_id = 71 THEN 'Faro' ELSE NULL END AS Categoría")
-            ->where('category_id', 71)
+            ->selectRaw("CASE WHEN category_id = 2 THEN 'Salpicadera' ELSE NULL END AS Categoría")
+            ->where('category_id', 2)
             ->where('store_id', 1)
             ->where('status_id', 1)
             ->whereNull('location_id')
@@ -716,8 +716,6 @@ class FillAutopartsData extends Command
                 ])->put('https://api.mercadolibre.com/items/'.$aut->ml_id, [
                     "status" => 'paused'
                 ]);
-
-                logger(["Response"=>$autopart]);
 
                 if($autopart->successful()){
                     DB::table('autoparts')
