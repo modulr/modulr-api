@@ -136,27 +136,28 @@ class ApiMl
         $storeMl = DB::table('stores_ml')->find($autopart->store_ml_id);
         $client = new \GuzzleHttp\Client(['base_uri' => 'https://api.mercadolibre.com']);
 
-        try {
-            if($put){
-                $request_type = 'PUT';
-            }else{
-                $request_type = 'POST';
-            }
-            
-            $client->request($request_type, 'items/'.$autopart->ml_id.'/description', [
-                'headers' => [
-                    'Accept' => '*/*',
-                    'Content-Type' => 'application/json',
-                    'Authorization' => 'Bearer '. $storeMl->access_token
-                ],
-                'json' => [
-                    "plain_text" => $autopart->description
-                ]
+        if($put){
+            $request_type = 'PUT';
+        }else{
+            $request_type = 'POST';
+        }
+
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . $autopart->storeMl->access_token,
+            ])->{$request_type}('https://api.mercadolibre.com/items/'.$autopart->ml_id.'/description', [
+                "plain_text" => $autopart->description
             ]);
 
+        if($response->successful()){
+            // if($autopart->sale_price > 0){
+            //     self::updatePrice($autopart);
+            // }
+
             return true;
-        }
-        catch (\GuzzleHttp\Exception\ClientException $e) {
+        } else {
+            $response = $response->object();
+
+            logger(["Do not update description in Mercadolibre" => $response->object(), "autopart" => $autopart->id]);
 
             $channel = env('TELEGRAM_CHAT_LOG');
             $content = "*Do not update description in Mercadolibre:* ".$autopart->ml_id;
@@ -165,7 +166,6 @@ class ApiMl
 
             return false;
         }
-        
     }
 
     private static function updatePrice($autopart)
@@ -1044,7 +1044,7 @@ class ApiMl
                 }
             }
 
-            if($autopart->description !== null){
+            if($autopart->description !== null && $status !== "closed"){
                 self::updateDescription($autopart,true);
             }
 
