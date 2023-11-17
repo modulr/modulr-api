@@ -260,9 +260,11 @@ class ApiMl
 
         $autopart = [];
 
+        $pattern = ['*', '#', "`", "~"];
+
         if ($response->code == 200) {
 
-            $autopart['name'] = str_replace(['*', '#', "`"], '', $response->body->title);
+            $autopart['name'] = str_replace($pattern, '', $response->body->title);
             $autopart['description'] = '';
             $autopart['autopart_number'] = null;
             $autopart['ml_id'] = $response->body->id;
@@ -326,7 +328,7 @@ class ApiMl
             }
 
             $description = self::getDescription($response->body->id);
-            $autopart['description'] = isset($description->plain_text) ? str_replace(['*', '#', "`"], '', $description->plain_text) : null;
+            $autopart['description'] = isset($description->plain_text) ? str_replace($pattern, '', $description->plain_text) : null;
 
             $nameArray = self::getInfoName($autopart['name']);
 
