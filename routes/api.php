@@ -76,8 +76,12 @@ Route::get('years', [YearController::class, 'index']);
 Route::get('stores', [StoreController::class, 'index']);
 Route::get('stores_ml', [StoresMlController::class, 'index']);
 Route::get('statuses', [StatusController::class, 'index']);
-Route::get('locations', [LocationsController::class, 'index']);
 
+//Locations
+Route::get('locations', [LocationsController::class, 'index']);
+Route::post('locations/store', [LocationsController::class, 'store']);
+Route::put('locations/update/{id}', [LocationsController::class, 'update']);
+Route::delete('locations/destroy/{id}', [LocationsController::class, 'destroy']);
 
 // Mercado libre
 Route::get('/ml/auth', [MlController::class, 'auth']);
