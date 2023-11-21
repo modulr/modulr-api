@@ -59,13 +59,16 @@ class LocationsController extends Controller
                 'created_by' => $request->user()->id,
             ]);
         }
+
+        $qr = QrCode::format('png')->size(200)->margin(1)->generate($location->name);
+        Storage::put('locations/'.$location->id.'/qr/'.$location->id.'.png', (string) $qr);
+
         return $location;
 
     }
 
     public function destroy($id)
     {
-        logger(["DESTORY ID"=>$id]);
         return AutopartListLocation::destroy($id);
     }
 
