@@ -695,8 +695,8 @@ class FillAutopartsData extends Command
 
         $autoparts = DB::table('autoparts')
             ->select('id', 'ml_id', 'name', 'make_id', 'location_id','status_id')
-            ->selectRaw("CASE WHEN category_id = 32 THEN 'Tapa Cajuela' ELSE NULL END AS Categoría")
-            ->where('category_id', 32)
+            ->selectRaw("CASE WHEN category_id = 55 THEN 'Fascia Trasera' ELSE NULL END AS Categoría")
+            ->where('category_id', 55)
             ->where('store_id', 1)
             ->where('status_id', 1)
             ->whereNull('location_id')
