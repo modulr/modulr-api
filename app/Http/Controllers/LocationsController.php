@@ -84,6 +84,11 @@ class LocationsController extends Controller
         $location->name = $request->name;
         $location->save();
 
+        if (!Storage::exists('locations/'.$location->id.'/qr/'.$location->id.'.png')) {
+            $qr = QrCode::format('png')->size(200)->margin(1)->generate($location->name);
+            Storage::put('locations/'.$location->id.'/qr/'.$location->id.'.png', (string) $qr);
+        }
+
         return $location;
     }
 }
