@@ -71,7 +71,13 @@ class LocationsController extends Controller
 
     public function destroy($id)
     {
-        return AutopartListLocation::destroy($id);
+        $location = AutopartListLocation::find($id);
+
+        if ($location->stock > 0) {
+            return response()->json(['error' => 'No se puede eliminar ubicacion con stock.'], 422);
+        } else {
+            return AutopartListLocation::destroy($id);
+        }
     }
 
     public function update (Request $request)
@@ -97,9 +103,6 @@ class LocationsController extends Controller
         $cleanedId = str_replace('location-', '', $request->id);
 
         $location = AutopartListLocation::with(['store'])->find($cleanedId);
-
-        logger(["location"=>$location]);
-        logger(["QR Exists"=>Storage::exists('locations/'.$location->store_id.'/location-'.$location->id.'.png')]);
 
         if (!Storage::exists('locations/'.$location->store_id.'/location-'.$location->id.'.png')) {
             $qr = QrCode::format('png')->size(200)->margin(1)->generate($location->id);
