@@ -62,8 +62,8 @@ class LocationsController extends Controller
             ]);
         }
 
-        $qr = QrCode::format('png')->size(200)->margin(1)->generate($location->name);
-        Storage::put('locations/'.$location->id.'/qr/'.$location->id.'.png', (string) $qr);
+        $qr = QrCode::format('png')->size(200)->margin(1)->generate($location->id);
+        Storage::put('locations/'.$location->store_id.'/'.$location->id.'.png', (string) $qr);
 
         return $location;
 
@@ -84,9 +84,9 @@ class LocationsController extends Controller
         $location->name = $request->name;
         $location->save();
 
-        if (!Storage::exists('locations/'.$location->id.'/qr/'.$location->id.'.png')) {
-            $qr = QrCode::format('png')->size(200)->margin(1)->generate($location->name);
-            Storage::put('locations/'.$location->id.'/qr/'.$location->id.'.png', (string) $qr);
+        if (!Storage::exists('locations/'.$location->store_id.'/'.$location->id.'.png')) {
+            $qr = QrCode::format('png')->size(200)->margin(1)->generate($location->id);
+            Storage::put('locations/'.$location->store_id.'/'.$location->id.'.png', (string) $qr);
         }
 
         return $location;
