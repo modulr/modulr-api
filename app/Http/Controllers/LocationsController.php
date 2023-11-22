@@ -94,7 +94,9 @@ class LocationsController extends Controller
 
     public function qr (Request $request)
     {
-        $location = AutopartListLocation::with(['store'])->find($request->id);
+        $cleanedId = str_replace('location-', '', $request->id);
+
+        $location = AutopartListLocation::with(['store'])->find($cleanedId);
 
         logger(["location"=>$location]);
         logger(["QR Exists"=>Storage::exists('locations/'.$location->store_id.'/location-'.$location->id.'.png')]);
