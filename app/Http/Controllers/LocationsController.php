@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\AutopartListLocation;
 use QrCode;
+use Illuminate\Support\Facades\Storage;
 
 class LocationsController extends Controller
 {
