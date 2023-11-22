@@ -82,7 +82,7 @@ Route::get('locations', [LocationsController::class, 'index']);
 Route::post('locations/store', [LocationsController::class, 'store']);
 Route::put('locations/update/{id}', [LocationsController::class, 'update']);
 Route::delete('locations/destroy/{id}', [LocationsController::class, 'destroy']);
-Route::get('/locations/{store_id}/{id}', [LocationsController::class, 'qr']);
+Route::get('locations/{store_id}/{id}', [LocationsController::class, 'qr']);
 
 // Mercado libre
 Route::get('/ml/auth', [MlController::class, 'auth']);
