@@ -96,6 +96,9 @@ class LocationsController extends Controller
     {
         $location = AutopartListLocation::with(['store'])->find($request->id);
 
+        logger(["location"=>$location]);
+        logger(["QR Exists"=>Storage::exists('locations/'.$location->store_id.'/'.$location->id.'.png')]);
+
         if (!Storage::exists('locations/'.$location->store_id.'/'.$location->id.'.png')) {
             $qr = QrCode::format('png')->size(200)->margin(1)->generate($location->id);
             Storage::put('locations/'.$location->store_id.'/'.$location->id.'.png', (string) $qr);
