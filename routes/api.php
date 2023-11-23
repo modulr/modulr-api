@@ -74,8 +74,13 @@ Route::get('makes', [MakeController::class, 'index']);
 Route::get('models', [ModelController::class, 'index']);
 Route::get('years', [YearController::class, 'index']);
 Route::get('stores', [StoreController::class, 'index']);
-Route::get('stores_ml', [StoresMlController::class, 'index']);
 Route::get('statuses', [StatusController::class, 'index']);
+
+//Stores ML
+Route::get('stores_ml', [StoresMlController::class, 'index']);
+Route::post('stores_ml/store', [StoresMlController::class, 'store']);
+Route::put('stores_ml/update/{id}', [StoresMlController::class, 'update']);
+Route::delete('stores_ml/destroy/{id}', [StoresMlController::class, 'destroy']);
 
 //Locations
 Route::get('locations', [LocationsController::class, 'index']);
