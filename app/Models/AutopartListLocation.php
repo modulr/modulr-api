@@ -13,4 +13,9 @@ class AutopartListLocation extends Model
     
     protected $guarded = ['id'];
     protected $dates = ['deleted_at'];
+
+    public function store()
+    {
+        return $this->belongsTo(AutopartStore::class);
+    }
 }
