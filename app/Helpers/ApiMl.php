@@ -807,24 +807,26 @@ logger(["AUTOPART"=>$autopart]);
                     break;
                 case 125: //Rejillas
                     $additionalAttributes = [
-                        ["id" => "WIDTH", "value_name" => "0 cm"],
-                        ["id" => "LENGTH", "value_name" => "0 cm"]
+                        ["id" => "UNITS_PER_PACK", "value_name" => "1"]
                     ];
                     $attributesList = array_merge($attributesList, $additionalAttributes);
 
-                    $additionalAttributes = [
-                        ["id" => "WITH_FOG_LIGHT_HOLE", "value_name" => "No"],
-                        ["id" => "IS_OEM_REPLACEMENT", "value_name" => "No"]
+                    $attCombination = [
+                        ["id" => "COLOR", "value_name" => "X"]
                     ];
-                    $attributesList = array_merge($attributesList, $additionalAttributes);
+                    // $additionalAttributes = [
+                    //     ["id" => "WITH_FOG_LIGHT_HOLE", "value_name" => "No"],
+                    //     ["id" => "IS_OEM_REPLACEMENT", "value_name" => "No"]
+                    // ];
+                    // $attributesList = array_merge($attributesList, $additionalAttributes);
 
-                    $additionalAttributes = [
-                        ["id" => "REAR_BUMPER_MATERIAL", "value_name" => "X"],
-                        ["id" => "REAR_BUMPER_FINISH", "value_name" => null],
-                        ["id" => "INCLUDES_FOG_LIGHTS", "value_name" => "No"],
-                        ["id" => "INCLUDES_MOLDINGS", "value_name" => "No"]
-                    ];
-                    $attributesList = array_merge($attributesList, $additionalAttributes);
+                    // $additionalAttributes = [
+                    //     ["id" => "REAR_BUMPER_MATERIAL", "value_name" => "X"],
+                    //     ["id" => "REAR_BUMPER_FINISH", "value_name" => null],
+                    //     ["id" => "INCLUDES_FOG_LIGHTS", "value_name" => "No"],
+                    //     ["id" => "INCLUDES_MOLDINGS", "value_name" => "No"]
+                    // ];
+                    // $attributesList = array_merge($attributesList, $additionalAttributes);
                     break;
                 case 71: //Faros
                     $additionalAttributes = [
