@@ -895,7 +895,6 @@ logger(["AUTOPART"=>$autopart]);
 
         $requestData = [
             "title" => substr($autopart->name, 0, 60),
-            "status" => $status,
             "pictures" => $images,
             "attributes" => $attributesList,
             "category_id" => $categoryId,
