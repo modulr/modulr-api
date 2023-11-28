@@ -882,17 +882,6 @@ logger(["AUTOPART"=>$autopart]);
             }
         }
 
-        if($attCombination){
-            $variationsArray = [
-                "price"=>$autopart->sale_price,
-                "attribute_combinations" => $attCombination,
-                "picture_ids" => $images,
-                "available_quantity" => 1,
-            ];
-
-            $requestData["variations"] = $variationsArray;
-        }
-
         $requestData = [
             "title" => substr($autopart->name, 0, 60),
             "pictures" => $images,
@@ -903,6 +892,19 @@ logger(["AUTOPART"=>$autopart]);
             "buying_mode" => "buy_it_now",
             "listing_type_id" => "gold_special",
         ];
+
+        if($attCombination){
+            $variationsArray = [
+                "price"=>$autopart->sale_price,
+                "attribute_combinations" => $attCombination,
+                "picture_ids" => $images,
+                "available_quantity" => 1,
+            ];
+
+            $requestData["variations"] = $variationsArray;
+        }else{
+            $requestData["price"] = $autopart->sale_price;
+        }
 
         $response = Http::withHeaders([
             'Authorization' => 'Bearer '.$autopart->storeMl->access_token,
