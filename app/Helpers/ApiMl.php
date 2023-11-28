@@ -900,10 +900,16 @@ logger(["AUTOPART"=>$autopart]);
         ];
 
         if($attCombination){
+
+            $attrImages = [];
+            foreach ($sortedImages as $value) {
+                array_push($attrImages, $value['url']);
+            };
+
             $variationsArray = [
                 "price"=>$autopart->sale_price,
                 "attribute_combinations" => $attCombination,
-                "picture_ids" => $images,
+                "picture_ids" => $attrImages,
                 "available_quantity" => 1,
             ];
 
