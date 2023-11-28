@@ -794,7 +794,7 @@ logger(["AUTOPART"=>$autopart]);
             switch ($autopart->category->id) {
                 case 32: //Cajuela
                     $additionalAttributes = [
-                        ["id" => "MATERIAL", "value_name" => null],
+                        ["id" => "MATERIAL", "value_name" => "Metal"],
                         ["id" => "WIDTH", "value_name" => "0 cm"],
                         ["id" => "LENGTH", "value_name" => "0 cm"]
                     ];
