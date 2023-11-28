@@ -846,7 +846,7 @@ logger(["AUTOPART"=>$autopart]);
                     $attributesList = array_merge($attributesList, $additionalAttributes);
 
                     $attCombination = [
-                        ["id" => "SIDE", "value_name" => $autopart->side ? $autopart->side->name : null],
+                        ["id" => "SIDE_POSITION", "value_name" => $autopart->side ? $autopart->side->name : null],
                     ];
 
                     // Eliminar "SIDE" de atributos
