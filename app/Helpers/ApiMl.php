@@ -907,7 +907,7 @@ logger(["AUTOPART"=>$autopart]);
                 "available_quantity" => 1,
             ];
 
-            $requestData["variations"] = $variationsArray;
+            $requestData["variations"] = [$variationsArray];
         }else{
             $requestData["price"] = $autopart->sale_price;
         }
