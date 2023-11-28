@@ -799,6 +799,11 @@ logger(["AUTOPART"=>$autopart]);
                         ["id" => "LENGTH", "value_name" => "0 cm"]
                     ];
                     $attributesList = array_merge($attributesList, $additionalAttributes);
+
+                    $attCombination = [
+                        ["id" => "COLOR", "value_name" => "X"]
+                    ];
+
                     break;
                 case 125: //Rejillas
                     $additionalAttributes = [
