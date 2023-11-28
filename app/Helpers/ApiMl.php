@@ -736,7 +736,7 @@ class ApiMl
     public static function createAutopart ($autopart)
     {
         self::checkAccessToken($autopart->store_ml_id);
-
+logger(["AUTOPART"=>$autopart]);
         $images = [];
         if (count($autopart->images) > 0) {
             $sortedImages = $autopart->images->sortBy('order')->take(10);
@@ -751,59 +751,163 @@ class ApiMl
             $categoryId = $autopart->category->ml_id;
         }
 
-        $response = Http::withHeaders([
-            'Authorization' => 'Bearer '.$autopart->storeMl->access_token,
-        ])->post('https://api.mercadolibre.com/items', [
+        $attributesList = [
+            [
+                "id" => "BRAND",
+                "value_name" => $autopart->make ? $autopart->make->name : null
+            ],
+            [
+                "id" => "MODEL",
+                "value_name" => $autopart->model ? $autopart->model->name : null
+            ],
+            [
+                "id" => "PART_NUMBER",
+                "value_name" => $autopart->autopart_number ? $autopart->autopart_number : 0000
+            ],
+            [
+                "id" => "ITEM_CONDITION",
+                "value_name" => $autopart->condition ? $autopart->condition->name : "used"
+            ],
+            [
+                "id" => "ORIGIN",
+                "value_name" => $autopart->origin ? $autopart->origin->name : null
+            ],
+            [
+                "id" => "SIDE",
+                "value_name" => $autopart->side ? $autopart->side->name : null
+            ],
+            [
+                "id" => "POSITION",
+                "value_name" => $autopart->position ? $autopart->position->name : null
+            ],
+            [
+                "id" => "VEHICLE_TYPE",
+                "value_name" => "Auto/Camioneta"
+            ]
+            
+        ];
+
+        $attCombination = null;
+
+        // Añadir atributos según la categoría
+        if ($autopart->category) {
+            switch ($autopart->category->id) {
+                case 32: //Cajuela
+                    $additionalAttributes = [
+                        ["id" => "WIDTH", "value_name" => null],
+                        ["id" => "LENGTH", "value_name" => null]
+                    ];
+                    $attributesList = array_merge($attributesList, $additionalAttributes);
+                    break;
+                case 125: //Rejillas
+                    $additionalAttributes = [
+                        ["id" => "WIDTH", "value_name" => "0 cm"],
+                        ["id" => "LENGTH", "value_name" => "0 cm"]
+                    ];
+                    $attributesList = array_merge($attributesList, $additionalAttributes);
+
+                    $additionalAttributes = [
+                        ["id" => "WITH_FOG_LIGHT_HOLE", "value_name" => "0 cm"],
+                        ["id" => "IS_OEM_REPLACEMENT", "value_name" => "0 cm"]
+                    ];
+                    $attributesList = array_merge($attributesList, $additionalAttributes);
+
+                    $additionalAttributes = [
+                        ["id" => "REAR_BUMPER_MATERIAL", "value_name" => "X"],
+                        ["id" => "REAR_BUMPER_FINISH", "value_name" => null],
+                        ["id" => "INCLUDES_FOG_LIGHTS", "value_name" => "No"],
+                        ["id" => "INCLUDES_MOLDINGS", "value_name" => "No"]
+                    ];
+                    $attributesList = array_merge($attributesList, $additionalAttributes);
+                    break;
+                case 71: //Faros
+                    $additionalAttributes = [
+                        ["id" => "WITH_PARKING_LIGHTS", "value_name" => "No"],
+                        ["id" => "INCLUDES_BULB", "value_name" => "No"],
+                        ["id" => "BULB_TECHNOLOGY", "value_name" => $autopart->bulb_tech],
+                        ["id" => "INCLUDES_MOUNTING_HARDWARE", "value_name" => "No"],
+                        ["id" => "IS_STREET_LEGAL", "value_name" => "Si"]
+                    ];
+                    $attributesList = array_merge($attributesList, $additionalAttributes);
+
+                    $attCombination = [
+                        ["id" => "SIDE", "value_name" => $autopart->side ? $autopart->side->name : null],
+                    ];
+
+                    // Eliminar "SIDE" de atributos
+                    $attributesList = array_filter($attributesList, function ($attribute) use ($attCombination) {
+                        return !in_array($attribute['id'], ['SIDE']);
+                    });
+                    break;
+                case 1: //Puertas
+                    $attCombination = [
+                        ["id" => "POSITION", "value_name" => $autopart->position ? $autopart->position->name : null],
+                        ["id" => "SIDE", "value_name" => $autopart->side ? $autopart->side->name : null],
+                        ["id" => "COLOR", "value_name" => "X"]
+                    ];
+
+                    // Eliminar "POSITION" y "SIDE" de atributos
+                    $attributesList = array_filter($attributesList, function ($attribute) use ($attCombination) {
+                        return !in_array($attribute['id'], ['POSITION', 'SIDE']);
+                    });
+                    break;
+                case 99: //Reflejantes
+                    $additionalAttributes = [
+                        ["id" => "SHAPE", "value_name" => null]
+                    ];
+                    $attributesList = array_merge($attributesList, $additionalAttributes);
+
+                    $attCombination = [
+                        ["id" => "COLOR", "value_name" => "X"]
+                    ];
+                    break;
+                case 144: //Luces Stop
+                    $additionalAttributes = [
+                        ["id" => "BRAKE_LIGHT_POSITION", "value_name" => $autopart->brake_light_pos],
+                        ["id" => "BULBS_NUMBER", "value_name" => null],
+                        ["id" => "BULBS_TYPE", "value_name" => $autopart->bulb_tech]
+                    ];
+                    $attributesList = array_merge($attributesList, $additionalAttributes);
+                    break;
+                case 150: //Espejos Laterales
+                    $additionalAttributes = [
+                        ["id" => "MIRROR_LOCATION", "value_name" => $autopart->side ? $autopart->side->name : null],
+                        ["id" => "INCLUDES_MIRROR", "value_name" => $autopart->includes_mirror ? $autopart->includes_mirror : "No"],
+                        ["id" => "INCLUDES_CONTROL", "value_name" => "No"],
+                        ["id" => "INCLUDES_INCLUDES_MIRROR_TURN_SIGNAL_INDICATORMIRROR", "value_name" => "No"],
+                        ["id" => "INCLUDES_SUPPORT", "value_name" => "No"]
+                    ];
+                    $attributesList = array_merge($attributesList, $additionalAttributes);
+                    break;
+            }
+        }
+
+        if($attCombination){
+            $variationsArray = [
+                "price"=>$autopart->sale_price,
+                "attribute_combinations" => $attCombination,
+                "picture_ids" => $images,
+                "available_quantity" => 1,
+            ];
+
+            $requestData["variations"] = $variationsArray;
+        }
+
+        $requestData = [
             "title" => substr($autopart->name, 0, 60),
-            "price" => $autopart->sale_price,
+            "status" => $status,
+            "pictures" => $images,
+            "attributes" => $attributesList,
             "category_id" => $categoryId,
             "currency_id" => "MXN",
             "available_quantity" => 1,
             "buying_mode" => "buy_it_now",
             "listing_type_id" => "gold_special",
-            "pictures" => 
-                $images
-            ,
-            "attributes" => [
-                [
-                    "id" => "BRAND",
-                    "value_name" => $autopart->make ? $autopart->make->name : null
-                ],
-                [
-                    "id" => "MODEL",
-                    "value_name" => $autopart->model ? $autopart->model->name : null
-                ],
-                [
-                    "id" => "PART_NUMBER",
-                    "value_name" => $autopart->autopart_number ? $autopart->autopart_number : 0000
-                ],
-                [
-                    "id" => "ITEM_CONDITION",
-                    "value_name" => $autopart->condition ? $autopart->condition->name : "used"
-                ],
-                [
-                    "id" => "ORIGIN",
-                    "value_name" => $autopart->origin ? $autopart->origin->name : null
-                ],
-                // [
-                //     "id" => "SELLER_SKU",
-                //     "value_name" => $autopart->id
-                // ],
-                [
-                    "id" => "SIDE",
-                    "value_name" => $autopart->side ? $autopart->side->name : null
-                ],
-                [
-                    "id" => "POSITION",
-                    "value_name" => $autopart->position ? $autopart->position->name : null
-                ],
-                [
-                    "id" => "VEHICLE_TYPE",
-                    "value_name" => "Auto/Camioneta"
-                ]
-                
-            ]
-        ]);
+        ];
+
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer '.$autopart->storeMl->access_token,
+        ])->post('https://api.mercadolibre.com/items', $requestData);
 
         if($response->successful()){
             $autopartMl = $response->object();
@@ -936,12 +1040,6 @@ class ApiMl
                                 "value_name" => $autopart->origin ? $autopart->origin->name : null
                             ];
                             break;
-                        // case "SELLER_SKU":
-                        //     $attributesArray[] = [
-                        //         "id" => $attribute,
-                        //         "value_name" => $autopart->id
-                        //     ];
-                        //     break;
                         case "SIDE":
                             $attributesArray[] = [
                                 "id" => $attribute,

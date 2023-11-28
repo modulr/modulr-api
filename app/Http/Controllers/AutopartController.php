@@ -697,6 +697,8 @@ class AutopartController extends Controller
 
     public function update (Request $request)
     {
+logger(["REQUEST"=>$request]);
+
         $request->validate([
             'name' => 'required|string',
         ]);
@@ -767,6 +769,10 @@ class AutopartController extends Controller
         $autopart->store_ml_id = $request->store_ml_id;
         $autopart->updated_by = $request->user()->id;
         $autopart->save();
+
+        $autopart->bulb_tech = $request->bulb_tech;
+        $autopart->brake_light_pos = $request->brake_light_pos;
+        $autopart->includes_mirror = $request->includes_mirror ? $request->includes_mirror : "Si";
 
         if ($changeStore) {
             $sync = ApiMl::createAutopart($autopart);
