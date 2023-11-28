@@ -839,7 +839,7 @@ logger(["AUTOPART"=>$autopart]);
                     $additionalAttributes = [
                         ["id" => "WITH_PARKING_LIGHTS", "value_name" => "No"],
                         ["id" => "INCLUDES_BULB", "value_name" => "No"],
-                        ["id" => "BULB_TECHNOLOGY", "value_name" => $autopart->bulb_tech->value],
+                        ["id" => "BULB_TECHNOLOGY", "value_name" => $autopart->bulb_tech["value"]],
                         ["id" => "INCLUDES_MOUNTING_HARDWARE", "value_name" => "No"],
                         ["id" => "IS_STREET_LEGAL", "value_name" => "Si"]
                     ];
@@ -878,9 +878,9 @@ logger(["AUTOPART"=>$autopart]);
                     break;
                 case 144: //Luces Stop
                     $additionalAttributes = [
-                        ["id" => "BRAKE_LIGHT_POSITION", "value_name" => $autopart->brake_light_pos->value],
+                        ["id" => "BRAKE_LIGHT_POSITION", "value_name" => $autopart->brake_light_pos["value"]],
                         ["id" => "BULBS_NUMBER", "value_name" => null],
-                        ["id" => "BULBS_TYPE", "value_name" => $autopart->bulb_tech->value]
+                        ["id" => "BULBS_TYPE", "value_name" => $autopart->bulb_tech["value"]]
                     ];
                     $attributesList = array_merge($attributesList, $additionalAttributes);
                     break;
