@@ -794,8 +794,9 @@ logger(["AUTOPART"=>$autopart]);
             switch ($autopart->category->id) {
                 case 32: //Cajuela
                     $additionalAttributes = [
-                        ["id" => "WIDTH", "value_name" => null],
-                        ["id" => "LENGTH", "value_name" => null]
+                        ["id" => "MATERIAL", "value_name" => null],
+                        ["id" => "WIDTH", "value_name" => "0 cm"],
+                        ["id" => "LENGTH", "value_name" => "0 cm"]
                     ];
                     $attributesList = array_merge($attributesList, $additionalAttributes);
                     break;
@@ -807,8 +808,8 @@ logger(["AUTOPART"=>$autopart]);
                     $attributesList = array_merge($attributesList, $additionalAttributes);
 
                     $additionalAttributes = [
-                        ["id" => "WITH_FOG_LIGHT_HOLE", "value_name" => "0 cm"],
-                        ["id" => "IS_OEM_REPLACEMENT", "value_name" => "0 cm"]
+                        ["id" => "WITH_FOG_LIGHT_HOLE", "value_name" => "No"],
+                        ["id" => "IS_OEM_REPLACEMENT", "value_name" => "No"]
                     ];
                     $attributesList = array_merge($attributesList, $additionalAttributes);
 
