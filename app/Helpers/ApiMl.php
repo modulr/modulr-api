@@ -1031,6 +1031,8 @@ class ApiMl
             "attributes" => $attributesList
         ];
 
+        logger(["Request Data"=>$requestData]);
+
         if (empty($response->autopart->variations)) {
             $requestData["price"] = $autopart->sale_price;
         }
