@@ -1001,6 +1001,7 @@ class ApiMl
                 }
             };
         }
+        logger(["Pictures"=>$attrImages]);
 
         foreach ($variationsArray as $variation) {
             if(count($attrImages) > 0){
@@ -1019,6 +1020,7 @@ class ApiMl
                 }
             }
         }
+        logger(["$variationsArray"=>$variationsArray]);
 
         $attributesList = [];
         foreach ($attributesArray as $key => $value) {
