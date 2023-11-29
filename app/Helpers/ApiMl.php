@@ -1001,18 +1001,18 @@ class ApiMl
                 }
             };
         }
-        logger(["Pictures"=>$attrImages]);
+        logger(["Pictures" => $attrImages]);
 
-        foreach ($variationsArray as $variation) {
-            if(count($attrImages) > 0){
+        foreach ($variationsArray as &$variation) {
+            if (count($attrImages) > 0) {
                 $variation['pictures_ids'] = $attrImages;
             }
 
-            if (is_array($variation['attribute_combinations'])) { 
+            if (is_array($variation['attribute_combinations'])) {
                 foreach ($variation['attribute_combinations'] as $combination) {
                     if ($combination->id === 'SIDE_POSITION') {
                         $index = array_search('SIDE', array_column($attributesArray, 'id'));
-        
+
                         if ($index !== false) {
                             unset($attributesArray[$index]);
                         }
@@ -1020,6 +1020,8 @@ class ApiMl
                 }
             }
         }
+        unset($variation); // Liberar la referencia al último elemento
+
         logger(json_encode(["variationsArray" => $variationsArray]));
 
         $attributesList = [];
