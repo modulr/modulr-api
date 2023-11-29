@@ -933,7 +933,7 @@ class ApiMl
         }else{
             $requestData["price"] = $autopart->sale_price;
         }
-        logger(["REQUEST"=>$request]);
+        logger(["REQUEST"=>$requestData]);
 
         $response = Http::withHeaders([
             'Authorization' => 'Bearer '.$autopart->storeMl->access_token,
