@@ -1031,8 +1031,6 @@ class ApiMl
             "attributes" => $attributesList
         ];
 
-        logger(["Request Data"=>$requestData]);
-
         if (empty($response->autopart->variations)) {
             $requestData["price"] = $autopart->sale_price;
         }
@@ -1041,6 +1039,7 @@ class ApiMl
             $requestData["variations"] = $variationsArray;
         }
 
+        logger(["Request Data"=>$requestData]);
         $response = Http::withHeaders([
         'Authorization' => 'Bearer ' . $autopart->storeMl->access_token,
         ])->put('https://api.mercadolibre.com/items/' . $autopart->ml_id, $requestData);
