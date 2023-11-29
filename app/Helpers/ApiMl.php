@@ -1020,7 +1020,7 @@ class ApiMl
                 }
             }
         }
-        logger(["$variationsArray"=>$variationsArray]);
+        logger(json_encode(["variationsArray" => $variationsArray]));
 
         $attributesList = [];
         foreach ($attributesArray as $key => $value) {
