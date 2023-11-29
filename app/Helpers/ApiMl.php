@@ -736,7 +736,7 @@ class ApiMl
     public static function createAutopart ($autopart)
     {
         self::checkAccessToken($autopart->store_ml_id);
-logger(["AUTOPART"=>$autopart]);
+// logger(["AUTOPART"=>$autopart]);
         $images = [];
         if (count($autopart->images) > 0) {
             $sortedImages = $autopart->images->sortBy('order')->take(10);
@@ -933,6 +933,7 @@ logger(["AUTOPART"=>$autopart]);
         }else{
             $requestData["price"] = $autopart->sale_price;
         }
+        logger(["REQUEST"=>$request]);
 
         $response = Http::withHeaders([
             'Authorization' => 'Bearer '.$autopart->storeMl->access_token,
