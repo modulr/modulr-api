@@ -988,16 +988,14 @@ class ApiMl
 
         if (count($autopart->images) > 0) {
             $sortedImages = $autopart->images->sortBy('order')->take(10);
-
-            foreach ($sortedImages as $value) {
-                array_push($attrImages, $value['url']);
-            };
-
+            
             foreach ($sortedImages as $value) {
                 if (isset($value['img_ml_id'])) {
                     array_push($images, ['id' => $value['img_ml_id']]);
+                    array_push($attrImages, $value['img_ml_id']);
                 }else{
                     array_push($images, ['source' => $value['url']]);
+                    array_push($attrImages, $value['url']);
                 }
             };
         }
