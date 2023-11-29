@@ -984,8 +984,15 @@ class ApiMl
         }
 
         $images = [];
+        $attrImages = [];
+
         if (count($autopart->images) > 0) {
             $sortedImages = $autopart->images->sortBy('order')->take(10);
+
+            foreach ($sortedImages as $value) {
+                array_push($attrImages, $value['url']);
+            };
+
             foreach ($sortedImages as $value) {
                 if (isset($value['img_ml_id'])) {
                     array_push($images, ['id' => $value['img_ml_id']]);
@@ -996,6 +1003,10 @@ class ApiMl
         }
 
         foreach ($variationsArray as $variation) {
+            if(count($attrImages) > 0){
+                $variation['pictures_ids'] = $attrImages;
+            }
+
             if (is_array($variation['attribute_combinations'])) { 
                 foreach ($variation['attribute_combinations'] as $combination) {
                     if ($combination->id === 'SIDE_POSITION') {
