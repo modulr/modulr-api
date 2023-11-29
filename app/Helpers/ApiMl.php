@@ -797,6 +797,12 @@ class ApiMl
                 $bulbTechValue = null;
             }
 
+            if ($autopart->brake_light_pos !== null) {
+                $brakeLightValue = $autopart->brake_light_pos['value'];
+            } else {
+                $brakeLightValue = null;
+            }
+
             
             switch ($autopart->category->id) {
                 case 32: //Cajuela
@@ -885,9 +891,9 @@ class ApiMl
                     break;
                 case 144: //Luces Stop
                     $additionalAttributes = [
-                        ["id" => "BRAKE_LIGHT_POSITION", "value_name" => $autopart->brake_light_pos->value],
+                        ["id" => "BRAKE_LIGHT_POSITION", "value_name" => $brakeLightValue],
                         ["id" => "BULBS_NUMBER", "value_name" => null],
-                        ["id" => "BULBS_TYPE", "value_name" => $autopart->bulb_tech->value]
+                        ["id" => "BULBS_TYPE", "value_name" => $bulbTechValue]
                     ];
                     $attributesList = array_merge($attributesList, $additionalAttributes);
                     break;
