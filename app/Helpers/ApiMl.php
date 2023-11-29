@@ -906,6 +906,11 @@ class ApiMl
                         ["id" => "INCLUDES_SUPPORT", "value_name" => "No"]
                     ];
                     $attributesList = array_merge($attributesList, $additionalAttributes);
+
+                    // Eliminar "SIDE" de atributos
+                    $attributesList = array_filter($attributesList, function ($attribute) use ($attCombination) {
+                        return !in_array($attribute['id'], ['SIDE']);
+                    });
                     break;
             }
         }
