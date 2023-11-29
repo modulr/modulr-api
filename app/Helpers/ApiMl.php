@@ -904,10 +904,15 @@ class ApiMl
             }
         }
 
+        $attList = [];
+        foreach ($attributesList as $key => $value) {
+            $attList[] = ['id' => $value['id'], 'value_name' => $value['value_name']];
+        }
+
         $requestData = [
             "title" => substr($autopart->name, 0, 60),
             "pictures" => $images,
-            "attributes" => $attributesList,
+            "attributes" => $attList,
             "category_id" => $categoryId,
             "currency_id" => "MXN",
             "available_quantity" => 1,
