@@ -189,7 +189,18 @@
                                             </span>
                                             @endif
                                             @endif
-                                            @if (isset($autopart->origin_id))
+                                            @if (isset($autopart->condition_id))
+                                            @if ($autopart->condition_id == 1)
+                                            <span class="bg-blue-100 text-blue-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300">
+                                                {{$autopart->condition }}
+                                            </span>
+                                            @else
+                                            <span class="bg-gray-100 text-gray-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-gray-900 dark:text-gray-300">
+                                                {{$autopart->condition ?? '' }}
+                                            </span>
+                                            @endif
+                                            @endif
+                                            @if (isset($autopart->sale_price))
                                             <div class="text-sm mt-1">${{$autopart->sale_price }}</div>
                                             @endif
                                         </td>
