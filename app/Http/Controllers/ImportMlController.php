@@ -78,6 +78,7 @@ class ImportMlController extends Controller
                         'description' => $response->autopart['description'],
                         'sale_price' => $response->autopart['sale_price'],
                         'origin_id' => $response->autopart['origin_id'],
+                        'condition_id' => $response->autopart['condition_id'],
                         'status_id' => $response->autopart['status_id'],
                         'category_id' => $response->autopart['category_id'],
                         'position_id' => $response->autopart['position_id'],
@@ -99,8 +100,9 @@ class ImportMlController extends Controller
                 ->leftJoin('autopart_list_makes', 'autopart_list_makes.id', '=', 'autoparts_ml.make_id')
                 ->leftJoin('autopart_list_models', 'autopart_list_models.id', '=', 'autoparts_ml.model_id')
                 ->leftJoin('autopart_list_origins', 'autopart_list_origins.id', '=', 'autoparts_ml.origin_id')
+                ->leftJoin('autopart_list_conditions', 'autopart_list_conditions.id', '=', 'autoparts_ml.condition_id')
                 ->leftJoin('autopart_list_status', 'autopart_list_status.id', '=', 'autoparts_ml.status_id')
-                ->select('autoparts_ml.*', 'autopart_list_categories.name as category', 'autopart_list_makes.name as make', 'autopart_list_models.name as model', 'autopart_list_origins.name as origin', 'autopart_list_status.name as status')
+                ->select('autoparts_ml.*', 'autopart_list_categories.name as category', 'autopart_list_makes.name as make', 'autopart_list_models.name as model', 'autopart_list_origins.name as origin', 'autopart_list_conditions.name as condition', 'autopart_list_status.name as status')
                 ->where('autoparts_ml.store_ml_id', $request->id)
                 ->where('autoparts_ml.import', 0)
                 ->orderByDesc('autoparts_ml.status_id')
@@ -124,8 +126,9 @@ class ImportMlController extends Controller
                 ->leftJoin('autopart_list_makes', 'autopart_list_makes.id', '=', 'autoparts_ml.make_id')
                 ->leftJoin('autopart_list_models', 'autopart_list_models.id', '=', 'autoparts_ml.model_id')
                 ->leftJoin('autopart_list_origins', 'autopart_list_origins.id', '=', 'autoparts_ml.origin_id')
+                ->leftJoin('autopart_list_conditions', 'autopart_list_conditions.id', '=', 'autoparts_ml.condition_id')
                 ->leftJoin('autopart_list_status', 'autopart_list_status.id', '=', 'autoparts_ml.status_id')
-                ->select('autoparts_ml.*', 'autopart_list_makes.name as make', 'autopart_list_models.name as model', 'autopart_list_origins.name as origin', 'autopart_list_status.name as status')
+                ->select('autoparts_ml.*', 'autopart_list_categories.name as category', 'autopart_list_makes.name as make', 'autopart_list_models.name as model', 'autopart_list_origins.name as origin', 'autopart_list_conditions.name as condition', 'autopart_list_status.name as status')
                 ->where('autoparts_ml.store_ml_id', $request->id)
                 ->where('autoparts_ml.import', 0)
                 ->limit($request->limit)
@@ -145,6 +148,7 @@ class ImportMlController extends Controller
                 'model_id' => $autopart->model_id,
                 'sale_price' => $autopart->sale_price,
                 'origin_id' => $autopart->origin_id,
+                'condition_id' => $autopart->condition_id,
                 'status_id' => $autopart->status_id,
                 'years' => $autopart->years,
                 'ml_id' => $autopart->ml_id,
