@@ -31,7 +31,7 @@ class StoresMlController extends Controller
         } else {
             return DB::table('stores_ml')
                 ->select('stores_ml.id', 'stores_ml.name', 'stores_ml.store_id', 'stores_ml.user_id','stores_ml.client_id', 'st.name as store_name')
-                ->leftJoin('stores as st', 'stores_ml.store_id', '=', 'stores.id')
+                ->leftJoin('stores as st', 'stores_ml.store_id', '=', 'st.id')
                 ->whereNull('stores_ml.deleted_at')
                 ->where('stores_ml.store_id', $user->store_id)
                 ->get();
