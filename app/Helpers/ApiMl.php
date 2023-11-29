@@ -791,6 +791,13 @@ logger(["AUTOPART"=>$autopart]);
 
         // Añadir atributos según la categoría
         if ($autopart->category) {
+            if ($autopart->bulb_tech !== null) {
+                $bulbTechValue = $autopart->bulb_tech['value'];
+            } else {
+                $bulbTechValue = null;
+            }
+
+            
             switch ($autopart->category->id) {
                 case 32: //Cajuela
                     $additionalAttributes = [
@@ -839,7 +846,7 @@ logger(["AUTOPART"=>$autopart]);
                     $additionalAttributes = [
                         ["id" => "WITH_PARKING_LIGHTS", "value_name" => "No"],
                         ["id" => "INCLUDES_BULB", "value_name" => "No"],
-                        ["id" => "BULB_TECHNOLOGY", "value_name" => $autopart->bulb_tech->value],
+                        ["id" => "BULB_TECHNOLOGY", "value_name" => $bulbTechValue],
                         ["id" => "INCLUDES_MOUNTING_HARDWARE", "value_name" => "No"],
                         ["id" => "IS_STREET_LEGAL", "value_name" => "Si"]
                     ];
