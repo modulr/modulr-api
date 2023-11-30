@@ -902,7 +902,7 @@ class ApiMl
                         ["id" => "MIRROR_LOCATION", "value_name" => $autopart->side ? $autopart->side->name : null],
                         ["id" => "INCLUDES_MIRROR", "value_name" => $autopart->includes_mirror ? $autopart->includes_mirror : "No"],
                         ["id" => "INCLUDES_CONTROL", "value_name" => "No"],
-                        ["id" => "INCLUDES_INCLUDES_MIRROR_TURN_SIGNAL_INDICATORMIRROR", "value_name" => "No"],
+                        ["id" => "INCLUDES_MIRROR_TURN_SIGNAL_INDICATOR", "value_name" => "No"],
                         ["id" => "INCLUDES_SUPPORT", "value_name" => "No"]
                     ];
                     $attributesList = array_merge($attributesList, $additionalAttributes);
