@@ -7,7 +7,7 @@
         <title>QR</title>
         <style media="all">
         @page {
-            size: 4in 2.4in;
+            size: 2.4in 4in;
             margin: 0;
         }
         @page :first {
@@ -24,26 +24,17 @@
             border: none;
             border-collapse: collapse;
             border-spacing: 0;
-        }
-        .title {
-            color: #333;
-            text-transform: uppercase;
-            font-size: 4pt;
-            display: block;
+            width: 100%;
         }
         .qr img {
-            height: 160px;
-            width: 160px;
-        }
-        .code {
-            font-size: 34pt;
-            margin-left: 18px;
+            height: 200px;
+            width: 200px;
         }
         .location {
-            font-size: 10pt;
+            font-size: 30pt;
         }
-        .date {
-            font-size: 6pt;
+        .center {
+            text-align: center;
         }
         </style>
     </head>
@@ -52,39 +43,24 @@
     <body>
         <table>
             <tr>
-                <td><div class="code">{{ $location->id }}</div></td>
-            </tr>
-            <tr>
-                <td class="qr">
+                <td class="qr center">
                     <img src="{{ asset($location->qr) }}">
                 </td>
-                <td>
-                    <table>
-                        @if ($location->name)
-                        <tr>
-                            <td>
-                                <span class="title">Ubicación</span>
-                                {{ $location->name }}
-                            </td>
-                        </tr>
-                        @endif
-                        @if ($location->store)
-                        <tr>
-                            <td class="location">
-                                <span class="title">Empresa</span>
-                                {{ $location->store->name }}
-                            </td>
-                        </tr>
-                        @endif
-                        <tr>
-                            <td class="date">
-                                <span class="title">Fecha</span>
-                                {{ $location->created_at }}
-                            </td>
-                        </tr>
-                    </table>
+            </tr>
+            @if ($location->name)
+            <tr>
+                <td class="center">
+                    <div class="location center">{{ $location->name }}</div>
                 </td>
             </tr>
+            @endif
+            @if ($location->store)
+            <tr>
+                <td class="center">
+                    {{ $location->store->name }}
+                </td>
+            </tr>
+            @endif
         </table>
     </body>
 </html>
