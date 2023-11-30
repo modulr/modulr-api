@@ -879,6 +879,11 @@ class ApiMl
                         return !in_array($attribute['id'], ['POSITION', 'SIDE']);
                     });
                     break;
+                case 44: //Cofre
+                    $attCombination = [
+                        ["id" => "COLOR", "value_name" => "X"]
+                    ];
+                    break;
                 case 99: //Reflejantes
                     $additionalAttributes = [
                         ["id" => "SHAPE", "value_name" => "X"]
@@ -906,6 +911,22 @@ class ApiMl
                         ["id" => "INCLUDES_SUPPORT", "value_name" => "No"]
                     ];
                     $attributesList = array_merge($attributesList, $additionalAttributes);
+
+                    // Eliminar "SIDE" de atributos
+                    $attributesList = array_filter($attributesList, function ($attribute) use ($attCombination) {
+                        return !in_array($attribute['id'], ['SIDE']);
+                    });
+                    break;
+                case 34: //Calavera
+                    $additionalAttributes = [
+                        ["id" => "BULBS_TYPE", "value_name" => $bulbTechValue]
+                    ];
+                    $attributesList = array_merge($attributesList, $additionalAttributes);
+
+                    $attCombination = [
+                        ["id" => "SIDE_POSITION", "value_name" => $autopart->side ? $autopart->side->name : null],
+                        ["id" => "LENS_COLOR", "value_name" => "X"]
+                    ];
 
                     // Eliminar "SIDE" de atributos
                     $attributesList = array_filter($attributesList, function ($attribute) use ($attCombination) {
