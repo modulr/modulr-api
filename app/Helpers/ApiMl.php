@@ -4,6 +4,7 @@ namespace App\Helpers;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Carbon\Carbon;
 
 use App\Notifications\AutopartNotification;
@@ -402,6 +403,9 @@ class ApiMl
                     if (str_contains($value, '-')) {
                         $yearsArray = explode('-',$value);
                         foreach ($yearsArray as $val) {
+                            if (Str::length($val) == 2) {
+                                $val = '20'.$val;
+                            }
                             $year = DB::table('autopart_list_years')
                                 ->where('name', 'like', $val)
                                 ->whereNull('deleted_at')->first();
