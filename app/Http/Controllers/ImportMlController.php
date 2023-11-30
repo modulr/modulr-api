@@ -62,6 +62,8 @@ class ImportMlController extends Controller
         $autopartsMl = DB::table('autoparts_ml')
                             ->where('store_ml_id', $request->id)
                             ->where('import', 0)
+                            ->whereNull('name')
+                            ->limit($request->limit)
                             ->get();
 
         foreach($autopartsMl as $item) {
@@ -111,7 +113,7 @@ class ImportMlController extends Controller
         $store = DB::table('stores_ml')->find($request->id);
 
         $autopartsCount = [
-            'total' => DB::table('autoparts_ml')->where('store_ml_id', $request->id)->where('import', 0)->count(),
+            'total' => DB::table('autoparts_ml')->where('store_ml_id', $request->id)->where('import', 0)->whereNotNull('name')->count(),
             'incomplete' => DB::table('autoparts_ml')->where('store_ml_id', $request->id)->where('import', 0)->where('status_id', 5)->count()
         ];
 
