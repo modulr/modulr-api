@@ -19,6 +19,8 @@ use App\Http\Controllers\StoresMlController;
 use App\Http\Controllers\StatusController;
 use App\Http\Controllers\LocationsController;
 use App\Http\Controllers\AutopartCommentController;
+use App\Http\Controllers\BulbPositionController;
+use App\Http\Controllers\BulbTechController;
 
 /*
 |--------------------------------------------------------------------------
@@ -77,6 +79,8 @@ Route::get('stores', [StoreController::class, 'index']);
 Route::get('stores_ml', [StoresMlController::class, 'index']);
 Route::get('statuses', [StatusController::class, 'index']);
 Route::get('locations', [LocationsController::class, 'index']);
+Route::get('bulb_positions', [BulbPositionController::class, 'index']);
+Route::get('bulb_technologies', [BulbTechController::class, 'index']);
 
 
 // Mercado libre
