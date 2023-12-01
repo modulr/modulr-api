@@ -37,7 +37,7 @@ class AutopartImageController extends Controller
     public function upload (Request $request)
     {
         $request->validate([
-            'file' => 'required|image|mimes:jpg,jpeg,png|max:20000',
+            'file' => 'required|image|mimes:jpg,jpeg,png|max:50000',
         ]);
 
         $url = Storage::putFile('autoparts/'.$request->id.'/images', $request->file('file'));
