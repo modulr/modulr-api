@@ -584,6 +584,8 @@ class AutopartController extends Controller
             'model',
             'store',
             'storeMl',
+            'bulbPos',
+            'bulbTech',
             'location',
             'comments' => function ($query) {
                 $query->orderBy('id', 'desc');
