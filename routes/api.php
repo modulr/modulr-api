@@ -84,6 +84,7 @@ Route::delete('stores_ml/destroy/{id}', [StoresMlController::class, 'destroy']);
 
 //Locations
 Route::get('locations', [LocationsController::class, 'index']);
+Route::get('locations/{id}', [LocationsController::class, 'show']);
 Route::post('locations/store', [LocationsController::class, 'store']);
 Route::put('locations/update/{id}', [LocationsController::class, 'update']);
 Route::delete('locations/destroy/{id}', [LocationsController::class, 'destroy']);

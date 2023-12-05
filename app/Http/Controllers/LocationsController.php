@@ -35,6 +35,11 @@ class LocationsController extends Controller
         }
     }
 
+    public function show (Request $request)
+    {
+        return AutopartListLocation::find($request->id);
+    }
+
     public function store(Request $request)
     {
         $user = $request->user();
