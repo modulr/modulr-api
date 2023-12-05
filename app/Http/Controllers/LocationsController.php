@@ -67,7 +67,7 @@ class LocationsController extends Controller
             ]);
         }
 
-        $qr = QrCode::format('png')->size(200)->margin(1)->generate($location->id);
+        $qr = QrCode::format('png')->size(200)->margin(1)->generate('location-'.$location->id);
         Storage::put('locations/'.$location->store_id.'/location-'.$location->id.'.png', (string) $qr);
 
         return $location;
@@ -96,7 +96,7 @@ class LocationsController extends Controller
         $location->save();
 
         if (!Storage::exists('locations/'.$location->store_id.'/location-'.$location->id.'.png')) {
-            $qr = QrCode::format('png')->size(200)->margin(1)->generate($location->id);
+            $qr = QrCode::format('png')->size(200)->margin(1)->generate('location-'.$location->id);
             Storage::put('locations/'.$location->store_id.'/location-'.$location->id.'.png', (string) $qr);
         }
 
@@ -110,7 +110,7 @@ class LocationsController extends Controller
         $location = AutopartListLocation::with(['store'])->find($cleanedId);
 
         if (!Storage::exists('locations/'.$location->store_id.'/location-'.$location->id.'.png')) {
-            $qr = QrCode::format('png')->size(200)->margin(1)->generate($location->id);
+            $qr = QrCode::format('png')->size(200)->margin(1)->generate('location-'.$location->id);
             Storage::put('locations/'.$location->store_id.'/location-'.$location->id.'.png', (string) $qr);
         }
 
