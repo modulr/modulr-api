@@ -909,7 +909,7 @@ class ApiMl
                 case 150: //Espejos Laterales
                     $additionalAttributes = [
                         ["id" => "MIRROR_LOCATION", "value_name" => $autopart->side ? $autopart->side->name : null],
-                        ["id" => "INCLUDES_MIRROR", "value_name" => $autopart->includes_mirror ? $autopart->includes_mirror : "No"],
+                        ["id" => "INCLUDES_MIRROR", "value_name" => $autopart->includes_mirror ? "Sí" : "No"],
                         ["id" => "INCLUDES_CONTROL", "value_name" => "No"],
                         ["id" => "INCLUDES_MIRROR_TURN_SIGNAL_INDICATOR", "value_name" => "No"],
                         ["id" => "INCLUDES_SUPPORT", "value_name" => "No"]
