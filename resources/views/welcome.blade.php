@@ -51,7 +51,7 @@
                                 </svg>
                             </a>
         
-                            <a href="/import/import/{{$store->id}}" class="scale-100 p-6 bg-white dark:bg-gray-800/50 dark:bg-gradient-to-bl from-gray-700/50 via-transparent dark:ring-1 dark:ring-inset dark:ring-white/5 rounded-lg shadow-2xl shadow-gray-500/20 dark:shadow-none flex motion-safe:hover:scale-[1.01] transition-all duration-250 focus:outline focus:outline-2 focus:outline-red-500">
+                            <a href="/import/import/{{$store->id}}/50" class="scale-100 p-6 bg-white dark:bg-gray-800/50 dark:bg-gradient-to-bl from-gray-700/50 via-transparent dark:ring-1 dark:ring-inset dark:ring-white/5 rounded-lg shadow-2xl shadow-gray-500/20 dark:shadow-none flex motion-safe:hover:scale-[1.01] transition-all duration-250 focus:outline focus:outline-2 focus:outline-red-500">
                                 <div>
                                     <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Import</h2>
                                 </div>
@@ -189,7 +189,18 @@
                                             </span>
                                             @endif
                                             @endif
-                                            @if (isset($autopart->origin_id))
+                                            @if (isset($autopart->condition_id))
+                                            @if ($autopart->condition_id == 1)
+                                            <span class="bg-blue-100 text-blue-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300">
+                                                {{$autopart->condition }}
+                                            </span>
+                                            @else
+                                            <span class="bg-gray-100 text-gray-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-gray-900 dark:text-gray-300">
+                                                {{$autopart->condition ?? '' }}
+                                            </span>
+                                            @endif
+                                            @endif
+                                            @if (isset($autopart->sale_price))
                                             <div class="text-sm mt-1">${{$autopart->sale_price }}</div>
                                             @endif
                                         </td>

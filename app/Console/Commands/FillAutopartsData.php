@@ -19,7 +19,7 @@ class FillAutopartsData extends Command
      *
      * @var string
      */
-    protected $signature = 'app:fill-autoparts-data {--skip=0} {--limit=50} {--store_ml=1}';
+    protected $signature = 'app:fill-autoparts-data {--skip=0} {--limit=50} {--store_ml=1} {--category_id=1}';
 
     /**
      * The console command description.
@@ -37,6 +37,7 @@ class FillAutopartsData extends Command
         $skip = $this->option('skip');
         $limit = $this->option('limit');
         $store_ml = $this->option('store_ml');
+        $category_id = $this->option('category_id');
 
         // $this->fillImagesIdMl($skip,$limit);
 
@@ -87,7 +88,7 @@ class FillAutopartsData extends Command
                 $this->activeAutoparts($store_ml);
                 break;
                 case 'Pausar_Autopartes':
-                    $this->pauseAutoparts($store_ml,$limit);
+                    $this->pauseAutoparts($store_ml,$category_id,$limit);
                     break;
             default:
                 $this->info('Opción no reconocida.');
@@ -689,14 +690,14 @@ class FillAutopartsData extends Command
         $this->info('Reactivar autopartes terminado.');
     }
 
-    private function pauseAutoparts($store_ml,$limit)
+    private function pauseAutoparts($store_ml,$category_id,$limit)
     {
         $store = DB::table('stores_ml')->where('id', '=', $store_ml)->first();
 
         $autoparts = DB::table('autoparts')
             ->select('id', 'ml_id', 'name', 'make_id', 'location_id','status_id')
-            ->selectRaw("CASE WHEN category_id = 152 THEN 'Marco Radiador' ELSE NULL END AS Categoría")
-            ->where('category_id', 152)
+            ->selectRaw("CASE WHEN category_id = $category_id THEN 'Moldura' ELSE NULL END AS Categoría")
+            ->where('category_id', $category_id)
             ->where('store_id', 1)
             ->where('status_id', 1)
             ->whereNull('location_id')

@@ -23,7 +23,7 @@ Route::get('/', function () {
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('import/getIds/{id}', [ImportMlController::class, 'getIds']);
     Route::get('import/getNewIds/{id}', [ImportMlController::class, 'getNewIds']);
-    Route::get('import/import/{id}', [ImportMlController::class, 'import']);
+    Route::get('import/import/{id}/{limit}', [ImportMlController::class, 'import']);
     Route::get('import/save/{id}/{limit}', [ImportMlController::class, 'save']);
 
     Route::get('export', [ExportController::class, 'export']);

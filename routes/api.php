@@ -76,12 +76,24 @@ Route::get('makes', [MakeController::class, 'index']);
 Route::get('models', [ModelController::class, 'index']);
 Route::get('years', [YearController::class, 'index']);
 Route::get('stores', [StoreController::class, 'index']);
-Route::get('stores_ml', [StoresMlController::class, 'index']);
 Route::get('statuses', [StatusController::class, 'index']);
 Route::get('locations', [LocationsController::class, 'index']);
 Route::get('bulb_positions', [BulbPositionController::class, 'index']);
 Route::get('bulb_technologies', [BulbTechController::class, 'index']);
 
+//Stores ML
+Route::get('stores_ml', [StoresMlController::class, 'index']);
+Route::post('stores_ml/store', [StoresMlController::class, 'store']);
+Route::put('stores_ml/update/{id}', [StoresMlController::class, 'update']);
+Route::delete('stores_ml/destroy/{id}', [StoresMlController::class, 'destroy']);
+
+//Locations
+Route::get('locations', [LocationsController::class, 'index']);
+Route::get('locations/{id}', [LocationsController::class, 'show']);
+Route::post('locations/store', [LocationsController::class, 'store']);
+Route::put('locations/update/{id}', [LocationsController::class, 'update']);
+Route::delete('locations/destroy/{id}', [LocationsController::class, 'destroy']);
+Route::get('locations/{store_id}/{id}', [LocationsController::class, 'qr']);
 
 // Mercado libre
 Route::get('/ml/auth', [MlController::class, 'auth']);
