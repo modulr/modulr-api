@@ -907,8 +907,21 @@ class ApiMl
                     $attributesList = array_merge($attributesList, $additionalAttributes);
                     break;
                 case 150: //Espejos Laterales
+                    $sideName = null;
+                    if($autopart->side){
+                        if ($autopart->side->name === "Izquierda") {
+                            $sideName = "Izquierdo";
+                        } elseif ($autopart->side->name === "Derecha") {
+                            $sideName = "Derecho";
+                        } else {
+                            // En caso de otros valores, devuelve el mismo valor
+                            $sideName = $autopart->side->name;
+                        }
+                    }
+                    
+
                     $additionalAttributes = [
-                        ["id" => "MIRROR_LOCATION", "value_name" => $autopart->side ? $autopart->side->name : null],
+                        ["id" => "MIRROR_LOCATION", "value_name" => $sideName ? $sideName :  null],
                         ["id" => "INCLUDES_MIRROR", "value_name" => $autopart->includes_mirror ? "Sí" : "No"],
                         ["id" => "INCLUDES_CONTROL", "value_name" => "No"],
                         ["id" => "INCLUDES_MIRROR_TURN_SIGNAL_INDICATOR", "value_name" => "No"],
