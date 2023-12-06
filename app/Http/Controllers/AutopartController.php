@@ -751,7 +751,6 @@ class AutopartController extends Controller
         } else {
             $changeStore = false;
         }
-        logger(["REQUEST"=>$request]);
         $autopart->name = $request->name;     
         $autopart->description = $request->description;
         $autopart->autopart_number = $request->autopart_number;
@@ -773,6 +772,9 @@ class AutopartController extends Controller
         $autopart->includes_mirror = $request->includes_mirror;
         $autopart->updated_by = $request->user()->id;
         $autopart->save();
+
+        $autopart->bulb_pos = $request->bulb_pos;
+        $autopart->bulb_tech = $request->bulb_tech;
 
         if ($changeStore) {
             $sync = ApiMl::createAutopart($autopart);

@@ -740,7 +740,6 @@ class ApiMl
     public static function createAutopart ($autopart)
     {
         self::checkAccessToken($autopart->store_ml_id);
-// logger(["AUTOPART"=>$autopart]);
         $images = [];
         if (count($autopart->images) > 0) {
             $sortedImages = $autopart->images->sortBy('order')->take(10);
@@ -796,15 +795,26 @@ class ApiMl
         // Añadir atributos según la categoría
         if ($autopart->category) {
             if ($autopart->bulb_tech !== null) {
-                $bulbTechValue = $autopart->bulb_tech['value'];
+                $bulbTechValue = $autopart->bulb_tech['name'];
             } else {
                 $bulbTechValue = null;
             }
 
-            if ($autopart->brake_light_pos !== null) {
-                $brakeLightValue = $autopart->brake_light_pos['value'];
+            if ($autopart->bulb_pos !== null) {
+                $brakeLightValue = $autopart->bulb_pos['name'];
             } else {
                 $brakeLightValue = null;
+            }
+
+            if($autopart->side){
+                if ($autopart->side->name === "Izquierda") {
+                    $sideName = "Izquierdo";
+                } elseif ($autopart->side->name === "Derecha") {
+                    $sideName = "Derecho";
+                } else {
+                    // En caso de otros valores, devuelve el mismo valor
+                    $sideName = $autopart->side->name;
+                }
             }
 
             
@@ -863,7 +873,7 @@ class ApiMl
                     $attributesList = array_merge($attributesList, $additionalAttributes);
 
                     $attCombination = [
-                        ["id" => "SIDE_POSITION", "value_name" => $autopart->side ? $autopart->side->name : null],
+                        ["id" => "SIDE_POSITION", "value_name" => $sideName ? $sideName :  null],
                     ];
 
                     // Eliminar "SIDE" de atributos
@@ -874,7 +884,7 @@ class ApiMl
                 case 1: //Puertas
                     $attCombination = [
                         ["id" => "POSITION", "value_name" => $autopart->position ? $autopart->position->name : null],
-                        ["id" => "SIDE", "value_name" => $autopart->side ? $autopart->side->name : null],
+                        ["id" => "SIDE", "value_name" => $sideName ? $sideName :  null],
                         ["id" => "COLOR", "value_name" => "X"]
                     ];
 
@@ -907,19 +917,6 @@ class ApiMl
                     $attributesList = array_merge($attributesList, $additionalAttributes);
                     break;
                 case 150: //Espejos Laterales
-                    $sideName = null;
-                    if($autopart->side){
-                        if ($autopart->side->name === "Izquierda") {
-                            $sideName = "Izquierdo";
-                        } elseif ($autopart->side->name === "Derecha") {
-                            $sideName = "Derecho";
-                        } else {
-                            // En caso de otros valores, devuelve el mismo valor
-                            $sideName = $autopart->side->name;
-                        }
-                    }
-                    
-
                     $additionalAttributes = [
                         ["id" => "MIRROR_LOCATION", "value_name" => $sideName ? $sideName :  null],
                         ["id" => "INCLUDES_MIRROR", "value_name" => $autopart->includes_mirror ? "Sí" : "No"],
@@ -941,7 +938,7 @@ class ApiMl
                     $attributesList = array_merge($attributesList, $additionalAttributes);
 
                     $attCombination = [
-                        ["id" => "SIDE_POSITION", "value_name" => $autopart->side ? $autopart->side->name : null],
+                        ["id" => "SIDE_POSITION", "value_name" => $sideName ? $sideName :  null],
                         ["id" => "LENS_COLOR", "value_name" => "X"]
                     ];
 
@@ -987,7 +984,6 @@ class ApiMl
         }else{
             $requestData["price"] = $autopart->sale_price;
         }
-        logger(["REQUEST"=>$requestData]);
 
         $response = Http::withHeaders([
             'Authorization' => 'Bearer '.$autopart->storeMl->access_token,
