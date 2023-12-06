@@ -975,10 +975,6 @@ class AutopartController extends Controller
             $location->save();
         }
 
-        if ($request->status_id == 5 && $request->sale_price > 0) {
-            $request->status_id = 1;
-        }
-
         $autopart = Autopart::create([
             'name' => $request->name,
             'description' => $request->description,
@@ -994,7 +990,7 @@ class AutopartController extends Controller
             'years' => json_encode($years),
             'quality' => $request->quality,
             'sale_price' => $request->sale_price,
-            'status_id' => $request->status_id,
+            'status_id' => 5,
             'store_id' => $request->user()->store_id,
             'created_by' => $request->user()->id,
         ]);
