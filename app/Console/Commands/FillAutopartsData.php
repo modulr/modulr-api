@@ -700,6 +700,7 @@ class FillAutopartsData extends Command
             // ->where('category_id', $category_id)
             ->where('store_id', 1)
             ->where('status_id', 1)
+            ->where('store_ml_id', $store_ml)
             ->whereNull('location_id')
             ->orderBy('make_id')
             ->limit($limit)
