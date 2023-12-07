@@ -1213,6 +1213,16 @@ class ApiMl
         }elseif ($response->autopart->available_quantity < 1 && $status === "active") {
             $requestData["variations"] = $variationsArray;
         }
+        
+        if ($response->autopart->sold_quantity > 0) {
+            // Si se ha vendido al menos una autoparte, omitir "ITEM_CONDITION"
+            $filteredAttributes = array_filter($requestData["attributes"], function ($attribute) {
+                return $attribute !== "ITEM_CONDITION";
+            });
+        
+            // Asignar el nuevo array de atributos filtrado
+            $requestData["attributes"] = $filteredAttributes;
+        }
 
         $response = Http::withHeaders([
         'Authorization' => 'Bearer ' . $autopart->storeMl->access_token,
