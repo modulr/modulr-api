@@ -1198,12 +1198,14 @@ class ApiMl
             "attributes" => $attributesList
         ];
 
-        if($response->autopart->available_quantity < 1 && $status === "active"){
-            $requestData["available_quantity"] = 1;
-        }
+        
 
         if (empty($response->autopart->variations)) {
             $requestData["price"] = $autopart->sale_price;
+            
+            if($response->autopart->available_quantity < 1 && $status === "active"){
+                $requestData["available_quantity"] = 1;
+            }
         }
         if ($response->autopart->sold_quantity < 1) {
             $requestData["title"] = substr($autopart->name, 0, 60);
