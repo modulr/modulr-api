@@ -1157,10 +1157,6 @@ class ApiMl
             $status = 'active';
         }
 
-        if($response->autopart->available_quantity = 0){
-            $stock = 1;
-        }
-
         $images = [];
         if (count($autopart->images) > 0) {
             $sortedImages = $autopart->images->sortBy('order')->take(10);
@@ -1197,6 +1193,10 @@ class ApiMl
             "pictures" => $images,
             "attributes" => $attributesList
         ];
+
+        if($response->autopart->available_quantity = 0 && $status === "active"){
+            $requestData["available_quantity"] = 1;
+        }
 
         if (empty($response->autopart->variations)) {
             $requestData["price"] = $autopart->sale_price;
