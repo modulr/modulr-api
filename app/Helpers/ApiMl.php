@@ -1210,7 +1210,7 @@ class ApiMl
         if ($response->autopart->sold_quantity < 1) {
             $requestData["title"] = substr($autopart->name, 0, 60);
             $requestData["variations"] = $variationsArray;
-        }elseif ($response->autopart->available_quantity < 1 && $status === "active") {
+        }elseif (!empty($response->autopart->variations) || ($response->autopart->available_quantity < 1 && $status === "active")) {
             $requestData["variations"] = $variationsArray;
         }
 
