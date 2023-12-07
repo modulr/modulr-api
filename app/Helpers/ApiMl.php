@@ -1202,7 +1202,7 @@ class ApiMl
 
         if (empty($response->autopart->variations)) {
             $requestData["price"] = $autopart->sale_price;
-            
+
             if($response->autopart->available_quantity < 1 && $status === "active"){
                 $requestData["available_quantity"] = 1;
             }
@@ -1213,8 +1213,6 @@ class ApiMl
         }elseif ($response->autopart->available_quantity < 1 && $status === "active") {
             $requestData["variations"] = $variationsArray;
         }
-
-        logger(["Request"=>$requestData]);
 
         $response = Http::withHeaders([
         'Authorization' => 'Bearer ' . $autopart->storeMl->access_token,
