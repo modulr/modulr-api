@@ -1147,6 +1147,10 @@ class ApiMl
                 "price"=>$autopart->sale_price,
                 "attribute_combinations" => $val->attribute_combinations
             ];
+
+            if ($response->autopart->available_quantity < 1 && $status === "active") {
+                $variationsArray[count($variationsArray) - 1]["available_quantity"] = 1;
+            }
         }
 
         if ($autopart->status_id == 4) {
