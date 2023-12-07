@@ -1194,7 +1194,7 @@ class ApiMl
             "attributes" => $attributesList
         ];
 
-        if($response->autopart->available_quantity = 0 && $status === "active"){
+        if($response->autopart->available_quantity < 1 && $status === "active"){
             $requestData["available_quantity"] = 1;
         }
 
