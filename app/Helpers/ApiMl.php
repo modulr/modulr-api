@@ -1147,10 +1147,6 @@ class ApiMl
                 "price"=>$autopart->sale_price,
                 "attribute_combinations" => $val->attribute_combinations
             ];
-
-            if ($response->autopart->available_quantity < 1 && $status === "active") {
-                $variationsArray[count($variationsArray) - 1]["available_quantity"] = 1;
-            }
         }
 
         if ($autopart->status_id == 4) {
@@ -1173,7 +1169,7 @@ class ApiMl
             };
         }
 
-        foreach ($variationsArray as $variation) {
+        foreach ($variationsArray as $key => $variation) {
             if (is_array($variation['attribute_combinations'])) { 
                 foreach ($variation['attribute_combinations'] as $combination) {
                     if ($combination->id === 'SIDE_POSITION') {
@@ -1184,6 +1180,10 @@ class ApiMl
                         }
                     }
                 }
+            }
+
+            if ($response->autopart->available_quantity < 1 && $status === "active") {
+                $variationsArray[$key]["available_quantity"] = 1;
             }
         }
 
