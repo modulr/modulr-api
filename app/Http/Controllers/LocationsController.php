@@ -68,7 +68,6 @@ class LocationsController extends Controller
         }
 
         $generateName = 'location-'.$location->id;
-logger(["NAME TO CREATE"=>$generateName]);
         $qr = QrCode::format('png')->size(200)->margin(1)->generate($generateName);
         Storage::put('locations/'.$location->store_id.'/'.$location->id.'.png', (string) $qr);
 
