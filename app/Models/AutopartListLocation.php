@@ -23,6 +23,6 @@ class AutopartListLocation extends Model
 
     public function getQrAttribute()
     {
-        return Storage::url('location/'.$this->store_id.'/'.$this->id.'.png');
+        return Storage::url('locations/'.$this->store_id.'/'.$this->id.'.png');
     }
 }

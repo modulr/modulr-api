@@ -96,23 +96,23 @@ class LocationsController extends Controller
         $location->name = $request->name;
         $location->save();
 
-        if (!Storage::exists('locations/'.$location->store_id.'/'.$location->id.'.png')) {
+        if (!Storage::exists('locations/'.$location->store->id.'/'.$location->id.'.png')) {
             $qr = QrCode::format('png')->size(200)->margin(1)->generate('location-'.$location->id);
-            Storage::put('locations/'.$location->store_id.'/'.$location->id.'.png', (string) $qr);
+            Storage::put('locations/'.$location->store->id.'/'.$location->id.'.png', (string) $qr);
         }
 
         return $location;
     }
-
+    
     public function qr (Request $request)
     {
         $cleanedId = str_replace('location-', '', $request->id);
 
         $location = AutopartListLocation::with(['store'])->find($cleanedId);
 
-        if (!Storage::exists('locations/'.$location->store_id.'/'.$location->id.'.png')) {
+        if (!Storage::exists('locations/'.$location->store->id.'/'.$location->id.'.png')) {
             $qr = QrCode::format('png')->size(200)->margin(1)->generate('location-'.$location->id);
-            Storage::put('locations/'.$location->store_id.'/'.$location->id.'.png', (string) $qr);
+            Storage::put('locations/'.$location->store->id.'/'.$location->id.'.png', (string) $qr);
         }
 
         return view('qr_location', ['location' => $location]);
