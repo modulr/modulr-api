@@ -959,12 +959,7 @@ class ApiMl
                     });
                     break;
                 case 78: //Horquillas
-                    // Eliminar "SIDE" de atributos
-                    $attributesList = array_filter($attributesList, function ($attribute) use ($attCombination) {
-                        return !in_array($attribute['id'], ['SIDE']);
-                    });
-
-                    $attCombination = [
+                    $additionalAttributes = [
                         ["id" => "SIDE", "value_name" => $sideName ? $sideName :  null],
                         ["id" => "AXIS_POSITION", "value_name" => $positionName ? $positionName :  null],
                         ["id" => "CONTROL_ARM_POSITION", "value_name" => "Inferior"],
@@ -975,6 +970,7 @@ class ApiMl
                         ["id" => "INCLUDES_MOUNTING_HARDWARE", "value_name" => "No"],
                         ["id" => "IS_OEM_REPLACEMENT", "value_name" => "No"]
                     ];
+                    $attributesList = array_merge($attributesList, $additionalAttributes);
 
                     $requestData = [
                         "shipping" => [
