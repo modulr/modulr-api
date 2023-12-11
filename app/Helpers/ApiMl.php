@@ -972,17 +972,15 @@ class ApiMl
                     ];
                     $attributesList = array_merge($attributesList, $additionalAttributes);
 
-                    $requestData = [
-                        "shipping" => [
-                            "mode" => "me2",
-                            "methods" => [],
-                            "tags" => [],
-                            "dimensions" => null,
-                            "local_pick_up" => false,
-                            "free_shipping" => true,
-                            "logistic_type" => "xd_drop_off",
-                            "store_pick_up" => false
-                        ],
+                    $requestData["shipping"] = [
+                        "mode" => "me2",
+                        "methods" => [],
+                        "tags" => [],
+                        "dimensions" => null,
+                        "local_pick_up" => false,
+                        "free_shipping" => true,
+                        "logistic_type" => "xd_drop_off",
+                        "store_pick_up" => false
                     ];
                     break;
             }
@@ -1032,6 +1030,8 @@ class ApiMl
         }else{
             $requestData["price"] = $autopart->sale_price;
         }
+
+        logger(["REQUEST"=>$requestData]);
 
         $response = Http::withHeaders([
             'Authorization' => 'Bearer '.$autopart->storeMl->access_token,
