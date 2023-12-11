@@ -817,6 +817,17 @@ class ApiMl
                 }
             }
 
+            if($autopart->position){
+                if ($autopart->position->name === "Delantera") {
+                    $positionName = "Delantero";
+                } elseif ($autopart->position->name === "Trasera") {
+                    $positionName = "Trasero";
+                } else {
+                    // En caso de otros valores, devuelve el mismo valor
+                    $positionName = $autopart->position->name;
+                }
+            }
+
             
             switch ($autopart->category->id) {
                 case 32: //Cajuela
@@ -947,6 +958,37 @@ class ApiMl
                         return !in_array($attribute['id'], ['SIDE']);
                     });
                     break;
+                case 78: //Horquillas
+                    // Eliminar "SIDE" de atributos
+                    $attributesList = array_filter($attributesList, function ($attribute) use ($attCombination) {
+                        return !in_array($attribute['id'], ['SIDE']);
+                    });
+
+                    $attCombination = [
+                        ["id" => "SIDE", "value_name" => $sideName ? $sideName :  null],
+                        ["id" => "AXIS_POSITION", "value_name" => $positionName ? $positionName :  null],
+                        ["id" => "CONTROL_ARM_POSITION", "value_name" => "Inferior"],
+                        ["id" => "INCLUDES_BALL_JOINT", "value_name" => "No"],
+                        ["id" => "INCLUDES_BUSHING", "value_name" => "No"],
+                        ["id" => "INCLUDES_GREASE", "value_name" => "No"],
+                        ["id" => "IS_PRE_GREASED", "value_name" => "No"],
+                        ["id" => "INCLUDES_MOUNTING_HARDWARE", "value_name" => "No"],
+                        ["id" => "IS_OEM_REPLACEMENT", "value_name" => "No"]
+                    ];
+
+                    $requestData = [
+                        "shipping" => [
+                            "mode" => "me2",
+                            "methods" => [],
+                            "tags" => [],
+                            "dimensions" => null,
+                            "local_pick_up" => false,
+                            "free_shipping" => true,
+                            "logistic_type" => "xd_drop_off",
+                            "store_pick_up" => false
+                        ],
+                    ];
+                    break;
             }
         }
 
@@ -964,6 +1006,16 @@ class ApiMl
             "available_quantity" => 1,
             "buying_mode" => "buy_it_now",
             "listing_type_id" => "gold_special",
+            // "shipping" => [
+            //     "mode" => "me2",
+            //     "methods" => [],
+            //     "tags" => [],
+            //     "dimensions" => null,
+            //     "local_pick_up" => false,
+            //     "free_shipping" => true,
+            //     "logistic_type" => "xd_drop_off",
+            //     "store_pick_up" => false
+            // ],
         ];
 
         if($attCombination){
