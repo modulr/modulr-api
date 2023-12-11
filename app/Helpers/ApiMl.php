@@ -972,16 +972,6 @@ class ApiMl
                     ];
                     $attributesList = array_merge($attributesList, $additionalAttributes);
 
-                    $requestData["shipping"] = [
-                        "mode" => "me2",
-                        "methods" => [],
-                        "tags" => [],
-                        "dimensions" => null,
-                        "local_pick_up" => false,
-                        "free_shipping" => true,
-                        "logistic_type" => "xd_drop_off",
-                        "store_pick_up" => false
-                    ];
                     break;
             }
         }
@@ -1011,6 +1001,21 @@ class ApiMl
             //     "store_pick_up" => false
             // ],
         ];
+
+        $freeShippingCat = [78];
+
+        if (in_array($categoryId, $allowedCategories)) {
+            $requestData["shipping"] = [
+                "mode" => "me2",
+                "methods" => [],
+                "tags" => [],
+                "dimensions" => null,
+                "local_pick_up" => false,
+                "free_shipping" => true,
+                "logistic_type" => "xd_drop_off",
+                "store_pick_up" => false
+            ];
+        }
 
         if($attCombination){
 
