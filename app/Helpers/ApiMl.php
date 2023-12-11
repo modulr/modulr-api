@@ -1004,7 +1004,7 @@ class ApiMl
 
         $freeShippingCat = [78];
 
-        if (in_array($categoryId, $allowedCategories)) {
+        if (in_array($categoryId, $freeShippingCat)) {
             $requestData["shipping"] = [
                 "mode" => "me2",
                 "methods" => [],
