@@ -989,22 +989,10 @@ class ApiMl
             "currency_id" => "MXN",
             "available_quantity" => 1,
             "buying_mode" => "buy_it_now",
-            "listing_type_id" => "gold_special",
-            // "shipping" => [
-            //     "mode" => "me2",
-            //     "methods" => [],
-            //     "tags" => [],
-            //     "dimensions" => null,
-            //     "local_pick_up" => false,
-            //     "free_shipping" => true,
-            //     "logistic_type" => "xd_drop_off",
-            //     "store_pick_up" => false
-            // ],
+            "listing_type_id" => "gold_special"
         ];
 
-        $freeShippingCat = [78];
-
-        if (in_array($autopart->category_id, $freeShippingCat)) {
+        if ($autopart->shipping_type_id === 1) { //Envío gratis para el cliente
             $requestData["shipping"] = [
                 "mode" => "me2",
                 "methods" => [],
@@ -1014,6 +1002,28 @@ class ApiMl
                 "free_shipping" => true,
                 "logistic_type" => "xd_drop_off",
                 "store_pick_up" => false
+            ];
+        }else if($autopart->shipping_type_id === 2){ //Envío con cargo al cliente
+            $requestData["shipping"] = [
+                "mode" => "me2",
+                "methods" => [],
+                "tags" => [],
+                "dimensions" => null,
+                "local_pick_up" => false,
+                "free_shipping" => false,
+                "logistic_type" => "xd_drop_off",
+                "store_pick_up" => false
+            ];
+        }else{ //Envío acordar con cliente
+            $requestData["shipping"] = [
+                "mode"=> "not_specified",
+                "methods"=> [],
+                "tags"=> [],
+                "dimensions"=> null,
+                "local_pick_up"=> true,
+                "free_shipping"=> false,
+                "logistic_type"=> "not_specified",
+                "store_pick_up"=> false
             ];
         }
 

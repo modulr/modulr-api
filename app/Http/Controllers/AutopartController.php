@@ -587,6 +587,7 @@ class AutopartController extends Controller
             'bulbPos',
             'bulbTech',
             'location',
+            'shippingType',
             'comments' => function ($query) {
                 $query->orderBy('id', 'desc');
             },
@@ -674,6 +675,9 @@ class AutopartController extends Controller
             'model',
             'store',
             'location',
+            'bulbPos',
+            'bulbTech',
+            'shippingType',
             'activity' => function ($query) {
                 $query->orderBy('id', 'desc');
             },
@@ -751,6 +755,8 @@ class AutopartController extends Controller
         } else {
             $changeStore = false;
         }
+        logger(["AUTOPART"=>$request->shipping_type_id]);
+
         $autopart->name = $request->name;     
         $autopart->description = $request->description;
         $autopart->autopart_number = $request->autopart_number;
@@ -769,9 +775,12 @@ class AutopartController extends Controller
         $autopart->store_ml_id = $request->store_ml_id;
         $autopart->bulb_pos_id = $request->bulb_pos_id;
         $autopart->bulb_tech_id = $request->bulb_tech_id;
+        $autopart->shipping_type_id = $request->shipping_type_id;
         $autopart->includes_mirror = $request->includes_mirror;
         $autopart->updated_by = $request->user()->id;
         $autopart->save();
+
+        logger(["AUTOPART"=>$autopart]);
 
         $autopart->bulb_pos = $request->bulb_pos;
         $autopart->bulb_tech = $request->bulb_tech;
@@ -807,6 +816,9 @@ class AutopartController extends Controller
             'status',
             'store',
             'storeMl',
+            'bulbPos',
+            'bulbTech',
+            'shippingType',
             'comments' => function ($query) {
                 $query->orderBy('id', 'desc');
             },
@@ -1018,6 +1030,9 @@ class AutopartController extends Controller
             'status',
             'store',
             'images',
+            'bulbPos',
+            'bulbTech',
+            'shippingType',
             'activity' => function ($query) {
                 $query->orderBy('id', 'desc');
             },
