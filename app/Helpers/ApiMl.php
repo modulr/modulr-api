@@ -285,7 +285,9 @@ class ApiMl
             $shipping = $response->body->shipping;
 
 logger(["ml_id"=>$autopart['ml_id']]);
-logger(["shipping"=>$shipping]);
+logger(["free_shipping"=>$shipping->free_shipping]);
+logger(["local_pick_up"=>$shipping->local_pick_up]);
+logger(["mode"=>$shipping->mode]);
             if ($shipping->free_shipping) {
                 $autopart['shipping_type_id'] = 1; // Envío gratis para el cliente
             } elseif (!$shipping->free_shipping && !$shipping->local_pick_up && $shipping->mode == "me2") {
@@ -293,6 +295,7 @@ logger(["shipping"=>$shipping]);
             } else {
                 $autopart['shipping_type_id'] = 3; // Envío acordar con cliente
             }
+            logger(["shipping type"=>$autopart['shipping_type_id']]);
 
             if (isset($response->body->tags) && is_array($response->body->tags)) {
                 if (in_array("moderation_penalty", $response->body->tags)) {
