@@ -1285,6 +1285,41 @@ class ApiMl
             $requestData["attributes"] = array_values($filteredAttributes); // Reindexar el array si es necesario
         }
 
+        if ($autopart->shipping_type_id === 1) { //Envío gratis para el cliente
+            $requestData["shipping"] = [
+                "mode" => "me2",
+                "methods" => [],
+                "tags" => [],
+                "dimensions" => null,
+                "local_pick_up" => false,
+                "free_shipping" => true,
+                "logistic_type" => "xd_drop_off",
+                "store_pick_up" => false
+            ];
+        }else if($autopart->shipping_type_id === 2){ //Envío con cargo al cliente
+            $requestData["shipping"] = [
+                "mode" => "me2",
+                "methods" => [],
+                "tags" => [],
+                "dimensions" => null,
+                "local_pick_up" => false,
+                "free_shipping" => false,
+                "logistic_type" => "xd_drop_off",
+                "store_pick_up" => false
+            ];
+        }else{ //Envío acordar con cliente
+            $requestData["shipping"] = [
+                "mode"=> "not_specified",
+                "methods"=> [],
+                "tags"=> [],
+                "dimensions"=> null,
+                "local_pick_up"=> true,
+                "free_shipping"=> false,
+                "logistic_type"=> "not_specified",
+                "store_pick_up"=> false
+            ];
+        }
+
         $response = Http::withHeaders([
         'Authorization' => 'Bearer ' . $autopart->storeMl->access_token,
         ])->put('https://api.mercadolibre.com/items/' . $autopart->ml_id, $requestData);
