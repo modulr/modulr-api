@@ -283,6 +283,8 @@ class ApiMl
             $autopart['moderation_active'] = false;
 
             $shipping = $response->body->shipping;
+
+logger(["ml_id"=>$autopart['ml_id']]);
 logger(["shipping"=>$shipping]);
             if ($shipping->free_shipping) {
                 $autopart['shipping_type_id'] = 1; // Envío gratis para el cliente
