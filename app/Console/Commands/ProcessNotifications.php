@@ -266,6 +266,7 @@ class ProcessNotifications extends Command
                             'condition_id' => $response->autopart['condition_id'],
                             'status_id' => $response->autopart['status_id'],
                             'ml_id' => $response->autopart['ml_id'],
+                            'shipping_type_id' => $response->autopart['shipping_type_id'],
                             'store_ml_id' => $storeMl->id,
                             'store_id' => $storeMl->store_id,
                             'created_by' => 1,
