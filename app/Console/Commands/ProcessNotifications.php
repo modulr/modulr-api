@@ -61,6 +61,7 @@ class ProcessNotifications extends Command
                     $autopart->model_id = $response->autopart['model_id'];
                     $autopart->position_id = $response->autopart['position_id'];
                     $autopart->side_id = $response->autopart['side_id'];
+                    $autopart->shipping_type_id = $response->autopart['shipping_type_id'];
                     
                     if ($response->status == 200) {
                         $change = null;
