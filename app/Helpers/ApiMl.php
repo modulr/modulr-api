@@ -983,6 +983,18 @@ class ApiMl
                     $attributesList = array_merge($attributesList, $additionalAttributes);
 
                     break;
+                case 112: //Moldura
+                    $additionalAttributes = [
+                        ["id" => "LOCATION", "value_name" => $sideName ? $sideName :  null],
+                        ["id" => "CAR_MOLDINGS_TYPE", "value_name" => "X"]
+                    ];
+                    $attributesList = array_merge($attributesList, $additionalAttributes);
+
+                    $attCombination = [
+                        ["id" => "COLOR", "value_name" => "X"]
+                    ];
+
+                    break;
             }
         }
 
