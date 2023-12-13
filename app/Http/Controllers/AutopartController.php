@@ -755,7 +755,6 @@ class AutopartController extends Controller
         } else {
             $changeStore = false;
         }
-        logger(["AUTOPART"=>$request->shipping_type_id]);
 
         $autopart->name = $request->name;     
         $autopart->description = $request->description;
@@ -780,7 +779,6 @@ class AutopartController extends Controller
         $autopart->updated_by = $request->user()->id;
         $autopart->save();
 
-        logger(["AUTOPART"=>$autopart]);
 
         $autopart->bulb_pos = $request->bulb_pos;
         $autopart->bulb_tech = $request->bulb_tech;
