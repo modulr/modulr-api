@@ -282,6 +282,16 @@ class ApiMl
             $autopart['date_created'] = $response->body->date_created;
             $autopart['moderation_active'] = false;
 
+            $shipping = $response->body->shipping;
+
+            if ($shipping->free_shipping) {
+                $autopart['shipping_type_id'] = 1; // Envío gratis para el cliente
+            } elseif (!$shipping->free_shipping && !$shipping->local_pick_up && $shipping->mode == "me2") {
+                $autopart['shipping_type_id'] = 2; // Envío con cargo al cliente
+            } else {
+                $autopart['shipping_type_id'] = 3; // Envío acordar con cliente
+            }
+
             if (isset($response->body->tags) && is_array($response->body->tags)) {
                 if (in_array("moderation_penalty", $response->body->tags)) {
                     $autopart['moderation_active'] = true;
