@@ -283,7 +283,7 @@ class ApiMl
             $autopart['moderation_active'] = false;
 
             $shipping = $response->body->shipping;
-logger("shipping",$shipping);
+logger(["shipping"=>$shipping]);
             if ($shipping->free_shipping) {
                 $autopart['shipping_type_id'] = 1; // Envío gratis para el cliente
             } elseif (!$shipping->free_shipping && !$shipping->local_pick_up && $shipping->mode == "me2") {
