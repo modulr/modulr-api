@@ -42,7 +42,7 @@ class FillAutopartsData extends Command
         // $this->fillImagesIdMl($skip,$limit);
 
         // // Mostrar las opciones al usuario
-        $options = ['Descripcion', 'Lado', 'Posicion', 'Numero_Parte', 'Anios', 'Orden_Anios', 'Imagenes', 'Condicion', 'Ubicacion', 'Crear_Ubicaciones', 'update_locations','Activar_Autopartes','Pausar_Autopartes'];
+        $options = ['Descripcion', 'Lado', 'Posicion', 'Numero_Parte', 'Anios', 'Orden_Anios', 'Imagenes', 'Condicion', 'Ubicacion', 'Crear_Ubicaciones', 'update_locations','Activar_Autopartes','Pausar_Autopartes','Obtener_Estatus_ML'];
         $question = new ChoiceQuestion('Elige una opción para editar autopartes:', $options);
         $question->setErrorMessage('Opción inválida.');
 
@@ -87,9 +87,12 @@ class FillAutopartsData extends Command
             case 'Activar_Autopartes':
                 $this->activeAutoparts($store_ml);
                 break;
-                case 'Pausar_Autopartes':
-                    $this->pauseAutoparts($store_ml,$category_id,$limit);
-                    break;
+            case 'Pausar_Autopartes':
+                $this->pauseAutoparts($store_ml,$category_id,$limit);
+                break;
+            case 'Obtener_Estatus_ML':
+                $this->getMlStatus($store_ml,$limit);
+                break;
             default:
                 $this->info('Opción no reconocida.');
                 break;
@@ -734,5 +737,51 @@ class FillAutopartsData extends Command
 
         $this->output->writeln('');
         $this->info('Pausar autopartes terminado.');
+    }
+
+    private function getMlStatus($store_ml,$limit)
+    {
+        $store = DB::table('stores_ml')->where('id', '=', $store_ml)->first();
+
+        $autoparts = DB::table('autoparts')
+            ->where('status_id', 1)
+            ->where('store_ml_id', $store_ml)
+            ->orderBy('id', 'desc')
+            ->limit($limit)
+            ->get();
+        
+        if($autoparts->count() > 0){
+            $bar = $this->output->createProgressBar(count($autoparts));
+
+            $bar->start();
+    
+            foreach ($autoparts as $key => $aut) {
+
+                $response = Http::withHeaders([
+                    'Authorization' => 'Bearer '.$store->access_token,
+                ])->get('https://api.mercadolibre.com/items/', [
+                    "ids" => $aut->ml_id
+                ]);
+                $autopart = $response->object()[0]->body; 
+
+                if($autopart->status == 404){
+                    DB::table('autoparts')
+                    ->where('id', $aut->id)
+                    ->update(['ml_status' => "closed"]);
+                }else{
+                    DB::table('autoparts')
+                    ->where('id', $aut->id)
+                    ->update(['ml_status' => $autopart->status]);
+                }
+    
+                $bar->advance();
+            }
+
+            $bar->finish();
+        }
+        
+
+        $this->output->writeln('');
+        $this->info('Obtener estatus ML terminado.');
     }
 }
