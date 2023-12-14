@@ -584,7 +584,10 @@ class AutopartController extends Controller
             'model',
             'store',
             'storeMl',
+            'bulbPos',
+            'bulbTech',
             'location',
+            'shippingType',
             'comments' => function ($query) {
                 $query->orderBy('id', 'desc');
             },
@@ -672,6 +675,9 @@ class AutopartController extends Controller
             'model',
             'store',
             'location',
+            'bulbPos',
+            'bulbTech',
+            'shippingType',
             'activity' => function ($query) {
                 $query->orderBy('id', 'desc');
             },
@@ -697,6 +703,7 @@ class AutopartController extends Controller
 
     public function update (Request $request)
     {
+
         $request->validate([
             'name' => 'required|string',
         ]);
@@ -748,7 +755,7 @@ class AutopartController extends Controller
         } else {
             $changeStore = false;
         }
-        
+
         $autopart->name = $request->name;     
         $autopart->description = $request->description;
         $autopart->autopart_number = $request->autopart_number;
@@ -765,8 +772,16 @@ class AutopartController extends Controller
         $autopart->sale_price = $request->sale_price;
         $autopart->status_id = $request->status_id;
         $autopart->store_ml_id = $request->store_ml_id;
+        $autopart->bulb_pos_id = $request->bulb_pos_id;
+        $autopart->bulb_tech_id = $request->bulb_tech_id;
+        $autopart->shipping_type_id = $request->shipping_type_id;
+        $autopart->includes_mirror = $request->includes_mirror;
         $autopart->updated_by = $request->user()->id;
         $autopart->save();
+
+
+        $autopart->bulb_pos = $request->bulb_pos;
+        $autopart->bulb_tech = $request->bulb_tech;
 
         if ($changeStore) {
             $sync = ApiMl::createAutopart($autopart);
@@ -799,6 +814,9 @@ class AutopartController extends Controller
             'status',
             'store',
             'storeMl',
+            'bulbPos',
+            'bulbTech',
+            'shippingType',
             'comments' => function ($query) {
                 $query->orderBy('id', 'desc');
             },
@@ -969,10 +987,6 @@ class AutopartController extends Controller
             $location->save();
         }
 
-        if ($request->status_id == 5 && $request->sale_price > 0) {
-            $request->status_id = 1;
-        }
-
         $autopart = Autopart::create([
             'name' => $request->name,
             'description' => $request->description,
@@ -988,7 +1002,7 @@ class AutopartController extends Controller
             'years' => json_encode($years),
             'quality' => $request->quality,
             'sale_price' => $request->sale_price,
-            'status_id' => $request->status_id,
+            'status_id' => 5,
             'store_id' => $request->user()->store_id,
             'created_by' => $request->user()->id,
         ]);
@@ -1014,6 +1028,9 @@ class AutopartController extends Controller
             'status',
             'store',
             'images',
+            'bulbPos',
+            'bulbTech',
+            'shippingType',
             'activity' => function ($query) {
                 $query->orderBy('id', 'desc');
             },

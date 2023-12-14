@@ -61,6 +61,7 @@ class ProcessNotifications extends Command
                     $autopart->model_id = $response->autopart['model_id'];
                     $autopart->position_id = $response->autopart['position_id'];
                     $autopart->side_id = $response->autopart['side_id'];
+                    $autopart->shipping_type_id = $response->autopart['shipping_type_id'];
                     
                     if ($response->status == 200) {
                         $change = null;
@@ -265,6 +266,7 @@ class ProcessNotifications extends Command
                             'condition_id' => $response->autopart['condition_id'],
                             'status_id' => $response->autopart['status_id'],
                             'ml_id' => $response->autopart['ml_id'],
+                            'shipping_type_id' => $response->autopart['shipping_type_id'],
                             'store_ml_id' => $storeMl->id,
                             'store_id' => $storeMl->store_id,
                             'created_by' => 1,
