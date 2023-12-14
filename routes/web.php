@@ -20,11 +20,13 @@ Route::get('/', function () {
     //return ['Laravel' => app()->version()];
 });
 
-Route::get('import/getIds/{id}', [ImportMlController::class, 'getIds']);
-Route::get('import/getNewIds/{id}', [ImportMlController::class, 'getNewIds']);
-Route::get('import/import/{id}', [ImportMlController::class, 'import']);
-Route::get('import/save/{id}/{limit}', [ImportMlController::class, 'save']);
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('import/getIds/{id}', [ImportMlController::class, 'getIds']);
+    Route::get('import/getNewIds/{id}', [ImportMlController::class, 'getNewIds']);
+    Route::get('import/import/{id}/{limit}', [ImportMlController::class, 'import']);
+    Route::get('import/save/{id}/{limit}', [ImportMlController::class, 'save']);
 
-Route::get('export', [ExportController::class, 'export']);
+    Route::get('export', [ExportController::class, 'export']);
+});
 
 require __DIR__.'/auth.php';

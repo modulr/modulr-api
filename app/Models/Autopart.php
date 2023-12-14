@@ -86,6 +86,21 @@ class Autopart extends Model
         return $this->belongsTo(AutopartListLocation::class);
     }
 
+    public function bulbPos()
+    {
+        return $this->belongsTo(AutopartListBulbPos::class);
+    }
+
+    public function bulbTech()
+    {
+        return $this->belongsTo(AutopartListBulbTech::class);
+    }
+
+    public function shippingType()
+    {
+        return $this->belongsTo(AutopartListShippingType::class);
+    }
+
     public function getQrAttribute()
     {
         return Storage::url('autoparts/'.$this->id.'/qr/'.$this->id.'.png');

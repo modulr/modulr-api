@@ -4,6 +4,7 @@ namespace App\Helpers;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Carbon\Carbon;
 
 use App\Notifications\AutopartNotification;
@@ -136,27 +137,28 @@ class ApiMl
         $storeMl = DB::table('stores_ml')->find($autopart->store_ml_id);
         $client = new \GuzzleHttp\Client(['base_uri' => 'https://api.mercadolibre.com']);
 
-        try {
-            if($put){
-                $request_type = 'PUT';
-            }else{
-                $request_type = 'POST';
-            }
-            
-            $client->request($request_type, 'items/'.$autopart->ml_id.'/description', [
-                'headers' => [
-                    'Accept' => '*/*',
-                    'Content-Type' => 'application/json',
-                    'Authorization' => 'Bearer '. $storeMl->access_token
-                ],
-                'json' => [
-                    "plain_text" => $autopart->description
-                ]
+        if($put){
+            $request_type = 'PUT';
+        }else{
+            $request_type = 'POST';
+        }
+
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . $autopart->storeMl->access_token,
+            ])->{$request_type}('https://api.mercadolibre.com/items/'.$autopart->ml_id.'/description', [
+                "plain_text" => $autopart->description
             ]);
 
+        if($response->successful()){
+            // if($autopart->sale_price > 0){
+            //     self::updatePrice($autopart);
+            // }
+
             return true;
-        }
-        catch (\GuzzleHttp\Exception\ClientException $e) {
+        } else {
+            $response = $response->object();
+
+            logger(["Do not update description in Mercadolibre" => $response->object(), "autopart" => $autopart->id]);
 
             $channel = env('TELEGRAM_CHAT_LOG');
             $content = "*Do not update description in Mercadolibre:* ".$autopart->ml_id;
@@ -165,7 +167,6 @@ class ApiMl
 
             return false;
         }
-        
     }
 
     private static function updatePrice($autopart)
@@ -260,9 +261,11 @@ class ApiMl
 
         $autopart = [];
 
+        $pattern = ['*', '#', "`", "~"];
+
         if ($response->code == 200) {
 
-            $autopart['name'] = str_replace(['*', '#', "`"], '', $response->body->title);
+            $autopart['name'] = str_replace($pattern, '', $response->body->title);
             $autopart['description'] = '';
             $autopart['autopart_number'] = null;
             $autopart['ml_id'] = $response->body->id;
@@ -278,6 +281,16 @@ class ApiMl
             $autopart['images'] = [];
             $autopart['date_created'] = $response->body->date_created;
             $autopart['moderation_active'] = false;
+
+            $shipping = $response->body->shipping;
+
+            if ($shipping->free_shipping) {
+                $autopart['shipping_type_id'] = 1; // Envío gratis para el cliente
+            } elseif (!$shipping->free_shipping && !$shipping->local_pick_up && $shipping->mode == "me2") {
+                $autopart['shipping_type_id'] = 2; // Envío con cargo al cliente
+            } else {
+                $autopart['shipping_type_id'] = 3; // Envío acordar con cliente
+            }
 
             if (isset($response->body->tags) && is_array($response->body->tags)) {
                 if (in_array("moderation_penalty", $response->body->tags)) {
@@ -326,7 +339,7 @@ class ApiMl
             }
 
             $description = self::getDescription($response->body->id);
-            $autopart['description'] = isset($description->plain_text) ? str_replace(['*', '#', "`"], '', $description->plain_text) : null;
+            $autopart['description'] = isset($description->plain_text) ? str_replace($pattern, '', $description->plain_text) : null;
 
             $nameArray = self::getInfoName($autopart['name']);
 
@@ -400,6 +413,9 @@ class ApiMl
                     if (str_contains($value, '-')) {
                         $yearsArray = explode('-',$value);
                         foreach ($yearsArray as $val) {
+                            if (Str::length($val) == 2) {
+                                $val = '20'.$val;
+                            }
                             $year = DB::table('autopart_list_years')
                                 ->where('name', 'like', $val)
                                 ->whereNull('deleted_at')->first();
@@ -734,7 +750,6 @@ class ApiMl
     public static function createAutopart ($autopart)
     {
         self::checkAccessToken($autopart->store_ml_id);
-
         $images = [];
         if (count($autopart->images) > 0) {
             $sortedImages = $autopart->images->sortBy('order')->take(10);
@@ -749,59 +764,315 @@ class ApiMl
             $categoryId = $autopart->category->ml_id;
         }
 
-        $response = Http::withHeaders([
-            'Authorization' => 'Bearer '.$autopart->storeMl->access_token,
-        ])->post('https://api.mercadolibre.com/items', [
+        $attributesList = [
+            [
+                "id" => "BRAND",
+                "value_name" => $autopart->make ? $autopart->make->name : null
+            ],
+            [
+                "id" => "MODEL",
+                "value_name" => $autopart->model ? $autopart->model->name : null
+            ],
+            [
+                "id" => "PART_NUMBER",
+                "value_name" => $autopart->autopart_number ? $autopart->autopart_number : 0000
+            ],
+            [
+                "id" => "ITEM_CONDITION",
+                "value_name" => $autopart->condition ? $autopart->condition->name : "used"
+            ],
+            [
+                "id" => "ORIGIN",
+                "value_name" => $autopart->origin ? $autopart->origin->name : null
+            ],
+            [
+                "id" => "SIDE",
+                "value_name" => $autopart->side ? $autopart->side->name : null
+            ],
+            [
+                "id" => "POSITION",
+                "value_name" => $autopart->position ? $autopart->position->name : null
+            ],
+            [
+                "id" => "VEHICLE_TYPE",
+                "value_name" => "Auto/Camioneta"
+            ]
+            
+        ];
+
+        $attCombination = null;
+
+        // Añadir atributos según la categoría
+        if ($autopart->category) {
+            if ($autopart->bulb_tech !== null) {
+                $bulbTechValue = $autopart->bulb_tech['name'];
+            } else {
+                $bulbTechValue = null;
+            }
+
+            if ($autopart->bulb_pos !== null) {
+                $brakeLightValue = $autopart->bulb_pos['name'];
+            } else {
+                $brakeLightValue = null;
+            }
+
+            if($autopart->side){
+                if ($autopart->side->name === "Izquierda") {
+                    $sideName = "Izquierdo";
+                } elseif ($autopart->side->name === "Derecha") {
+                    $sideName = "Derecho";
+                } else {
+                    // En caso de otros valores, devuelve el mismo valor
+                    $sideName = $autopart->side->name;
+                }
+            }
+
+            if($autopart->position){
+                if ($autopart->position->name === "Delantera") {
+                    $positionName = "Delantero";
+                } elseif ($autopart->position->name === "Trasera") {
+                    $positionName = "Trasero";
+                } else {
+                    // En caso de otros valores, devuelve el mismo valor
+                    $positionName = $autopart->position->name;
+                }
+            }
+
+            
+            switch ($autopart->category->id) {
+                case 32: //Cajuela
+                    $additionalAttributes = [
+                        ["id" => "MATERIAL", "value_name" => "Metal"],
+                        ["id" => "WIDTH", "value_name" => "0 cm"],
+                        ["id" => "LENGTH", "value_name" => "0 cm"]
+                    ];
+                    $attributesList = array_merge($attributesList, $additionalAttributes);
+
+                    $attCombination = [
+                        ["id" => "COLOR", "value_name" => "X"]
+                    ];
+
+                    break;
+                case 125: //Rejillas
+                    $additionalAttributes = [
+                        ["id" => "UNITS_PER_PACK", "value_name" => "1"],
+                        ["id" => "SALE_FORMAT", "value_name" => "Unidad"]
+                    ];
+                    $attributesList = array_merge($attributesList, $additionalAttributes);
+
+                    $attCombination = [
+                        ["id" => "COLOR", "value_name" => "X"]
+                    ];
+                case 70: //Fascia Delantera
+                    $additionalAttributes = [
+                        ["id" => "WITH_FOG_LIGHT_HOLE", "value_name" => "No"],
+                        ["id" => "IS_OEM_REPLACEMENT", "value_name" => "No"]
+                    ];
+                    $attributesList = array_merge($attributesList, $additionalAttributes);
+
+                    $attCombination = [
+                        ["id" => "COLOR", "value_name" => "X"]
+                    ];
+                    break;
+                case 55: //Fascia Trasera
+                    $additionalAttributes = [
+                        ["id" => "REAR_BUMPER_MATERIAL", "value_name" => "X"],
+                        ["id" => "REAR_BUMPER_FINISH", "value_name" => "X"],
+                        ["id" => "INCLUDES_FOG_LIGHTS", "value_name" => "No"],
+                        ["id" => "INCLUDES_MOLDINGS", "value_name" => "No"]
+                    ];
+                    $attributesList = array_merge($attributesList, $additionalAttributes);
+                    break;
+                case 71: //Faros
+                    $additionalAttributes = [
+                        ["id" => "WITH_PARKING_LIGHTS", "value_name" => "No"],
+                        ["id" => "INCLUDES_BULB", "value_name" => "No"],
+                        ["id" => "BULB_TECHNOLOGY", "value_name" => $bulbTechValue],
+                        ["id" => "INCLUDES_MOUNTING_HARDWARE", "value_name" => "No"],
+                        ["id" => "IS_STREET_LEGAL", "value_name" => "Si"]
+                    ];
+                    $attributesList = array_merge($attributesList, $additionalAttributes);
+
+                    $attCombination = [
+                        ["id" => "SIDE_POSITION", "value_name" => $sideName ? $sideName :  null],
+                    ];
+
+                    // Eliminar "SIDE" de atributos
+                    $attributesList = array_filter($attributesList, function ($attribute) use ($attCombination) {
+                        return !in_array($attribute['id'], ['SIDE']);
+                    });
+                    break;
+                case 1: //Puertas
+                    $attCombination = [
+                        ["id" => "POSITION", "value_name" => $autopart->position ? $autopart->position->name : null],
+                        ["id" => "SIDE", "value_name" => $sideName ? $sideName :  null],
+                        ["id" => "COLOR", "value_name" => "X"]
+                    ];
+
+                    // Eliminar "POSITION" y "SIDE" de atributos
+                    $attributesList = array_filter($attributesList, function ($attribute) use ($attCombination) {
+                        return !in_array($attribute['id'], ['POSITION', 'SIDE']);
+                    });
+                    break;
+                case 44: //Cofre
+                    $attCombination = [
+                        ["id" => "COLOR", "value_name" => "X"]
+                    ];
+                    break;
+                case 99: //Reflejantes
+                    $additionalAttributes = [
+                        ["id" => "SHAPE", "value_name" => "X"]
+                    ];
+                    $attributesList = array_merge($attributesList, $additionalAttributes);
+
+                    $attCombination = [
+                        ["id" => "COLOR", "value_name" => "X"]
+                    ];
+                    break;
+                case 144: //Luces Stop
+                    $additionalAttributes = [
+                        ["id" => "BRAKE_LIGHT_POSITION", "value_name" => $brakeLightValue],
+                        ["id" => "BULBS_NUMBER", "value_name" => null],
+                        ["id" => "BULBS_TYPE", "value_name" => $bulbTechValue]
+                    ];
+                    $attributesList = array_merge($attributesList, $additionalAttributes);
+                    break;
+                case 150: //Espejos Laterales
+                    $additionalAttributes = [
+                        ["id" => "MIRROR_LOCATION", "value_name" => $sideName ? $sideName :  null],
+                        ["id" => "INCLUDES_MIRROR", "value_name" => $autopart->includes_mirror ? "Sí" : "No"],
+                        ["id" => "INCLUDES_CONTROL", "value_name" => "No"],
+                        ["id" => "INCLUDES_MIRROR_TURN_SIGNAL_INDICATOR", "value_name" => "No"],
+                        ["id" => "INCLUDES_SUPPORT", "value_name" => "No"]
+                    ];
+                    $attributesList = array_merge($attributesList, $additionalAttributes);
+
+                    // Eliminar "SIDE" de atributos
+                    $attributesList = array_filter($attributesList, function ($attribute) use ($attCombination) {
+                        return !in_array($attribute['id'], ['SIDE']);
+                    });
+                    break;
+                case 34: //Calavera
+                    $additionalAttributes = [
+                        ["id" => "BULBS_TYPE", "value_name" => $bulbTechValue]
+                    ];
+                    $attributesList = array_merge($attributesList, $additionalAttributes);
+
+                    $attCombination = [
+                        ["id" => "SIDE_POSITION", "value_name" => $sideName ? $sideName :  null],
+                        ["id" => "LENS_COLOR", "value_name" => "X"]
+                    ];
+
+                    // Eliminar "SIDE" de atributos
+                    $attributesList = array_filter($attributesList, function ($attribute) use ($attCombination) {
+                        return !in_array($attribute['id'], ['SIDE']);
+                    });
+                    break;
+                case 78: //Horquillas
+                    $additionalAttributes = [
+                        ["id" => "SIDE", "value_name" => $sideName ? $sideName :  null],
+                        ["id" => "AXIS_POSITION", "value_name" => $positionName ? $positionName :  null],
+                        ["id" => "CONTROL_ARM_POSITION", "value_name" => "Inferior"],
+                        ["id" => "INCLUDES_BALL_JOINT", "value_name" => "No"],
+                        ["id" => "INCLUDES_BUSHING", "value_name" => "No"],
+                        ["id" => "INCLUDES_GREASE", "value_name" => "No"],
+                        ["id" => "IS_PRE_GREASED", "value_name" => "No"],
+                        ["id" => "INCLUDES_MOUNTING_HARDWARE", "value_name" => "No"],
+                        ["id" => "IS_OEM_REPLACEMENT", "value_name" => "No"]
+                    ];
+                    $attributesList = array_merge($attributesList, $additionalAttributes);
+
+                    break;
+                case 112: //Moldura
+                    $additionalAttributes = [
+                        ["id" => "LOCATION", "value_name" => $sideName ? $sideName :  null],
+                        ["id" => "CAR_MOLDINGS_TYPE", "value_name" => "X"]
+                    ];
+                    $attributesList = array_merge($attributesList, $additionalAttributes);
+
+                    $attCombination = [
+                        ["id" => "COLOR", "value_name" => "X"]
+                    ];
+
+                    break;
+            }
+        }
+
+        $attList = [];
+        foreach ($attributesList as $key => $value) {
+            $attList[] = ['id' => $value['id'], 'value_name' => $value['value_name']];
+        }
+
+        $requestData = [
             "title" => substr($autopart->name, 0, 60),
-            "price" => $autopart->sale_price,
+            "pictures" => $images,
+            "attributes" => $attList,
             "category_id" => $categoryId,
             "currency_id" => "MXN",
             "available_quantity" => 1,
             "buying_mode" => "buy_it_now",
-            "listing_type_id" => "gold_special",
-            "pictures" => 
-                $images
-            ,
-            "attributes" => [
-                [
-                    "id" => "BRAND",
-                    "value_name" => $autopart->make ? $autopart->make->name : null
-                ],
-                [
-                    "id" => "MODEL",
-                    "value_name" => $autopart->model ? $autopart->model->name : null
-                ],
-                [
-                    "id" => "PART_NUMBER",
-                    "value_name" => $autopart->autopart_number ? $autopart->autopart_number : 0000
-                ],
-                [
-                    "id" => "ITEM_CONDITION",
-                    "value_name" => $autopart->condition ? $autopart->condition->name : "used"
-                ],
-                [
-                    "id" => "ORIGIN",
-                    "value_name" => $autopart->origin ? $autopart->origin->name : null
-                ],
-                // [
-                //     "id" => "SELLER_SKU",
-                //     "value_name" => $autopart->id
-                // ],
-                [
-                    "id" => "SIDE",
-                    "value_name" => $autopart->side ? $autopart->side->name : null
-                ],
-                [
-                    "id" => "POSITION",
-                    "value_name" => $autopart->position ? $autopart->position->name : null
-                ],
-                [
-                    "id" => "VEHICLE_TYPE",
-                    "value_name" => "Auto/Camioneta"
-                ]
-                
-            ]
-        ]);
+            "listing_type_id" => "gold_special"
+        ];
+
+        if ($autopart->shipping_type_id === 1) { //Envío gratis para el cliente
+            $requestData["shipping"] = [
+                "mode" => "me2",
+                "methods" => [],
+                "tags" => [],
+                "dimensions" => null,
+                "local_pick_up" => false,
+                "free_shipping" => true,
+                "logistic_type" => "xd_drop_off",
+                "store_pick_up" => false
+            ];
+        }else if($autopart->shipping_type_id === 2){ //Envío con cargo al cliente
+            $requestData["shipping"] = [
+                "mode" => "me2",
+                "methods" => [],
+                "tags" => [],
+                "dimensions" => null,
+                "local_pick_up" => false,
+                "free_shipping" => false,
+                "logistic_type" => "xd_drop_off",
+                "store_pick_up" => false
+            ];
+        }else{ //Envío acordar con cliente
+            $requestData["shipping"] = [
+                "mode"=> "not_specified",
+                "methods"=> [],
+                "tags"=> [],
+                "dimensions"=> null,
+                "local_pick_up"=> true,
+                "free_shipping"=> false,
+                "logistic_type"=> "not_specified",
+                "store_pick_up"=> false
+            ];
+        }
+
+        if($attCombination){
+
+            $attrImages = [];
+            foreach ($sortedImages as $value) {
+                array_push($attrImages, $value['url']);
+            };
+
+            $variationsArray = [
+                "price"=>$autopart->sale_price,
+                "attribute_combinations" => $attCombination,
+                "picture_ids" => $attrImages,
+                "available_quantity" => 1,
+            ];
+
+            $requestData["variations"] = [$variationsArray];
+        }else{
+            $requestData["price"] = $autopart->sale_price;
+        }
+
+        logger(["REQUEST"=>$requestData]);
+
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer '.$autopart->storeMl->access_token,
+        ])->post('https://api.mercadolibre.com/items', $requestData);
 
         if($response->successful()){
             $autopartMl = $response->object();
@@ -934,12 +1205,6 @@ class ApiMl
                                 "value_name" => $autopart->origin ? $autopart->origin->name : null
                             ];
                             break;
-                        // case "SELLER_SKU":
-                        //     $attributesArray[] = [
-                        //         "id" => $attribute,
-                        //         "value_name" => $autopart->id
-                        //     ];
-                        //     break;
                         case "SIDE":
                             $attributesArray[] = [
                                 "id" => $attribute,
@@ -977,10 +1242,6 @@ class ApiMl
             $status = 'active';
         }
 
-        if($response->autopart->available_quantity = 0){
-            $stock = 1;
-        }
-
         $images = [];
         if (count($autopart->images) > 0) {
             $sortedImages = $autopart->images->sortBy('order')->take(10);
@@ -993,7 +1254,7 @@ class ApiMl
             };
         }
 
-        foreach ($variationsArray as $variation) {
+        foreach ($variationsArray as $key => $variation) {
             if (is_array($variation['attribute_combinations'])) { 
                 foreach ($variation['attribute_combinations'] as $combination) {
                     if ($combination->id === 'SIDE_POSITION') {
@@ -1004,6 +1265,10 @@ class ApiMl
                         }
                     }
                 }
+            }
+
+            if ($response->autopart->available_quantity < 1 && $status === "active") {
+                $variationsArray[$key]["available_quantity"] = 1;
             }
         }
 
@@ -1018,12 +1283,28 @@ class ApiMl
             "attributes" => $attributesList
         ];
 
+        
+
         if (empty($response->autopart->variations)) {
             $requestData["price"] = $autopart->sale_price;
+
+            if($response->autopart->available_quantity < 1 && $status === "active"){
+                $requestData["available_quantity"] = 1;
+            }
         }
         if ($response->autopart->sold_quantity < 1) {
             $requestData["title"] = substr($autopart->name, 0, 60);
             $requestData["variations"] = $variationsArray;
+        }elseif (!empty($response->autopart->variations) || ($response->autopart->available_quantity < 1 && $status === "active")) {
+            $requestData["variations"] = $variationsArray;
+        }
+
+        if ($response->autopart->sold_quantity > 0) {
+            $filteredAttributes = array_filter($requestData["attributes"], function ($attribute) {
+                return !($attribute['id'] === "ITEM_CONDITION");
+            });
+
+            $requestData["attributes"] = array_values($filteredAttributes); // Reindexar el array si es necesario
         }
 
         $response = Http::withHeaders([
@@ -1044,7 +1325,7 @@ class ApiMl
                 }
             }
 
-            if($autopart->description !== null){
+            if($autopart->description !== null && $status !== "closed"){
                 self::updateDescription($autopart,true);
             }
 
@@ -1057,14 +1338,15 @@ class ApiMl
 
             logger(["Do not update autopart in Mercadolibre" => $response->object(), "autopart" => $autopart->id]);
             $response = $response->object();
-            $messages = [];
+            // $messages = [];
 
-            foreach ($response->cause as $cause) {
-                $messages[] = $cause->message;
-            }
+            // foreach ($response->cause as $cause) {
+            //     $messages[] = $cause->message;
+            // }
 
             $channel = env('TELEGRAM_CHAT_LOG');
-            $content = "*Do not update autopart in Mercadolibre:* ".$autopart->id."\n".implode("\n", $messages);
+            //$content = "*Do not update autopart in Mercadolibre:* ".$autopart->id."\n".implode("\n", $messages);
+            $content = "*Do not update autopart in Mercadolibre:* ".$autopart->id;
             $user = User::find(38);
             $user->notify(new AutopartNotification($channel, $content));
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Http;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Image;
@@ -42,6 +43,8 @@ class AutopartImageController extends Controller
         $url = Storage::putFile('autoparts/'.$request->id.'/images', $request->file('file'));
         $img = pathinfo($url);
 
+        $autopart = Autopart::where('id',$request->id)->first();
+
         $thumb = Image::make($request->file('file'));
         $thumb->resize(400, 400, function ($constraint) {
             $constraint->aspectRatio();
@@ -60,11 +63,46 @@ class AutopartImageController extends Controller
             $order = 0;
         }
 
-        return AutopartImage::create([
+        $newImage = AutopartImage::create([
             'basename' => $img['basename'],
             'order' => $order,
             'autopart_id' => $request->id
         ]);
+
+        if($autopart->ml_id){
+            $images = AutopartImage::where('autopart_id', $request->id)->get();
+
+            $imgs = [];
+            if (count($images) > 0) {
+                $sortedImages = $images->sortBy('order')->take(10);
+                foreach ($sortedImages as $value) {
+                    if (isset($value['img_ml_id'])) {
+                        array_push($imgs, ['id' => $value['img_ml_id']]);
+                    }else{
+                        array_push($imgs, ['source' => $value['url']]);
+                    }
+                };
+            }
+    
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer '.$autopart->storeMl->access_token,
+            ])->put('https://api.mercadolibre.com/items/'. $autopart->ml_id, [
+                "pictures" => $imgs
+            ]);
+
+            $autopartMl = $response->object();
+            if(count($autopartMl->pictures) > 0){
+                foreach ($autopartMl->pictures as $key => $imageMl) {
+                    $img = AutopartImage::where('autopart_id', $autopart->id)->where('order',$key)->first();
+                    if(isset($img) && !isset($img->img_ml_id)){
+                        $img->img_ml_id = $imageMl->id;
+                        $img->save();
+                    } 
+                }
+            }
+        }
+
+        return $newImage;
     }
 
     public function destroyTemp (Request $request)
@@ -101,6 +139,39 @@ class AutopartImageController extends Controller
                         ->update(['order' => $key]);
         }
 
+        if($autopart->ml_id){
+            $images = AutopartImage::where('autopart_id', $autopart->id)->get();
+
+            $imgs = [];
+            if (count($images) > 0) {
+                $sortedImages = $images->sortBy('order')->take(10);
+                foreach ($sortedImages as $value) {
+                    if (isset($value['img_ml_id'])) {
+                        array_push($imgs, ['id' => $value['img_ml_id']]);
+                    }else{
+                        array_push($imgs, ['source' => $value['url']]);
+                    }
+                };
+            }
+    
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer '.$autopart->storeMl->access_token,
+            ])->put('https://api.mercadolibre.com/items/'. $autopart->ml_id, [
+                "pictures" => $imgs
+            ]);
+
+            $autopartMl = $response->object();
+            if(count($autopartMl->pictures) > 0){
+                foreach ($autopartMl->pictures as $key => $imageMl) {
+                    $img = AutopartImage::where('autopart_id', $autopart->id)->where('order',$key)->first();
+                    if(isset($img) && !isset($img->img_ml_id)){
+                        $img->img_ml_id = $imageMl->id;
+                        $img->save();
+                    } 
+                }
+            }
+        }
+
         return true;
     }
 
@@ -110,6 +181,41 @@ class AutopartImageController extends Controller
             AutopartImage::where('id', $value['id'])
                         ->where('autopart_id', $value['autopart_id'])
                         ->update(['order' => $key]);
+        }
+
+        $autopart = Autopart::where('id',$request->autopart_id)->first();
+
+        if($autopart->ml_id){
+            $images = AutopartImage::where('autopart_id', $request->autopart_id)->get();
+
+            $imgs = [];
+            if (count($images) > 0) {
+                $sortedImages = $images->sortBy('order')->take(10);
+                foreach ($sortedImages as $value) {
+                    if (isset($value['img_ml_id'])) {
+                        array_push($imgs, ['id' => $value['img_ml_id']]);
+                    }else{
+                        array_push($imgs, ['source' => $value['url']]);
+                    }
+                };
+            }
+    
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer '.$autopart->storeMl->access_token,
+            ])->put('https://api.mercadolibre.com/items/'. $autopart->ml_id, [
+                "pictures" => $imgs
+            ]);
+
+            $autopartMl = $response->object();
+            if(count($autopartMl->pictures) > 0){
+                foreach ($autopartMl->pictures as $key => $imageMl) {
+                    $img = AutopartImage::where('autopart_id', $autopart->id)->where('order',$key)->first();
+                    if(isset($img) && !isset($img->img_ml_id)){
+                        $img->img_ml_id = $imageMl->id;
+                        $img->save();
+                    } 
+                }
+            }
         }
 
         return true;

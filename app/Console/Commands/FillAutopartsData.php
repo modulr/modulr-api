@@ -19,7 +19,7 @@ class FillAutopartsData extends Command
      *
      * @var string
      */
-    protected $signature = 'app:fill-autoparts-data {--skip=0} {--limit=50} {--store_ml=1}';
+    protected $signature = 'app:fill-autoparts-data {--skip=0} {--limit=50} {--store_ml=1} {--category_id=1}';
 
     /**
      * The console command description.
@@ -37,11 +37,12 @@ class FillAutopartsData extends Command
         $skip = $this->option('skip');
         $limit = $this->option('limit');
         $store_ml = $this->option('store_ml');
+        $category_id = $this->option('category_id');
 
         // $this->fillImagesIdMl($skip,$limit);
 
         // // Mostrar las opciones al usuario
-        $options = ['Descripcion', 'Lado', 'Posicion', 'Numero_Parte', 'Anios', 'Orden_Anios', 'Imagenes', 'Condicion', 'Ubicacion', 'Crear_Ubicaciones', 'update_locations','Activar_Autopartes'];
+        $options = ['Descripcion', 'Lado', 'Posicion', 'Numero_Parte', 'Anios', 'Orden_Anios', 'Imagenes', 'Condicion', 'Ubicacion', 'Crear_Ubicaciones', 'update_locations','Activar_Autopartes','Pausar_Autopartes'];
         $question = new ChoiceQuestion('Elige una opción para editar autopartes:', $options);
         $question->setErrorMessage('Opción inválida.');
 
@@ -86,6 +87,9 @@ class FillAutopartsData extends Command
             case 'Activar_Autopartes':
                 $this->activeAutoparts($store_ml);
                 break;
+                case 'Pausar_Autopartes':
+                    $this->pauseAutoparts($store_ml,$category_id,$limit);
+                    break;
             default:
                 $this->info('Opción no reconocida.');
                 break;
@@ -684,5 +688,51 @@ class FillAutopartsData extends Command
 
         $this->output->writeln('');
         $this->info('Reactivar autopartes terminado.');
+    }
+
+    private function pauseAutoparts($store_ml,$category_id,$limit)
+    {
+        $store = DB::table('stores_ml')->where('id', '=', $store_ml)->first();
+
+        $autoparts = DB::table('autoparts')
+            ->select('id', 'ml_id', 'name', 'make_id', 'location_id','status_id')
+            // ->selectRaw("CASE WHEN category_id = $category_id THEN 'Moldura' ELSE NULL END AS Categoría")
+            // ->where('category_id', $category_id)
+            ->where('store_id', 1)
+            ->where('status_id', 5)
+            ->where('store_ml_id', $store_ml)
+            ->whereNull('location_id')
+            ->orderBy('make_id')
+            ->limit($limit)
+            ->get();
+        
+        if($autoparts->count() > 0){
+            $bar = $this->output->createProgressBar(count($autoparts));
+
+            $bar->start();
+    
+            foreach ($autoparts as $key => $aut) {
+
+                $autopart = Http::withHeaders([
+                    'Authorization' => 'Bearer '.$store->access_token,
+                ])->put('https://api.mercadolibre.com/items/'.$aut->ml_id, [
+                    "status" => 'paused'
+                ]);
+
+                if($autopart->successful()){
+                    DB::table('autoparts')
+                    ->where('id', $aut->id)
+                    ->update(['status_id' => 3]);
+                }
+    
+                $bar->advance();
+            }
+
+            $bar->finish();
+        }
+        
+
+        $this->output->writeln('');
+        $this->info('Pausar autopartes terminado.');
     }
 }
