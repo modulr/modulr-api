@@ -749,6 +749,7 @@ class FillAutopartsData extends Command
             ->whereNotNull('ml_id')
             ->whereNull('deleted_at')
             ->orderBy('id', 'desc')
+            ->skip($skip)
             ->limit($limit)
             ->get();
         
