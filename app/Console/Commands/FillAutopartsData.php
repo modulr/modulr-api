@@ -91,7 +91,7 @@ class FillAutopartsData extends Command
                 $this->pauseAutoparts($store_ml,$category_id,$limit);
                 break;
             case 'Obtener_Estatus_ML':
-                $this->getMlStatus($store_ml,$limit);
+                $this->getMlStatus($store_ml,$skip,$limit);
                 break;
             default:
                 $this->info('Opción no reconocida.');
@@ -739,7 +739,7 @@ class FillAutopartsData extends Command
         $this->info('Pausar autopartes terminado.');
     }
 
-    private function getMlStatus($store_ml,$limit)
+    private function getMlStatus($store_ml,$skip,$limit)
     {
         $store = DB::table('stores_ml')->where('id', '=', $store_ml)->first();
 
