@@ -135,7 +135,6 @@ class AutopartController extends Controller
                     $subQuery->orWhere('autoparts.name', 'like', '%' . $keyword . '%')
                         ->orWhere('autoparts.id', 'like', '%' . $keyword . '%')
                         ->orWhere('autoparts.description', 'like', '%' . $keyword . '%')
-                        ->orWhere('autoparts.ml_id', 'like', '%' . $keyword . '%')
                         ->orWhere('autoparts.autopart_number', 'like', '%' . $keyword . '%')
                         ->orWhere(function ($subSubQuery) use ($keyword) {
                             $subSubQuery->whereJsonContains('autoparts.years', $keyword);
@@ -161,6 +160,10 @@ class AutopartController extends Controller
                                     ->whereJsonContains('variants', $keyword);
                             });
                         });
+
+                    if (strlen($keyword) > 4) {
+                        $subQuery->orWhere('autoparts.ml_id', 'like', '%' . $keyword . '%');
+                    }
                 });
             }
         }
@@ -317,7 +320,6 @@ class AutopartController extends Controller
                     $subQuery->orWhere('autoparts.name', 'like', '%' . $keyword . '%')
                         ->orWhere('autoparts.id', 'like', '%' . $keyword . '%')
                         ->orWhere('autoparts.description', 'like', '%' . $keyword . '%')
-                        ->orWhere('autoparts.ml_id', 'like', '%' . $keyword . '%')
                         ->orWhere('autoparts.autopart_number', 'like', '%' . $keyword . '%')
                         ->orWhere(function ($subSubQuery) use ($keyword) {
                             $subSubQuery->whereJsonContains('autoparts.years', $keyword);
@@ -343,6 +345,10 @@ class AutopartController extends Controller
                                     ->whereJsonContains('variants', $keyword);
                             });
                         });
+        
+                    if (strlen($keyword) > 4) {
+                        $subQuery->orWhere('autoparts.ml_id', 'like', '%' . $keyword . '%');
+                    }
                 });
             }
         }
@@ -498,7 +504,6 @@ class AutopartController extends Controller
                     $subQuery->orWhere('autoparts.name', 'like', '%' . $keyword . '%')
                         ->orWhere('autoparts.id', 'like', '%' . $keyword . '%')
                         ->orWhere('autoparts.description', 'like', '%' . $keyword . '%')
-                        ->orWhere('autoparts.ml_id', 'like', '%' . $keyword . '%')
                         ->orWhere('autoparts.autopart_number', 'like', '%' . $keyword . '%')
                         ->orWhere(function ($subSubQuery) use ($keyword) {
                             $subSubQuery->whereJsonContains('autoparts.years', $keyword);
@@ -524,6 +529,10 @@ class AutopartController extends Controller
                                     ->whereJsonContains('variants', $keyword);
                             });
                         });
+
+                    if (strlen($keyword) > 4) {
+                        $subQuery->orWhere('autoparts.ml_id', 'like', '%' . $keyword . '%');
+                    }
                 });
             }
         }
