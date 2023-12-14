@@ -746,6 +746,8 @@ class FillAutopartsData extends Command
         $autoparts = DB::table('autoparts')
             ->where('status_id', 1)
             ->where('store_ml_id', $store_ml)
+            ->whereNotNull('ml_id')
+            ->whereNull('deleted_at')
             ->orderBy('id', 'desc')
             ->limit($limit)
             ->get();
