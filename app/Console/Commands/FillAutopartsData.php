@@ -701,8 +701,6 @@ class FillAutopartsData extends Command
             ->select('id', 'ml_id', 'name', 'make_id', 'location_id','status_id')
             // ->selectRaw("CASE WHEN category_id = $category_id THEN 'Moldura' ELSE NULL END AS Categoría")
             // ->where('category_id', $category_id)
-            ->where('store_id', 1)
-            ->where('status_id', 5)
             ->where('store_ml_id', $store_ml)
             ->whereNull('location_id')
             ->orderBy('make_id')
