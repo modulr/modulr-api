@@ -816,6 +816,7 @@ class ApiMl
                 $brakeLightValue = null;
             }
 
+            $sideName = null;
             if($autopart->side){
                 if ($autopart->side->name === "Izquierda") {
                     $sideName = "Izquierdo";
@@ -827,6 +828,7 @@ class ApiMl
                 }
             }
 
+            $positionName = null;
             if($autopart->position){
                 if ($autopart->position->name === "Delantera") {
                     $positionName = "Delantero";
