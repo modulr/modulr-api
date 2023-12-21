@@ -702,7 +702,7 @@ class ApiMl
             if ($value == 'x-trail' || $value == 'x-terra' || $value == 's-type' || $value == 'cx-3' || $value == 'cx-5' || $value == 'cx-7' || $value == 'cx-9' || $value == 'cx-30' || $value == 's-40' || $value == 'v-40' || $value == 'cr-v' || $value == 'rav-4' || $value == 'xc-60') {
                 $nameArray[$key] = str_replace('-', '', $value);
             } else
-            if ($value == 'cooper' || $value == 'blazer' || $value == 'hundred' || $value == 'romeo') {
+            if ($value == 'hundred' || $value == 'romeo') {
                 $nameArray[$key] = $before.' '.$value;
             } else
             if ($value == 'john') {
