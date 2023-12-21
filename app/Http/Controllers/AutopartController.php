@@ -783,7 +783,7 @@ class AutopartController extends Controller
         $autopart->store_ml_id = $request->store_ml_id;
         $autopart->bulb_pos_id = $request->bulb_pos_id;
         $autopart->bulb_tech_id = $request->bulb_tech_id;
-        $autopart->shipping_type_id = $request->shipping_type_id;
+        $autopart->shipping_type_id = $request->shipping_type_id ? $request->shipping_type_id : $autopart->shipping_type_id;
         $autopart->includes_mirror = $request->includes_mirror;
         $autopart->updated_by = $request->user()->id;
         $autopart->save();
