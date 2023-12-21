@@ -794,6 +794,11 @@ class AutopartController extends Controller
 
         if ($changeStore) {
             $sync = ApiMl::createAutopart($autopart);
+
+            if(!$sync){
+                $autopart->store_ml_id = null;
+                $autopart->save();
+            }
         } else if ($request->ml_id) {
             $response = ApiMl::getAutopart($autopart);
             if ($response->response) {
