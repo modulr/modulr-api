@@ -717,6 +717,14 @@ class AutopartController extends Controller
             'name' => 'required|string',
         ]);
 
+        $user = $request->user();
+        $supervisor = false;
+        if (count($user->roles) > 0) {
+            if ($user->roles[0]->role_id == 5) {
+                $supervisor = true;
+            }
+        }
+
         $autopart = Autopart::find($request->id);
         
         //Validar cambio ubicacion
@@ -792,22 +800,24 @@ class AutopartController extends Controller
         $autopart->bulb_pos = $request->bulb_pos;
         $autopart->bulb_tech = $request->bulb_tech;
 
-        if ($changeStore) {
-            $sync = ApiMl::createAutopart($autopart);
-
-            if(!$sync){
-                $autopart->store_ml_id = null;
-                $autopart->save();
-            }
-        } else if ($request->ml_id) {
-            $response = ApiMl::getAutopart($autopart);
-            if ($response->response) {
-                $sync = ApiMl::updateAutopart($autopart);
+        if(!$supervisor){
+            if ($changeStore) {
+                $sync = ApiMl::createAutopart($autopart);
+    
+                if(!$sync){
+                    $autopart->store_ml_id = null;
+                    $autopart->save();
+                }
+            } else if ($request->ml_id) {
+                $response = ApiMl::getAutopart($autopart);
+                if ($response->response) {
+                    $sync = ApiMl::updateAutopart($autopart);
+                } else {
+                    $sync = false;
+                }
             } else {
                 $sync = false;
             }
-        } else {
-            $sync = false;
         }
 
         AutopartActivity::create([
