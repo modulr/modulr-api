@@ -22,6 +22,7 @@ use App\Http\Controllers\AutopartCommentController;
 use App\Http\Controllers\BulbPositionController;
 use App\Http\Controllers\BulbTechController;
 use App\Http\Controllers\ShippingTypeController;
+use App\Http\Controllers\TeikerController;
 
 /*
 |--------------------------------------------------------------------------
@@ -100,3 +101,6 @@ Route::get('locations/{store_id}/{id}', [LocationsController::class, 'qr']);
 // Mercado libre
 Route::get('/ml/auth', [MlController::class, 'auth']);
 Route::post('/ml/notifications', [MlController::class, 'notifications']);
+
+// Teiker
+Route::post('/teiker/quotation', [TeikerController::class, 'quotation']);
