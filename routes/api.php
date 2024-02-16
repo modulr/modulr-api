@@ -22,6 +22,7 @@ use App\Http\Controllers\AutopartCommentController;
 use App\Http\Controllers\BulbPositionController;
 use App\Http\Controllers\BulbTechController;
 use App\Http\Controllers\ShippingTypeController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\TeikerController;
 
 /*
@@ -102,5 +103,10 @@ Route::get('locations/{store_id}/{id}', [LocationsController::class, 'qr']);
 Route::get('/ml/auth', [MlController::class, 'auth']);
 Route::post('/ml/notifications', [MlController::class, 'notifications']);
 
+// Conekta
+Route::get('orders/checkout', [OrderController::class, 'checkout']);
+Route::get('orders/get', [OrderController::class, 'getOrders']);
+Route::get('orders/create', [OrderController::class, 'createOrder']);
+Route::get('orders/{id}', [OrderController::class, 'getOrder']);
 // Teiker
 Route::post('/teiker/quotation', [TeikerController::class, 'quotation']);
