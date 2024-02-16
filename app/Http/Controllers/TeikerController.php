@@ -3,13 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\DB;
-
-use App\Notifications\AutopartNotification;
-
-use App\Models\User;
 
 class TeikerController extends Controller
 {
@@ -23,7 +17,7 @@ class TeikerController extends Controller
         ])->post('https://dev.tecc.app/teiker_v2/public/api/CotizarEnvio', [
             'User' => '3994967872',
             'Password' => '2UObs5rq9KYrgbNwdD',
-            'CPOrigen' => '64530',
+            'CPOrigen' => '64000',
             'CPDestino' => $request->cp,
             'Paquetes' => [
                 [
@@ -48,6 +42,7 @@ class TeikerController extends Controller
             logger(["Response" => $response->object()]);
             return $response->object();
         } else {
+            logger(["Response" => $response->status()]);
             return false;
         }
 
